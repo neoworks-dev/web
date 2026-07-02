@@ -8,7 +8,8 @@
 		orgId,
 		orgName,
 		logoUrl,
-	}: { orgId: string; orgName: string; logoUrl?: string | null } = $props();
+		collapsed = false,
+	}: { orgId: string; orgName: string; logoUrl?: string | null; collapsed?: boolean } = $props();
 
 	const items = $derived([
 		{ href: `/dashboard/organizations/${orgId}/clients`, label: 'Clients', Icon: KeyIcon },
@@ -27,7 +28,10 @@
 
 <div class="flex flex-col h-full">
 	<!-- Org header -->
-	<div class="flex items-center gap-2.5 px-3 py-3 border-b border-line-faint shrink-0">
+	<div
+		class="flex items-center gap-2.5 px-3 py-3 border-b border-line-faint shrink-0"
+		class:justify-center={collapsed}
+	>
 		{#if logoUrl}
 			<img src={logoUrl} alt={orgName} class="w-8 h-8 rounded-lg object-cover border border-line-faint shrink-0" />
 		{:else}
@@ -35,7 +39,9 @@
 				{initials(orgName)}
 			</div>
 		{/if}
-		<p class="text-[13px] font-medium text-default truncate">{orgName}</p>
+		{#if !collapsed}
+			<p class="text-[13px] font-medium text-default truncate">{orgName}</p>
+		{/if}
 	</div>
 
 	<!-- Org nav -->
@@ -44,13 +50,17 @@
 			{@const active = isActive(href)}
 			<a
 				{href}
+				title={collapsed ? label : undefined}
 				class="flex items-center gap-2 h-9 px-2 rounded-md text-[13px] font-medium transition-colors duration-fast
 					{active ? 'bg-raised text-default' : 'text-muted hover:bg-hover hover:text-default'}"
+				class:justify-center={collapsed}
 			>
 				<span class="flex shrink-0 w-5 h-5 items-center justify-center">
 					<Icon size={17} weight={active ? 'fill' : 'regular'} />
 				</span>
-				{label}
+				{#if !collapsed}
+					{label}
+				{/if}
 			</a>
 		{/each}
 	</nav>

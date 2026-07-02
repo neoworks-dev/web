@@ -115,8 +115,10 @@
 			{#each members as member (member.user_id)}
 				<div class="flex items-center justify-between rounded-lg border border-line-faint bg-surface px-4 py-3">
 					<div class="min-w-0">
-						<p class="text-[13px] font-mono text-default truncate">{member.user_id}</p>
-						<p class="text-[12px] text-dim capitalize">{member.role}</p>
+						<p class="text-[13px] font-medium text-default truncate">{member.name || member.email || member.user_id}</p>
+						<p class="text-[12px] text-dim capitalize">
+							{member.role}{#if member.name && member.email} · <span class="normal-case">{member.email}</span>{/if}
+						</p>
 					</div>
 					{#if member.role !== 'owner'}
 						<button class="flex items-center gap-1.5 h-7 px-2.5 rounded text-[12px] text-dim hover:text-red hover:bg-red-soft transition-colors" onclick={() => remove(member)}>
