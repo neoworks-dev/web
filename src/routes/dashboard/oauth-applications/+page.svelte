@@ -8,7 +8,6 @@
 	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
 	import AppWindowIcon from 'phosphor-svelte/lib/AppWindowIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
-	import LockIcon from 'phosphor-svelte/lib/LockIcon';
 	import GlobeIcon from 'phosphor-svelte/lib/GlobeIcon';
 	import PageHeader from '$lib/components/dashboard/PageHeader.svelte';
 	import WidgetCard from '$lib/components/dashboard/WidgetCard.svelte';
@@ -24,7 +23,6 @@
 	let formId = $state('');
 	let formOrganizationId = $state('');
 	let formPublic = $state(false);
-	let formAutoGrant = $state(false);
 	let formScopes = $state('');
 	let formRedirectUris = $state('');
 
@@ -40,18 +38,22 @@
 	// Delete confirm
 	let deletingId = $state<string | null>(null);
 
-	sdk.clients.list().then(res => {
-		clients = res;
-		loading = false;
-	}).catch(e => {
-		error = e?.message ?? 'Failed to load clients';
-		loading = false;
-	});
-
-	sdk.organizations.list().then(res => {
-		organizations = res;
-		if (!formOrganizationId && res.length > 0) formOrganizationId = res[0].id;
-	}).catch(() => {});
+	// Clients are owned by organizations; aggregate across the orgs the user
+	// belongs to rather than listing every client in the system.
+	async function loadClients() {
+		try {
+			const orgs = await sdk.organizations.list();
+			organizations = orgs;
+			if (!formOrganizationId && orgs.length > 0) formOrganizationId = orgs[0].id;
+			const perOrg = await Promise.all(orgs.map((org) => sdk.clients.list(org.id)));
+			clients = perOrg.flat();
+		} catch (e: any) {
+			error = e?.message ?? 'Failed to load clients';
+		} finally {
+			loading = false;
+		}
+	}
+	loadClients();
 
 	async function createClient() {
 		if (!formId.trim()) { createError = 'Client ID is required'; return; }
@@ -70,7 +72,6 @@
 				redirectUris,
 				scopes,
 				public: formPublic,
-				autoGrant: formAutoGrant,
 			});
 			clients = [...clients, res.client];
 			newCredentials = res;
@@ -97,7 +98,6 @@
 		formId = '';
 		formOrganizationId = organizations.length > 0 ? organizations[0].id : '';
 		formPublic = false;
-		formAutoGrant = false;
 		formScopes = '';
 		formRedirectUris = '';
 		createError = null;
@@ -269,13 +269,6 @@
 						<span class="text-[13px] text-default flex items-center gap-1.5">
 							<GlobeIcon size={14} class="text-dim" />
 							Public client
-						</span>
-					</label>
-					<label class="flex items-center gap-2 cursor-pointer select-none">
-						<input type="checkbox" bind:checked={formAutoGrant} class="rounded" />
-						<span class="text-[13px] text-default flex items-center gap-1.5">
-							<LockIcon size={14} class="text-dim" />
-							Auto-grant scopes
 						</span>
 					</label>
 				</div>

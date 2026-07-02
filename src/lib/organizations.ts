@@ -6,16 +6,15 @@ export interface InviteDraft {
 	role: string;
 }
 
-export interface OrgWizardState {
+export interface OrgDetails {
 	name: string;
 	slug: string;
 	description: string;
 	billingEmail: string;
-	invites: InviteDraft[];
 }
 
-export function emptyWizardState(): OrgWizardState {
-	return { name: '', slug: '', description: '', billingEmail: '', invites: [] };
+export function emptyOrgDetails(): OrgDetails {
+	return { name: '', slug: '', description: '', billingEmail: '' };
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -26,7 +25,7 @@ export function isValidEmail(email: string): boolean {
 
 /** Maps wizard state to the SDK create payload. Name, slug, description and
  *  billing email are all required and validated before this is called. */
-export function buildCreateArgs(state: OrgWizardState): CreateOrganizationArgs {
+export function buildCreateArgs(state: OrgDetails): CreateOrganizationArgs {
 	const slug = state.slug.trim() || slugify(state.name);
 	return {
 		name: state.name.trim(),

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { sdk } from '$lib/sdk';
-	import CreateOrganizationWizard from '$lib/components/organizations/CreateOrganizationWizard.svelte';
 	import PageHeader from '$lib/components/dashboard/PageHeader.svelte';
 	import WidgetCard from '$lib/components/dashboard/WidgetCard.svelte';
 	import type { Organization } from '@neoworks-dev/sdk';
@@ -12,7 +11,6 @@
 	let organizations = $state<Organization[]>([]);
 	let loading = $state(true);
 	let error = $state<string | null>(null);
-	let showWizard = $state(false);
 
 	sdk.organizations
 		.list()
@@ -27,12 +25,6 @@
 
 	function open(org: Organization) {
 		goto(`/dashboard/organizations/${org.id}/clients`);
-	}
-
-	function onCreated(org: Organization) {
-		organizations = [...organizations, org];
-		showWizard = false;
-		open(org);
 	}
 
 	function initials(name: string): string {
@@ -54,7 +46,7 @@
 		{#snippet actions()}
 			<button
 				class="flex items-center gap-2 h-9 px-4 rounded-lg bg-primary text-primary-content text-[13px] font-medium hover:opacity-90 transition-opacity"
-				onclick={() => (showWizard = true)}
+				onclick={() => goto('/dashboard/organizations/new')}
 			>
 				<PlusIcon size={15} />
 				New organization
@@ -106,7 +98,3 @@
 		</div>
 	</WidgetCard>
 </div>
-
-{#if showWizard}
-	<CreateOrganizationWizard oncancel={() => (showWizard = false)} oncreated={onCreated} />
-{/if}
