@@ -1,0 +1,27 @@
+---
+title: Sync & data
+description: How Muse boards persist to your NeoWorks account and stay in sync across devices.
+---
+
+Muse has no database of its own. Boards, objects, and folders are written straight to your
+NeoWorks account through the platform data plane, so the same content is available on every
+device you sign in from.
+
+## Two kinds of data
+
+Muse splits what it stores the same way the platform does:
+
+- **Structured** — board layout, object positions, folders. Queryable, so Muse can load only
+  the board you open. Lives in the [OpenSchema layer](/docs/neoworks/openschema).
+- **Media** — images and other uploaded blobs. [Encrypted end-to-end](/docs/neoworks/storage)
+  with keys only you hold; Muse uploads and fetches them through the NeoWorks Vault.
+
+## Authentication
+
+Muse signs in with the standard NeoWorks [OAuth](/docs/neoworks/oauth) flow and requests scopes
+for the board schemas plus media storage. Tokens are short-lived and refreshed transparently.
+
+## Real-time
+
+Edits publish to the same real-time event stream the platform uses, so a board open on two
+devices converges without a manual refresh.

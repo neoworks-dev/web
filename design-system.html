@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neoworks Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   NEOWORKS DESIGN SYSTEM — LIGHT THEME
+   Foundation tokens + component reference
+   
+   USAGE RULE: Every app uses only base tokens + its own accent.
+   No app should reference another app's accent color.
+═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Type scale ──────────────────────────────── */
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 15px;
+  --text-md:   17px;
+  --text-lg:   20px;
+  --text-xl:   24px;
+  --text-2xl:  30px;
+  --text-3xl:  38px;
+  --text-4xl:  48px;
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semibold:600;
+  --weight-bold:    700;
+
+  --leading-tight:  1.2;
+  --leading-snug:   1.4;
+  --leading-normal: 1.6;
+  --leading-loose:  1.8;
+  --leading-prose:  1.75;
+
+  /* ── Base backgrounds ─────────────────────────
+     Warm tint — a tiny amount of warmth prevents
+     the clinical feel of pure cool-gray or pure white.
+     Use page as the document background.
+     Use surface for cards, panels, dialogs.
+     Use subtle for inputs, secondary areas.
+     Use muted for hover states, dividers.
+  ──────────────────────────────────────────────── */
+  --bg-page:    #F8F7F4;
+  --bg-surface: #FFFFFF;
+  --bg-subtle:  #F3F1ED;
+  --bg-muted:   #EAE8E3;
+  --bg-overlay: #E1DED8;
+
+  /* ── Text ─────────────────────────────────────
+     Warm near-black, not harsh pure black.
+     primary: body copy, headings
+     secondary: labels, metadata, captions
+     muted: placeholders, hints, disabled labels
+     inverted: white text on dark/accent backgrounds
+  ──────────────────────────────────────────────── */
+  --text-primary:   #1C1B18;
+  --text-secondary: #57534E;
+  --text-muted:     #9C9590;
+  --text-disabled:  #C9C5C0;
+  --text-inverted:  #FFFFFF;
+
+  /* ── Borders ──────────────────────────────────
+     subtle: very faint dividers, hairlines
+     base: default borders on cards/inputs
+     strong: hover state, emphasis
+     focus: focus ring (accessibility critical)
+  ──────────────────────────────────────────────── */
+  --border-subtle: #EDEAE4;
+  --border-base:   #E0DDD7;
+  --border-strong: #C9C6BF;
+  --border-focus:  #1C1B18;
+
+  /* ── Spacing ──────────────────────────────────
+     4px base unit. Never go below 4px.
+  ──────────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ── Radius ───────────────────────────────────
+     sm: badges, pills, tight elements
+     md: buttons, inputs, small cards
+     lg: cards, panels, modals
+     xl: large cards, hero elements
+     full: avatars, toggles, indicators
+  ──────────────────────────────────────────────── */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-2xl:  20px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ──────────────────────────────────
+     Minimal — light themes use very light shadows.
+     Use raised for interactive elements that lift.
+     Use overlay for dialogs, popovers.
+  ──────────────────────────────────────────────── */
+  --shadow-sm:      0 1px 2px rgba(28,27,24,0.05);
+  --shadow-base:    0 1px 3px rgba(28,27,24,0.07), 0 1px 2px rgba(28,27,24,0.04);
+  --shadow-raised:  0 4px 6px rgba(28,27,24,0.06), 0 1px 3px rgba(28,27,24,0.04);
+  --shadow-overlay: 0 20px 40px rgba(28,27,24,0.12), 0 8px 16px rgba(28,27,24,0.06);
+  --shadow-focus:   0 0 0 3px rgba(28,27,24,0.12);
+
+  /* ── Status colors ────────────────────────────
+     Use these for system feedback only.
+     Never use these as app accent colors.
+  ──────────────────────────────────────────────── */
+  --status-success-fg:  #166534;
+  --status-success-bg:  #F0FDF4;
+  --status-success-border: #BBF7D0;
+  
+  --status-warning-fg:  #92400E;
+  --status-warning-bg:  #FFFBEB;
+  --status-warning-border: #FDE68A;
+  
+  --status-error-fg:    #991B1B;
+  --status-error-bg:    #FFF1F2;
+  --status-error-border: #FECDD3;
+  
+  --status-info-fg:     #1E3A5F;
+  --status-info-bg:     #EFF6FF;
+  --status-info-border: #BFDBFE;
+
+  /* ════════════════════════════════════════════
+     APP ACCENT TOKENS
+     
+     RULE: Each app uses exactly ONE accent.
+     All other colors come from the base tokens above.
+     
+     Three stops per accent:
+       {app}-fg      — for text, icons on light surfaces (WCAG AA on white)
+       {app}-accent  — for buttons, fills, interactive states
+       {app}-subtle  — very light tinted background (badge fills, hover tints)
+       {app}-border  — border color for accented elements
+  ════════════════════════════════════════════ */
+
+  /* NeoWorks (platform chrome, nav, cross-app elements) */
+  --neoworks-fg:     #1C1B18;
+  --neoworks-accent: #292623;
+  --neoworks-subtle: #F3F1ED;
+  --neoworks-border: #C9C6BF;
+
+  /* Grove — file sync & version history */
+  --grove-fg:     #14532D;
+  --grove-accent: #15803D;
+  --grove-subtle: #F0FDF4;
+  --grove-border: #BBF7D0;
+
+  /* Vault — password & secrets manager */
+  --vault-fg:     #881337;
+  --vault-accent: #BE123C;
+  --vault-subtle: #FFF1F2;
+  --vault-border: #FECDD3;
+
+  /* Vine — contacts & relationships */
+  --vine-fg:     #4C1D95;
+  --vine-accent: #6D28D9;
+  --vine-subtle: #F5F3FF;
+  --vine-border: #DDD6FE;
+
+  /* Tide — calendar & time */
+  --tide-fg:     #164E63;
+  --tide-accent: #0E7490;
+  --tide-subtle: #ECFEFF;
+  --tide-border: #A5F3FC;
+
+  /* Twig — tasks & projects */
+  --twig-fg:     #3F6212;
+  --twig-accent: #4D7C0F;
+  --twig-subtle: #F7FEE7;
+  --twig-border: #D9F99D;
+
+  /* Relay — messaging */
+  --relay-fg:     #9A3412;
+  --relay-accent: #C2410C;
+  --relay-subtle: #FFF7ED;
+  --relay-border: #FED7AA;
+
+  /* Trail — notes & exploration */
+  --trail-fg:     #78350F;
+  --trail-accent: #B45309;
+  --trail-subtle: #FFFBEB;
+  --trail-border: #FDE68A;
+}
+
+/* ── Reset & base ──────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--radius-full); }
+
+/* ── Layout ────────────────────────────────────── */
+.ds-shell { display: flex; min-height: 100vh; }
+
+.ds-nav {
+  width: 220px;
+  min-height: 100vh;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-base);
+  padding: var(--space-8) 0;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.ds-nav-logo {
+  padding: 0 var(--space-6) var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: var(--space-4);
+}
+.ds-nav-logo-mark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.ds-nav-logo-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--text-primary);
+  border-radius: var(--radius-full);
+}
+.ds-nav-section {
+  padding: var(--space-3) var(--space-6) var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.ds-nav-link {
+  display: block;
+  padding: var(--space-2) var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 0;
+  transition: color 0.12s, background 0.12s;
+  border-left: 2px solid transparent;
+}
+.ds-nav-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-subtle);
+}
+.ds-nav-link.active {
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+  border-left-color: var(--text-primary);
+  background: var(--bg-subtle);
+}
+
+.ds-main {
+  flex: 1;
+  padding: var(--space-12) var(--space-16);
+  max-width: 960px;
+}
+
+.ds-section {
+  display: none;
+  animation: fadeIn 0.18s ease;
+}
+.ds-section.active { display: block; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Typography in docs ────────────────────────── */
+.ds-page-title {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-4);
+}
+.ds-page-subtitle {
+  font-size: var(--text-md);
+  color: var(--text-secondary);
+  line-height: var(--leading-prose);
+  max-width: 600px;
+  margin-bottom: var(--space-12);
+}
+.ds-section-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  margin-top: var(--space-12);
+}
+.ds-section-title:first-of-type { margin-top: 0; }
+.ds-section-desc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-prose);
+  margin-bottom: var(--space-6);
+}
+.ds-divider {
+  border: none;
+  border-top: 1px solid var(--border-base);
+  margin: var(--space-12) 0;
+}
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-sm);
+  padding: 1px 5px;
+  color: var(--text-secondary);
+}
+
+/* ── Principle cards ───────────────────────────── */
+.ds-principles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-12);
+}
+.ds-principle {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+.ds-principle-num {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-3);
+}
+.ds-principle-title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+.ds-principle-body {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-prose);
+}
+
+/* ── Color swatches ───────────────────────────── */
+.ds-swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+.ds-swatch {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-base);
+}
+.ds-swatch-color {
+  height: 64px;
+  width: 100%;
+}
+.ds-swatch-meta {
+  background: var(--bg-surface);
+  padding: var(--space-3);
+}
+.ds-swatch-name {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.ds-swatch-token {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.ds-swatch-hex {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-disabled);
+}
+
+/* ── App color rows ───────────────────────────── */
+.ds-app-colors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+.ds-app-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+}
+.ds-app-row-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+.ds-app-row-info { flex: 1; min-width: 0; }
+.ds-app-row-name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+.ds-app-row-desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+.ds-app-row-swatches {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+.ds-app-row-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.ds-app-row-swatch-block {
+  width: 36px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-base);
+}
+.ds-app-row-swatch-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.ds-app-row-preview {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ds-preview-btn {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  padding: 5px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: default;
+  color: white;
+}
+.ds-preview-badge {
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+}
+.ds-preview-link {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+}
+
+/* ── Typography specimens ─────────────────────── */
+.ds-type-scale {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: var(--space-8);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.ds-type-row {
+  display: flex;
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+  gap: var(--space-6);
+  background: var(--bg-surface);
+}
+.ds-type-row:last-child { border-bottom: none; }
+.ds-type-row-meta {
+  width: 100px;
+  flex-shrink: 0;
+}
+.ds-type-row-size {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.ds-type-row-token {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-disabled);
+  margin-top: 1px;
+}
+.ds-type-row-sample { flex: 1; color: var(--text-primary); line-height: 1.3; }
+
+.ds-font-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+.ds-font-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+.ds-font-card-role {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-3);
+}
+.ds-font-card-name {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+.ds-font-card-desc {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+.ds-font-card-specimen {
+  font-size: 28px;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+/* ── Component demos ──────────────────────────── */
+.ds-comp-group {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-6);
+}
+.ds-comp-header {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--border-base);
+  background: var(--bg-subtle);
+}
+.ds-comp-header h3 {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+.ds-comp-header p {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.ds-comp-body {
+  padding: var(--space-8) var(--space-6);
+}
+.ds-comp-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.ds-comp-row:last-child { margin-bottom: 0; }
+
+/* ── The actual components (for demos) ────────── */
+
+/* Buttons */
+.nw-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-weight: var(--weight-medium);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: background 0.12s, box-shadow 0.12s, opacity 0.12s;
+  white-space: nowrap;
+}
+.nw-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.nw-btn-sm  { font-size: var(--text-xs);  padding: 5px 11px; }
+.nw-btn-md  { font-size: var(--text-sm);  padding: 7px 14px; }
+.nw-btn-lg  { font-size: var(--text-base); padding: 9px 18px; }
+
+/* Filled — uses app accent via inline style */
+.nw-btn-filled { color: white; }
+.nw-btn-filled:hover { opacity: 0.88; }
+
+/* Outlined */
+.nw-btn-outlined {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+  color: var(--text-primary);
+}
+.nw-btn-outlined:hover { background: var(--bg-subtle); }
+
+/* Ghost */
+.nw-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.nw-btn-ghost:hover { background: var(--bg-subtle); color: var(--text-primary); }
+
+/* Danger */
+.nw-btn-danger {
+  background: var(--status-error-bg);
+  color: var(--status-error-fg);
+}
+.nw-btn-danger:hover { background: #FEE2E5; }
+
+/* Disabled state */
+.nw-btn:disabled, .nw-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Inputs */
+.nw-input-wrap { display: flex; flex-direction: column; gap: var(--space-1); }
+.nw-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+.nw-input {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  width: 100%;
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  height: 36px;
+}
+.nw-input::placeholder { color: var(--text-muted); }
+.nw-input:hover { border-color: var(--border-strong); }
+.nw-input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(28,27,24,0.08);
+}
+.nw-input.error { border-color: var(--status-error-fg); }
+.nw-hint { font-size: var(--text-xs); color: var(--text-muted); }
+.nw-hint.error { color: var(--status-error-fg); }
+
+/* Cards */
+.nw-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.nw-card-padded { padding: var(--space-6); }
+
+/* Badges */
+.nw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+}
+.nw-badge-neutral {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  border-color: var(--border-base);
+}
+.nw-badge-success {
+  background: var(--status-success-bg);
+  color: var(--status-success-fg);
+  border-color: var(--status-success-border);
+}
+.nw-badge-warning {
+  background: var(--status-warning-bg);
+  color: var(--status-warning-fg);
+  border-color: var(--status-warning-border);
+}
+.nw-badge-error {
+  background: var(--status-error-bg);
+  color: var(--status-error-fg);
+  border-color: var(--status-error-border);
+}
+.nw-badge-info {
+  background: var(--status-info-bg);
+  color: var(--status-info-fg);
+  border-color: var(--status-info-border);
+}
+/* App-accented badge: use inline style for accent-specific bg/text/border */
+
+/* App navigation chip */
+.nw-app-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-base);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.nw-app-chip:hover { background: var(--bg-muted); color: var(--text-primary); }
+.nw-app-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+.nw-app-chip.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Avatar */
+.nw-avatar {
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--weight-semibold);
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.nw-avatar-sm { width: 28px; height: 28px; font-size: 11px; }
+.nw-avatar-md { width: 36px; height: 36px; font-size: 13px; }
+.nw-avatar-lg { width: 48px; height: 48px; font-size: 16px; }
+
+/* Divider with label */
+.nw-divider-labeled {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  margin: var(--space-4) 0;
+}
+.nw-divider-labeled::before,
+.nw-divider-labeled::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-base);
+}
+
+/* Toggle */
+.nw-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+.nw-toggle {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  background: var(--bg-overlay);
+  border-radius: var(--radius-full);
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.nw-toggle::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: var(--radius-full);
+  top: 3px;
+  left: 3px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s;
+}
+.nw-toggle.on { background: var(--text-primary); }
+.nw-toggle.on::after { transform: translateX(16px); }
+
+/* Select */
+.nw-select {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-md);
+  padding: 6px var(--space-3);
+  outline: none;
+  cursor: pointer;
+  height: 36px;
+  appearance: none;
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239C9590' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+.nw-select:hover { border-color: var(--border-strong); }
+.nw-select:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(28,27,24,0.08); }
+
+/* Textarea */
+.nw-textarea {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  width: 100%;
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  line-height: var(--leading-normal);
+}
+.nw-textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(28,27,24,0.08);
+}
+
+/* Checkbox */
+.nw-checkbox-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+.nw-checkbox {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--bg-surface);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nw-checkbox.checked {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+}
+.nw-checkbox.checked::after {
+  content: '';
+  width: 8px;
+  height: 5px;
+  border-left: 1.5px solid white;
+  border-bottom: 1.5px solid white;
+  transform: rotate(-45deg) translateY(-1px);
+}
+
+/* Progress */
+.nw-progress-track {
+  height: 6px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.nw-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.3s;
+}
+
+/* Table */
+.nw-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.nw-table th {
+  text-align: left;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-base);
+  background: var(--bg-subtle);
+}
+.nw-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+.nw-table tr:last-child td { border-bottom: none; }
+.nw-table tr:hover td { background: var(--bg-subtle); }
+
+/* ── App theme mockup cards ───────────────────── */
+.ds-app-mockup {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  margin-bottom: var(--space-8);
+  box-shadow: var(--shadow-base);
+}
+.ds-app-mockup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--border-base);
+}
+.ds-app-mockup-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.ds-app-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: var(--weight-bold);
+  color: white;
+  flex-shrink: 0;
+}
+.ds-app-name {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+.ds-app-mockup-body { padding: var(--space-5) var(--space-6); }
+
+/* ── Token export ─────────────────────────────── */
+.ds-token-block {
+  background: var(--text-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  overflow-x: auto;
+}
+.ds-token-block pre {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: #A3ADB8;
+  margin: 0;
+}
+.ds-token-block .t-comment { color: #526070; }
+.ds-token-block .t-key { color: #7CB8E8; }
+.ds-token-block .t-value { color: #A8D8A8; }
+.ds-token-block .t-section { color: #D4A5E8; }
+.ds-token-block .t-punct { color: #6B7889; }
+
+/* ── Spacing ──────────────────────────────────── */
+.mt-0 { margin-top: 0; }
+.mb-0 { margin-bottom: 0; }
+
+/* ── Rule callout ─────────────────────────────── */
+.ds-rule {
+  display: flex;
+  gap: var(--space-4);
+  background: var(--bg-subtle);
+  border-left: 3px solid var(--border-strong);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: var(--space-4) var(--space-5);
+  margin: var(--space-4) 0;
+}
+.ds-rule-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.ds-rule-body { font-size: var(--text-sm); color: var(--text-secondary); line-height: var(--leading-prose); }
+.ds-rule-body strong { color: var(--text-primary); font-weight: var(--weight-semibold); }
+
+/* ── Spacing grid ─────────────────────────────── */
+.ds-space-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+}
+.ds-space-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.ds-space-visual {
+  background: var(--bg-muted);
+  border-radius: 2px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.ds-space-meta {
+  display: flex;
+  gap: var(--space-4);
+}
+.ds-space-token { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); min-width: 80px; }
+.ds-space-value { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+
+/* ── Radius grid ──────────────────────────────── */
+.ds-radius-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+.ds-radius-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+.ds-radius-visual {
+  width: 64px;
+  height: 64px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-strong);
+}
+.ds-radius-meta { text-align: center; }
+.ds-radius-token { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); }
+.ds-radius-value { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+
+/* ── Shadows ──────────────────────────────────── */
+.ds-shadow-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+.ds-shadow-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.ds-shadow-box {
+  width: 100px;
+  height: 64px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-base);
+}
+.ds-shadow-token { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<div class="ds-shell">
+
+<!-- ── Navigation ─────────────────────────────── -->
+<nav class="ds-nav">
+  <div class="ds-nav-logo">
+    <a class="ds-nav-logo-mark" href="#" onclick="showSection('overview'); return false;">
+      <div class="ds-nav-logo-dot"></div>
+      Neoworks DS
+    </a>
+  </div>
+
+  <div class="ds-nav-section">Foundation</div>
+  <a class="ds-nav-link active" href="#" onclick="showSection('overview'); return false;">Overview</a>
+  <a class="ds-nav-link" href="#" onclick="showSection('tokens'); return false;">Design Tokens</a>
+  <a class="ds-nav-link" href="#" onclick="showSection('typography'); return false;">Typography</a>
+
+  <div class="ds-nav-section">Visual</div>
+  <a class="ds-nav-link" href="#" onclick="showSection('colors'); return false;">Colors</a>
+  <a class="ds-nav-link" href="#" onclick="showSection('spacing'); return false;">Spacing & Shape</a>
+
+  <div class="ds-nav-section">Components</div>
+  <a class="ds-nav-link" href="#" onclick="showSection('buttons'); return false;">Buttons</a>
+  <a class="ds-nav-link" href="#" onclick="showSection('forms'); return false;">Forms</a>
+  <a class="ds-nav-link" href="#" onclick="showSection('feedback'); return false;">Feedback</a>
+  <a class="ds-nav-link" href="#" onclick="showSection('dataDisplay'); return false;">Data Display</a>
+
+  <div class="ds-nav-section">Apps</div>
+  <a class="ds-nav-link" href="#" onclick="showSection('apps'); return false;">App Themes</a>
+  <a class="ds-nav-link" href="#" onclick="showSection('export'); return false;">Token Export</a>
+</nav>
+
+<!-- ── Main content ───────────────────────────── -->
+<main class="ds-main">
+
+<!-- ══════════════════ OVERVIEW ══════════════════ -->
+<section id="section-overview" class="ds-section active">
+  <h1 class="ds-page-title">Neoworks Design System</h1>
+  <p class="ds-page-subtitle">A unified visual language for all Neoworks apps. Built for clarity, accessibility, and warmth — so every app feels like part of the same family.</p>
+
+  <div class="ds-principles">
+    <div class="ds-principle">
+      <div class="ds-principle-num">01</div>
+      <div class="ds-principle-title">One base, one accent</div>
+      <div class="ds-principle-body">Every app shares the exact same base tokens — backgrounds, text, borders, spacing, type. The only thing that differs between apps is a single accent color. This creates immediate coherence: users moving between Grove and Tide recognize the same interface skeleton instantly.</div>
+    </div>
+    <div class="ds-principle">
+      <div class="ds-principle-num">02</div>
+      <div class="ds-principle-title">Accessibility first</div>
+      <div class="ds-principle-body">All text colors meet WCAG AA at minimum (4.5:1 for body copy, 3:1 for large text and UI elements). App accents are chosen to pass contrast on white surfaces. Focus states are always visible. The system never sacrifices legibility for aesthetics.</div>
+    </div>
+    <div class="ds-principle">
+      <div class="ds-principle-num">03</div>
+      <div class="ds-principle-title">Warm, not clinical</div>
+      <div class="ds-principle-body">The base palette uses warm-tinted neutrals — a small yellow/brown shift away from pure gray. This prevents the cold, sterile feeling of blue-gray systems (like many SaaS products) and makes long reading sessions more comfortable. Backgrounds breathe; text doesn't strain.</div>
+    </div>
+    <div class="ds-principle">
+      <div class="ds-principle-num">04</div>
+      <div class="ds-principle-title">Quiet until needed</div>
+      <div class="ds-principle-body">Accents appear sparingly — on primary actions, active navigation states, and focus elements. The rest of the UI is base colors. This preserves the visual weight of the accent so it always signals "this matters" — rather than competing with itself everywhere.</div>
+    </div>
+  </div>
+
+  <h2 class="ds-section-title">App ecosystem</h2>
+  <p class="ds-section-desc">Eight apps, one design language. Each app gets one accent that reflects its purpose. All other visual decisions are shared.</p>
+
+  <div class="ds-app-colors">
+    <!-- NeoWorks -->
+    <div class="ds-app-row">
+      <div class="ds-app-row-dot" style="background:#292623;"></div>
+      <div class="ds-app-row-info">
+        <div class="ds-app-row-name">Neoworks</div>
+        <div class="ds-app-row-desc">Platform shell, identity, navigation chrome</div>
+      </div>
+      <div class="ds-app-row-swatches">
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#292623;border-color:#292623;"></div><div class="ds-app-row-swatch-label">accent</div></div>
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#F3F1ED;"></div><div class="ds-app-row-swatch-label">subtle</div></div>
+      </div>
+      <div class="ds-app-row-preview">
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:#292623;">Sign in</button>
+        <span class="nw-badge" style="background:#F3F1ED;color:#57534E;border-color:#E0DDD7;">platform</span>
+      </div>
+    </div>
+    <!-- Grove -->
+    <div class="ds-app-row">
+      <div class="ds-app-row-dot" style="background:#15803D;"></div>
+      <div class="ds-app-row-info">
+        <div class="ds-app-row-name">Grove</div>
+        <div class="ds-app-row-desc">File sync, version history, cloud filesystem</div>
+      </div>
+      <div class="ds-app-row-swatches">
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#15803D;border-color:#15803D;"></div><div class="ds-app-row-swatch-label">accent</div></div>
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#F0FDF4;border-color:#BBF7D0;"></div><div class="ds-app-row-swatch-label">subtle</div></div>
+      </div>
+      <div class="ds-app-row-preview">
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:#15803D;">Sync now</button>
+        <span class="nw-badge" style="background:#F0FDF4;color:#14532D;border-color:#BBF7D0;">synced</span>
+      </div>
+    </div>
+    <!-- Vault -->
+    <div class="ds-app-row">
+      <div class="ds-app-row-dot" style="background:#BE123C;"></div>
+      <div class="ds-app-row-info">
+        <div class="ds-app-row-name">Vault</div>
+        <div class="ds-app-row-desc">Password manager, secrets, secure notes</div>
+      </div>
+      <div class="ds-app-row-swatches">
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#BE123C;border-color:#BE123C;"></div><div class="ds-app-row-swatch-label">accent</div></div>
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#FFF1F2;border-color:#FECDD3;"></div><div class="ds-app-row-swatch-label">subtle</div></div>
+      </div>
+      <div class="ds-app-row-preview">
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:#BE123C;">Unlock</button>
+        <span class="nw-badge" style="background:#FFF1F2;color:#881337;border-color:#FECDD3;">locked</span>
+      </div>
+    </div>
+    <!-- Vine -->
+    <div class="ds-app-row">
+      <div class="ds-app-row-dot" style="background:#6D28D9;"></div>
+      <div class="ds-app-row-info">
+        <div class="ds-app-row-name">Vine</div>
+        <div class="ds-app-row-desc">Contacts, relationships, people directory</div>
+      </div>
+      <div class="ds-app-row-swatches">
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#6D28D9;border-color:#6D28D9;"></div><div class="ds-app-row-swatch-label">accent</div></div>
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#F5F3FF;border-color:#DDD6FE;"></div><div class="ds-app-row-swatch-label">subtle</div></div>
+      </div>
+      <div class="ds-app-row-preview">
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:#6D28D9;">Add contact</button>
+        <span class="nw-badge" style="background:#F5F3FF;color:#4C1D95;border-color:#DDD6FE;">friend</span>
+      </div>
+    </div>
+    <!-- Tide -->
+    <div class="ds-app-row">
+      <div class="ds-app-row-dot" style="background:#0E7490;"></div>
+      <div class="ds-app-row-info">
+        <div class="ds-app-row-name">Tide</div>
+        <div class="ds-app-row-desc">Calendar, scheduling, time management</div>
+      </div>
+      <div class="ds-app-row-swatches">
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#0E7490;border-color:#0E7490;"></div><div class="ds-app-row-swatch-label">accent</div></div>
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#ECFEFF;border-color:#A5F3FC;"></div><div class="ds-app-row-swatch-label">subtle</div></div>
+      </div>
+      <div class="ds-app-row-preview">
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:#0E7490;">New event</button>
+        <span class="nw-badge" style="background:#ECFEFF;color:#164E63;border-color:#A5F3FC;">today</span>
+      </div>
+    </div>
+    <!-- Twig -->
+    <div class="ds-app-row">
+      <div class="ds-app-row-dot" style="background:#4D7C0F;"></div>
+      <div class="ds-app-row-info">
+        <div class="ds-app-row-name">Twig</div>
+        <div class="ds-app-row-desc">Tasks, to-dos, project management</div>
+      </div>
+      <div class="ds-app-row-swatches">
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#4D7C0F;border-color:#4D7C0F;"></div><div class="ds-app-row-swatch-label">accent</div></div>
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#F7FEE7;border-color:#D9F99D;"></div><div class="ds-app-row-swatch-label">subtle</div></div>
+      </div>
+      <div class="ds-app-row-preview">
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:#4D7C0F;">Add task</button>
+        <span class="nw-badge" style="background:#F7FEE7;color:#3F6212;border-color:#D9F99D;">done</span>
+      </div>
+    </div>
+    <!-- Relay -->
+    <div class="ds-app-row">
+      <div class="ds-app-row-dot" style="background:#C2410C;"></div>
+      <div class="ds-app-row-info">
+        <div class="ds-app-row-name">Relay</div>
+        <div class="ds-app-row-desc">Messaging, chat, real-time communication</div>
+      </div>
+      <div class="ds-app-row-swatches">
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#C2410C;border-color:#C2410C;"></div><div class="ds-app-row-swatch-label">accent</div></div>
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#FFF7ED;border-color:#FED7AA;"></div><div class="ds-app-row-swatch-label">subtle</div></div>
+      </div>
+      <div class="ds-app-row-preview">
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:#C2410C;">Send</button>
+        <span class="nw-badge" style="background:#FFF7ED;color:#9A3412;border-color:#FED7AA;">3 unread</span>
+      </div>
+    </div>
+    <!-- Trail -->
+    <div class="ds-app-row">
+      <div class="ds-app-row-dot" style="background:#B45309;"></div>
+      <div class="ds-app-row-info">
+        <div class="ds-app-row-name">Trail</div>
+        <div class="ds-app-row-desc">Notes, journals, exploration & writing</div>
+      </div>
+      <div class="ds-app-row-swatches">
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#B45309;border-color:#B45309;"></div><div class="ds-app-row-swatch-label">accent</div></div>
+        <div class="ds-app-row-swatch"><div class="ds-app-row-swatch-block" style="background:#FFFBEB;border-color:#FDE68A;"></div><div class="ds-app-row-swatch-label">subtle</div></div>
+      </div>
+      <div class="ds-app-row-preview">
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:#B45309;">New note</button>
+        <span class="nw-badge" style="background:#FFFBEB;color:#78350F;border-color:#FDE68A;">draft</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ TOKENS ══════════════════ -->
+<section id="section-tokens" class="ds-section">
+  <h1 class="ds-page-title">Design Tokens</h1>
+  <p class="ds-page-subtitle">The atomic values that every component and every app is built from. Reference these by token name, never by raw hex value in component code.</p>
+
+  <h2 class="ds-section-title">Background tokens</h2>
+  <p class="ds-section-desc">Four surface levels. Use them in order — page wraps surfaces, surfaces wrap subtle areas, and muted signals interaction.</p>
+  <div class="ds-swatch-grid">
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#F8F7F4;border-bottom:1px solid #E0DDD7;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Page</div>
+        <div class="ds-swatch-token">--bg-page</div>
+        <div class="ds-swatch-hex">#F8F7F4</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#FFFFFF;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Surface</div>
+        <div class="ds-swatch-token">--bg-surface</div>
+        <div class="ds-swatch-hex">#FFFFFF</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#F3F1ED;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Subtle</div>
+        <div class="ds-swatch-token">--bg-subtle</div>
+        <div class="ds-swatch-hex">#F3F1ED</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#EAE8E3;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Muted</div>
+        <div class="ds-swatch-token">--bg-muted</div>
+        <div class="ds-swatch-hex">#EAE8E3</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#E1DED8;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Overlay</div>
+        <div class="ds-swatch-token">--bg-overlay</div>
+        <div class="ds-swatch-hex">#E1DED8</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="ds-section-title">Text tokens</h2>
+  <p class="ds-section-desc">A four-step text hierarchy. All values pass WCAG AA contrast on the white surface background.</p>
+  <div class="ds-swatch-grid">
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#1C1B18;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Primary</div>
+        <div class="ds-swatch-token">--text-primary</div>
+        <div class="ds-swatch-hex">#1C1B18 · 16.1:1</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#57534E;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Secondary</div>
+        <div class="ds-swatch-token">--text-secondary</div>
+        <div class="ds-swatch-hex">#57534E · 7.4:1</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#9C9590;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Muted</div>
+        <div class="ds-swatch-token">--text-muted</div>
+        <div class="ds-swatch-hex">#9C9590 · 3.1:1 *</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#C9C5C0;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Disabled</div>
+        <div class="ds-swatch-token">--text-disabled</div>
+        <div class="ds-swatch-hex">#C9C5C0 · decorative</div>
+      </div>
+    </div>
+  </div>
+  <div class="ds-rule">
+    <div class="ds-rule-icon">⚠</div>
+    <div class="ds-rule-body"><strong>Muted text (3.1:1)</strong> passes WCAG AA for large text and UI components (≥18px or ≥14px bold). Do not use it for body copy or interactive labels. It's reserved for placeholders, hints, and decorative captions.</div>
+  </div>
+
+  <h2 class="ds-section-title">Border tokens</h2>
+  <div class="ds-swatch-grid">
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#EDEAE4;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Subtle</div>
+        <div class="ds-swatch-token">--border-subtle</div>
+        <div class="ds-swatch-hex">#EDEAE4</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#E0DDD7;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Base</div>
+        <div class="ds-swatch-token">--border-base</div>
+        <div class="ds-swatch-hex">#E0DDD7</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#C9C6BF;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Strong</div>
+        <div class="ds-swatch-token">--border-strong</div>
+        <div class="ds-swatch-hex">#C9C6BF</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#1C1B18;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name">Focus</div>
+        <div class="ds-swatch-token">--border-focus</div>
+        <div class="ds-swatch-hex">#1C1B18</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="ds-section-title">Status colors</h2>
+  <p class="ds-section-desc">Reserved for system feedback — success confirmations, warnings, errors, and informational messages. Never use these as app accent colors.</p>
+  <div class="ds-swatch-grid">
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#F0FDF4;border-bottom:1px solid #BBF7D0;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name" style="color:#166534;">Success</div>
+        <div class="ds-swatch-token">--status-success-*</div>
+        <div class="ds-swatch-hex">bg / fg / border</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#FFFBEB;border-bottom:1px solid #FDE68A;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name" style="color:#92400E;">Warning</div>
+        <div class="ds-swatch-token">--status-warning-*</div>
+        <div class="ds-swatch-hex">bg / fg / border</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#FFF1F2;border-bottom:1px solid #FECDD3;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name" style="color:#991B1B;">Error</div>
+        <div class="ds-swatch-token">--status-error-*</div>
+        <div class="ds-swatch-hex">bg / fg / border</div>
+      </div>
+    </div>
+    <div class="ds-swatch">
+      <div class="ds-swatch-color" style="background:#EFF6FF;border-bottom:1px solid #BFDBFE;"></div>
+      <div class="ds-swatch-meta">
+        <div class="ds-swatch-name" style="color:#1E3A5F;">Info</div>
+        <div class="ds-swatch-token">--status-info-*</div>
+        <div class="ds-swatch-hex">bg / fg / border</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ TYPOGRAPHY ══════════════════ -->
+<section id="section-typography" class="ds-section">
+  <h1 class="ds-page-title">Typography</h1>
+  <p class="ds-page-subtitle">Three typefaces, each with a distinct role. They all exist in the brand already — the goal is using them precisely so every level of the hierarchy reads cleanly.</p>
+
+  <div class="ds-font-cards">
+    <div class="ds-font-card">
+      <div class="ds-font-card-role">Display</div>
+      <div class="ds-font-card-name" style="font-family:'Syne',sans-serif;">Syne</div>
+      <div class="ds-font-card-desc">Headings, titles, labels, brand moments. Geometric, confident, modern.</div>
+      <div class="ds-font-card-specimen" style="font-family:'Syne',sans-serif;">Aa Bb Cc</div>
+    </div>
+    <div class="ds-font-card">
+      <div class="ds-font-card-role">Body</div>
+      <div class="ds-font-card-name" style="font-family:'DM Sans',sans-serif;">DM Sans</div>
+      <div class="ds-font-card-desc">All UI text, paragraphs, descriptions, labels. Humanist, readable at small sizes.</div>
+      <div class="ds-font-card-specimen" style="font-family:'DM Sans',sans-serif;">Aa Bb Cc</div>
+    </div>
+    <div class="ds-font-card">
+      <div class="ds-font-card-role">Mono</div>
+      <div class="ds-font-card-name" style="font-family:'DM Mono',monospace;">DM Mono</div>
+      <div class="ds-font-card-desc">Code, tokens, file paths, timestamps, serial numbers.</div>
+      <div class="ds-font-card-specimen" style="font-family:'DM Mono',monospace;">Aa Bb Cc</div>
+    </div>
+  </div>
+
+  <h2 class="ds-section-title">Type scale</h2>
+  <p class="ds-section-desc">Nine steps from <code>xs</code> to <code>4xl</code>. Use named tokens, not raw sizes.</p>
+
+  <div class="ds-type-scale">
+    <div class="ds-type-row">
+      <div class="ds-type-row-meta"><div class="ds-type-row-size">48px</div><div class="ds-type-row-token">--text-4xl</div></div>
+      <div class="ds-type-row-sample" style="font-family:'Syne',sans-serif;font-size:48px;font-weight:700;">Display</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-row-meta"><div class="ds-type-row-size">38px</div><div class="ds-type-row-token">--text-3xl</div></div>
+      <div class="ds-type-row-sample" style="font-family:'Syne',sans-serif;font-size:38px;font-weight:700;">Page title</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-row-meta"><div class="ds-type-row-size">30px</div><div class="ds-type-row-token">--text-2xl</div></div>
+      <div class="ds-type-row-sample" style="font-family:'Syne',sans-serif;font-size:30px;font-weight:600;">Section heading</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-row-meta"><div class="ds-type-row-size">24px</div><div class="ds-type-row-token">--text-xl</div></div>
+      <div class="ds-type-row-sample" style="font-family:'Syne',sans-serif;font-size:24px;font-weight:600;">Subsection title</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-row-meta"><div class="ds-type-row-size">20px</div><div class="ds-type-row-token">--text-lg</div></div>
+      <div class="ds-type-row-sample" style="font-family:'DM Sans',sans-serif;font-size:20px;font-weight:500;">Card heading</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-row-meta"><div class="ds-type-row-size">17px</div><div class="ds-type-row-token">--text-md</div></div>
+      <div class="ds-type-row-sample" style="font-family:'DM Sans',sans-serif;font-size:17px;">Emphasized body</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-row-meta"><div class="ds-type-row-size">15px</div><div class="ds-type-row-token">--text-base</div></div>
+      <div class="ds-type-row-sample" style="font-family:'DM Sans',sans-serif;font-size:15px;">Body text — the most common size. Comfortable for reading at typical screen distances.</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-row-meta"><div class="ds-type-row-size">13px</div><div class="ds-type-row-token">--text-sm</div></div>
+      <div class="ds-type-row-sample" style="font-family:'DM Sans',sans-serif;font-size:13px;">Secondary text, metadata, descriptions, form hints, tooltips</div>
+    </div>
+    <div class="ds-type-row">
+      <div class="ds-type-row-meta"><div class="ds-type-row-size">11px</div><div class="ds-type-row-token">--text-xs</div></div>
+      <div class="ds-type-row-sample" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;">SECTION LABELS · BADGES · OVERLINES</div>
+    </div>
+  </div>
+
+  <div class="ds-rule">
+    <div class="ds-rule-icon">→</div>
+    <div class="ds-rule-body">Use Syne (<code>--font-display</code>) for headings at <code>xl</code> and above. Use DM Sans (<code>--font-body</code>) for everything else. Never go below <code>--text-xs</code> (11px). Body copy minimum is <code>--text-sm</code> (13px); prefer <code>--text-base</code> (15px) for primary reading contexts.</div>
+  </div>
+</section>
+
+<!-- ══════════════════ COLORS ══════════════════ -->
+<section id="section-colors" class="ds-section">
+  <h1 class="ds-page-title">Colors</h1>
+  <p class="ds-page-subtitle">Base palette + per-app accents. The base never changes across apps. Accents are the single differentiator per app.</p>
+
+  <h2 class="ds-section-title">The one-accent rule</h2>
+  <div class="ds-rule">
+    <div class="ds-rule-icon">◈</div>
+    <div class="ds-rule-body"><strong>Each app uses exactly four accent-derived values:</strong> <code>{app}-fg</code> for text/icons, <code>{app}-accent</code> for filled interactive elements, <code>{app}-subtle</code> for tinted backgrounds, and <code>{app}-border</code> for accented borders. Never reference another app's tokens. Never introduce a second accent per app.</div>
+  </div>
+
+  <h2 class="ds-section-title" style="margin-top:var(--space-8);">When to use the accent</h2>
+  <div class="nw-card nw-card-padded" style="margin-bottom:var(--space-8);">
+    <table class="nw-table">
+      <thead>
+        <tr>
+          <th>Element</th>
+          <th>Token to use</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Primary button background</td>
+          <td><code>{app}-accent</code></td>
+          <td>Save, Submit, Create</td>
+        </tr>
+        <tr>
+          <td>Active nav item</td>
+          <td><code>{app}-fg</code> for text + <code>{app}-subtle</code> for bg</td>
+          <td>Sidebar active link</td>
+        </tr>
+        <tr>
+          <td>Accented badge/tag</td>
+          <td><code>{app}-subtle</code> bg + <code>{app}-fg</code> text + <code>{app}-border</code> border</td>
+          <td>Status pill, category tag</td>
+        </tr>
+        <tr>
+          <td>Progress bar fill</td>
+          <td><code>{app}-accent</code></td>
+          <td>Upload progress, completion</td>
+        </tr>
+        <tr>
+          <td>Focus ring</td>
+          <td><code>--border-focus</code> (always base, never accent)</td>
+          <td>Any focused input/button</td>
+        </tr>
+        <tr>
+          <td>Link text</td>
+          <td><code>{app}-fg</code></td>
+          <td>Inline links</td>
+        </tr>
+        <tr>
+          <td>Icon in active state</td>
+          <td><code>{app}-fg</code></td>
+          <td>Nav icon, checkbox icon</td>
+        </tr>
+        <tr>
+          <td>Checkbox/radio checked</td>
+          <td><code>{app}-accent</code> fill</td>
+          <td>Form controls</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="ds-section-title">Accent color specifications</h2>
+  <p class="ds-section-desc">All <code>-fg</code> values pass WCAG AA (4.5:1) on white. All <code>-accent</code> values pass WCAG AA on white for use as button backgrounds with white text.</p>
+  
+  <div class="nw-card" style="margin-bottom:var(--space-8);overflow:hidden;">
+    <table class="nw-table">
+      <thead>
+        <tr>
+          <th style="width:80px;">App</th>
+          <th>fg (text/icon)</th>
+          <th>accent (fill)</th>
+          <th>subtle (bg tint)</th>
+          <th>border</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:500;font-family:var(--font-display);">Neoworks</td>
+          <td><code style="font-size:11px;">#1C1B18</code></td>
+          <td><code style="font-size:11px;">#292623</code></td>
+          <td><code style="font-size:11px;">#F3F1ED</code></td>
+          <td><code style="font-size:11px;">#C9C6BF</code></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500;font-family:var(--font-display);color:#15803D;">Grove</td>
+          <td><code style="font-size:11px;color:#14532D;">#14532D</code></td>
+          <td><code style="font-size:11px;color:#15803D;">#15803D</code></td>
+          <td><code style="font-size:11px;">#F0FDF4</code></td>
+          <td><code style="font-size:11px;">#BBF7D0</code></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500;font-family:var(--font-display);color:#BE123C;">Vault</td>
+          <td><code style="font-size:11px;color:#881337;">#881337</code></td>
+          <td><code style="font-size:11px;color:#BE123C;">#BE123C</code></td>
+          <td><code style="font-size:11px;">#FFF1F2</code></td>
+          <td><code style="font-size:11px;">#FECDD3</code></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500;font-family:var(--font-display);color:#6D28D9;">Vine</td>
+          <td><code style="font-size:11px;color:#4C1D95;">#4C1D95</code></td>
+          <td><code style="font-size:11px;color:#6D28D9;">#6D28D9</code></td>
+          <td><code style="font-size:11px;">#F5F3FF</code></td>
+          <td><code style="font-size:11px;">#DDD6FE</code></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500;font-family:var(--font-display);color:#0E7490;">Tide</td>
+          <td><code style="font-size:11px;color:#164E63;">#164E63</code></td>
+          <td><code style="font-size:11px;color:#0E7490;">#0E7490</code></td>
+          <td><code style="font-size:11px;">#ECFEFF</code></td>
+          <td><code style="font-size:11px;">#A5F3FC</code></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500;font-family:var(--font-display);color:#4D7C0F;">Twig</td>
+          <td><code style="font-size:11px;color:#3F6212;">#3F6212</code></td>
+          <td><code style="font-size:11px;color:#4D7C0F;">#4D7C0F</code></td>
+          <td><code style="font-size:11px;">#F7FEE7</code></td>
+          <td><code style="font-size:11px;">#D9F99D</code></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500;font-family:var(--font-display);color:#C2410C;">Relay</td>
+          <td><code style="font-size:11px;color:#9A3412;">#9A3412</code></td>
+          <td><code style="font-size:11px;color:#C2410C;">#C2410C</code></td>
+          <td><code style="font-size:11px;">#FFF7ED</code></td>
+          <td><code style="font-size:11px;">#FED7AA</code></td>
+        </tr>
+        <tr>
+          <td style="font-weight:500;font-family:var(--font-display);color:#B45309;">Trail</td>
+          <td><code style="font-size:11px;color:#78350F;">#78350F</code></td>
+          <td><code style="font-size:11px;color:#B45309;">#B45309</code></td>
+          <td><code style="font-size:11px;">#FFFBEB</code></td>
+          <td><code style="font-size:11px;">#FDE68A</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════════ SPACING ══════════════════ -->
+<section id="section-spacing" class="ds-section">
+  <h1 class="ds-page-title">Spacing & Shape</h1>
+  <p class="ds-page-subtitle">A 4px-base spacing system and a deliberate set of radius values. Consistent use of these tokens is what gives every app a shared skeletal feel.</p>
+
+  <h2 class="ds-section-title">Spacing scale</h2>
+  <p class="ds-section-desc">All values are multiples of 4px. Components use these via <code>var(--space-N)</code>.</p>
+
+  <div class="ds-space-grid">
+    <div class="ds-space-row"><div class="ds-space-visual" style="width:4px;"></div><div class="ds-space-meta"><span class="ds-space-token">--space-1</span><span class="ds-space-value">4px</span></div></div>
+    <div class="ds-space-row"><div class="ds-space-visual" style="width:8px;"></div><div class="ds-space-meta"><span class="ds-space-token">--space-2</span><span class="ds-space-value">8px</span></div></div>
+    <div class="ds-space-row"><div class="ds-space-visual" style="width:12px;"></div><div class="ds-space-meta"><span class="ds-space-token">--space-3</span><span class="ds-space-value">12px</span></div></div>
+    <div class="ds-space-row"><div class="ds-space-visual" style="width:16px;"></div><div class="ds-space-meta"><span class="ds-space-token">--space-4</span><span class="ds-space-value">16px</span></div></div>
+    <div class="ds-space-row"><div class="ds-space-visual" style="width:24px;"></div><div class="ds-space-meta"><span class="ds-space-token">--space-6</span><span class="ds-space-value">24px</span></div></div>
+    <div class="ds-space-row"><div class="ds-space-visual" style="width:32px;"></div><div class="ds-space-meta"><span class="ds-space-token">--space-8</span><span class="ds-space-value">32px</span></div></div>
+    <div class="ds-space-row"><div class="ds-space-visual" style="width:48px;"></div><div class="ds-space-meta"><span class="ds-space-token">--space-12</span><span class="ds-space-value">48px</span></div></div>
+    <div class="ds-space-row"><div class="ds-space-visual" style="width:64px;"></div><div class="ds-space-meta"><span class="ds-space-token">--space-16</span><span class="ds-space-value">64px</span></div></div>
+    <div class="ds-space-row"><div class="ds-space-visual" style="width:80px;"></div><div class="ds-space-meta"><span class="ds-space-token">--space-20</span><span class="ds-space-value">80px</span></div></div>
+  </div>
+
+  <h2 class="ds-section-title">Border radius</h2>
+  <p class="ds-section-desc">Six steps plus full. The rounded-but-not-pill shape at <code>--radius-lg</code> is the primary card shape used throughout all apps.</p>
+
+  <div class="ds-radius-grid">
+    <div class="ds-radius-item">
+      <div class="ds-radius-visual" style="border-radius:4px;"></div>
+      <div class="ds-radius-meta"><div class="ds-radius-token">--radius-sm</div><div class="ds-radius-value">4px · badges</div></div>
+    </div>
+    <div class="ds-radius-item">
+      <div class="ds-radius-visual" style="border-radius:8px;"></div>
+      <div class="ds-radius-meta"><div class="ds-radius-token">--radius-md</div><div class="ds-radius-value">8px · buttons, inputs</div></div>
+    </div>
+    <div class="ds-radius-item">
+      <div class="ds-radius-visual" style="border-radius:12px;"></div>
+      <div class="ds-radius-meta"><div class="ds-radius-token">--radius-lg</div><div class="ds-radius-value">12px · cards</div></div>
+    </div>
+    <div class="ds-radius-item">
+      <div class="ds-radius-visual" style="border-radius:16px;"></div>
+      <div class="ds-radius-meta"><div class="ds-radius-token">--radius-xl</div><div class="ds-radius-value">16px · panels</div></div>
+    </div>
+    <div class="ds-radius-item">
+      <div class="ds-radius-visual" style="border-radius:20px;"></div>
+      <div class="ds-radius-meta"><div class="ds-radius-token">--radius-2xl</div><div class="ds-radius-value">20px · large cards</div></div>
+    </div>
+    <div class="ds-radius-item">
+      <div class="ds-radius-visual" style="border-radius:9999px;"></div>
+      <div class="ds-radius-meta"><div class="ds-radius-token">--radius-full</div><div class="ds-radius-value">full · pills, avatars</div></div>
+    </div>
+  </div>
+
+  <h2 class="ds-section-title">Shadows</h2>
+  <p class="ds-section-desc">Minimal and warm-tinted. Use shadows to communicate elevation, not decoration. Keep most surfaces flat.</p>
+  <div class="ds-shadow-grid">
+    <div class="ds-shadow-item">
+      <div class="ds-shadow-box" style="box-shadow:none;"></div>
+      <div class="ds-shadow-token">none · flat surfaces</div>
+    </div>
+    <div class="ds-shadow-item">
+      <div class="ds-shadow-box" style="box-shadow:0 1px 2px rgba(28,27,24,0.05);"></div>
+      <div class="ds-shadow-token">--shadow-sm · dividers</div>
+    </div>
+    <div class="ds-shadow-item">
+      <div class="ds-shadow-box" style="box-shadow:0 1px 3px rgba(28,27,24,0.07),0 1px 2px rgba(28,27,24,0.04);"></div>
+      <div class="ds-shadow-token">--shadow-base · cards</div>
+    </div>
+    <div class="ds-shadow-item">
+      <div class="ds-shadow-box" style="box-shadow:0 4px 6px rgba(28,27,24,0.06),0 1px 3px rgba(28,27,24,0.04);"></div>
+      <div class="ds-shadow-token">--shadow-raised · hover</div>
+    </div>
+    <div class="ds-shadow-item">
+      <div class="ds-shadow-box" style="box-shadow:0 20px 40px rgba(28,27,24,0.12),0 8px 16px rgba(28,27,24,0.06);"></div>
+      <div class="ds-shadow-token">--shadow-overlay · modals</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ BUTTONS ══════════════════ -->
+<section id="section-buttons" class="ds-section">
+  <h1 class="ds-page-title">Buttons</h1>
+  <p class="ds-page-subtitle">Four variants, three sizes. The filled style uses the app accent. All other variants are base-color only.</p>
+
+  <div class="ds-rule">
+    <div class="ds-rule-icon">→</div>
+    <div class="ds-rule-body">Only use the <strong>filled variant</strong> for the single primary action on a page or in a panel. Use outlined or ghost for secondary actions. Never place two filled buttons next to each other — it creates visual noise and dilutes the accent.</div>
+  </div>
+
+  <div class="ds-comp-group" style="margin-top:var(--space-6);">
+    <div class="ds-comp-header">
+      <h3>Filled — primary action (uses app accent via style prop)</h3>
+      <p>Background: <code>{app}-accent</code> · Text: white · Hover: 88% opacity</p>
+    </div>
+    <div class="ds-comp-body">
+      <div class="ds-comp-row">
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:var(--grove-accent);">Small</button>
+        <button class="nw-btn nw-btn-filled nw-btn-md" style="background:var(--grove-accent);">Medium</button>
+        <button class="nw-btn nw-btn-filled nw-btn-lg" style="background:var(--grove-accent);">Large</button>
+      </div>
+      <div class="ds-comp-row">
+        <button class="nw-btn nw-btn-filled nw-btn-md" style="background:var(--vault-accent);">Vault primary</button>
+        <button class="nw-btn nw-btn-filled nw-btn-md" style="background:var(--vine-accent);">Vine primary</button>
+        <button class="nw-btn nw-btn-filled nw-btn-md" style="background:var(--tide-accent);">Tide primary</button>
+        <button class="nw-btn nw-btn-filled nw-btn-md" style="background:var(--relay-accent);">Relay primary</button>
+      </div>
+      <div class="ds-comp-row">
+        <button class="nw-btn nw-btn-filled nw-btn-md disabled" style="background:var(--grove-accent);">Disabled</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-comp-group">
+    <div class="ds-comp-header">
+      <h3>Outlined — secondary action</h3>
+      <p>Background: transparent · Border: <code>--border-strong</code> · Text: <code>--text-primary</code></p>
+    </div>
+    <div class="ds-comp-body">
+      <div class="ds-comp-row">
+        <button class="nw-btn nw-btn-outlined nw-btn-sm">Small</button>
+        <button class="nw-btn nw-btn-outlined nw-btn-md">Medium</button>
+        <button class="nw-btn nw-btn-outlined nw-btn-lg">Large</button>
+        <button class="nw-btn nw-btn-outlined nw-btn-md disabled">Disabled</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-comp-group">
+    <div class="ds-comp-header">
+      <h3>Ghost — tertiary / icon actions</h3>
+      <p>Background: transparent · No border · Text: <code>--text-secondary</code> → primary on hover</p>
+    </div>
+    <div class="ds-comp-body">
+      <div class="ds-comp-row">
+        <button class="nw-btn nw-btn-ghost nw-btn-sm">Small</button>
+        <button class="nw-btn nw-btn-ghost nw-btn-md">Medium</button>
+        <button class="nw-btn nw-btn-ghost nw-btn-lg">Large</button>
+        <button class="nw-btn nw-btn-ghost nw-btn-md disabled">Disabled</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-comp-group">
+    <div class="ds-comp-header">
+      <h3>Danger — destructive actions</h3>
+      <p>Background: <code>--status-error-bg</code> · Text: <code>--status-error-fg</code>. Always confirm before firing.</p>
+    </div>
+    <div class="ds-comp-body">
+      <div class="ds-comp-row">
+        <button class="nw-btn nw-btn-danger nw-btn-sm">Delete</button>
+        <button class="nw-btn nw-btn-danger nw-btn-md">Delete item</button>
+        <button class="nw-btn nw-btn-danger nw-btn-lg">Delete account</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FORMS ══════════════════ -->
+<section id="section-forms" class="ds-section">
+  <h1 class="ds-page-title">Forms</h1>
+  <p class="ds-page-subtitle">Inputs, selects, textareas, checkboxes, and toggles. All share the same base border and focus styles. Accents are only used in checkboxes and the checked toggle state — and only through the app's own accent token.</p>
+
+  <div class="ds-comp-group">
+    <div class="ds-comp-header">
+      <h3>Text input</h3>
+      <p>Height: 36px · Border: <code>--border-base</code> → <code>--border-focus</code> on focus</p>
+    </div>
+    <div class="ds-comp-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+        <div class="nw-input-wrap">
+          <label class="nw-label">Display name</label>
+          <input class="nw-input" type="text" placeholder="Your name" value="">
+          <span class="nw-hint">Shown on your public profile</span>
+        </div>
+        <div class="nw-input-wrap">
+          <label class="nw-label">Email address</label>
+          <input class="nw-input error" type="email" placeholder="you@example.com" value="not-an-email">
+          <span class="nw-hint error">Must be a valid email address</span>
+        </div>
+        <div class="nw-input-wrap">
+          <label class="nw-label">Category</label>
+          <select class="nw-select">
+            <option>Personal</option>
+            <option>Work</option>
+            <option>Shared</option>
+          </select>
+        </div>
+        <div class="nw-input-wrap">
+          <label class="nw-label">Notes</label>
+          <textarea class="nw-textarea" placeholder="Add a note…" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-comp-group">
+    <div class="ds-comp-header">
+      <h3>Checkboxes</h3>
+      <p>Checked state uses <code>{app}-accent</code> as fill</p>
+    </div>
+    <div class="ds-comp-body">
+      <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+        <div class="nw-checkbox-wrap">
+          <div class="nw-checkbox checked" style="background:var(--twig-accent);border-color:var(--twig-accent);"></div>
+          <span style="font-size:var(--text-sm);color:var(--text-primary);">Write design system documentation</span>
+        </div>
+        <div class="nw-checkbox-wrap">
+          <div class="nw-checkbox checked" style="background:var(--twig-accent);border-color:var(--twig-accent);"></div>
+          <span style="font-size:var(--text-sm);color:var(--text-primary);">Define app accent tokens</span>
+        </div>
+        <div class="nw-checkbox-wrap">
+          <div class="nw-checkbox"></div>
+          <span style="font-size:var(--text-sm);color:var(--text-secondary);">Implement in Svelte component library</span>
+        </div>
+        <div class="nw-checkbox-wrap">
+          <div class="nw-checkbox"></div>
+          <span style="font-size:var(--text-sm);color:var(--text-secondary);">Review with team</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-comp-group">
+    <div class="ds-comp-header">
+      <h3>Toggles</h3>
+      <p>Off: <code>--bg-overlay</code> · On: <code>--text-primary</code> (base color — never use app accent for toggles)</p>
+    </div>
+    <div class="ds-comp-body">
+      <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+        <div style="display:flex;align-items:center;justify-content:space-between;max-width:360px;">
+          <span style="font-size:var(--text-sm);color:var(--text-primary);">Sync to Neoworks Node</span>
+          <div class="nw-toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;max-width:360px;">
+          <span style="font-size:var(--text-sm);color:var(--text-primary);">Enable two-factor auth</span>
+          <div class="nw-toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;max-width:360px;">
+          <span style="font-size:var(--text-sm);color:var(--text-secondary);">Send marketing emails</span>
+          <div class="nw-toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FEEDBACK ══════════════════ -->
+<section id="section-feedback" class="ds-section">
+  <h1 class="ds-page-title">Feedback</h1>
+  <p class="ds-page-subtitle">Badges, progress, and status indicators. Status colors are system-wide — app accent only appears where progress belongs to an app action.</p>
+
+  <div class="ds-comp-group">
+    <div class="ds-comp-header">
+      <h3>Badges</h3>
+      <p>Use status variants for system state. Use accent variants for app-specific categories.</p>
+    </div>
+    <div class="ds-comp-body">
+      <div class="ds-comp-row">
+        <span class="nw-badge nw-badge-neutral">neutral</span>
+        <span class="nw-badge nw-badge-success">saved</span>
+        <span class="nw-badge nw-badge-warning">pending</span>
+        <span class="nw-badge nw-badge-error">failed</span>
+        <span class="nw-badge nw-badge-info">syncing</span>
+      </div>
+      <div class="ds-divider-labeled">app-accented badges</div>
+      <div class="ds-comp-row">
+        <span class="nw-badge" style="background:var(--grove-subtle);color:var(--grove-fg);border-color:var(--grove-border);">grove</span>
+        <span class="nw-badge" style="background:var(--vault-subtle);color:var(--vault-fg);border-color:var(--vault-border);">vault</span>
+        <span class="nw-badge" style="background:var(--vine-subtle);color:var(--vine-fg);border-color:var(--vine-border);">vine</span>
+        <span class="nw-badge" style="background:var(--tide-subtle);color:var(--tide-fg);border-color:var(--tide-border);">tide</span>
+        <span class="nw-badge" style="background:var(--twig-subtle);color:var(--twig-fg);border-color:var(--twig-border);">twig</span>
+        <span class="nw-badge" style="background:var(--relay-subtle);color:var(--relay-fg);border-color:var(--relay-border);">relay</span>
+        <span class="nw-badge" style="background:var(--trail-subtle);color:var(--trail-fg);border-color:var(--trail-border);">trail</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-comp-group">
+    <div class="ds-comp-header">
+      <h3>Progress bars</h3>
+      <p>Fill uses app accent. Track uses <code>--bg-muted</code>.</p>
+    </div>
+    <div class="ds-comp-body">
+      <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2);">
+            <span style="font-size:var(--text-xs);color:var(--text-secondary);">Grove — syncing documents</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-muted);">72%</span>
+          </div>
+          <div class="nw-progress-track"><div class="nw-progress-fill" style="width:72%;background:var(--grove-accent);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2);">
+            <span style="font-size:var(--text-xs);color:var(--text-secondary);">Vault — storage used</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-muted);">38%</span>
+          </div>
+          <div class="nw-progress-track"><div class="nw-progress-fill" style="width:38%;background:var(--vault-accent);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2);">
+            <span style="font-size:var(--text-xs);color:var(--text-secondary);">Twig — sprint progress</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-muted);">91%</span>
+          </div>
+          <div class="nw-progress-track"><div class="nw-progress-fill" style="width:91%;background:var(--twig-accent);"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-comp-group">
+    <div class="ds-comp-header">
+      <h3>App navigation chips</h3>
+      <p>Used in cross-app navigation (e.g. top bar, app switcher). Accent dot identifies the app — no other accent use.</p>
+    </div>
+    <div class="ds-comp-body">
+      <div class="ds-comp-row">
+        <div class="nw-app-chip active">
+          <div class="nw-app-chip-dot" style="background:var(--grove-accent);"></div>
+          Grove
+        </div>
+        <div class="nw-app-chip">
+          <div class="nw-app-chip-dot" style="background:var(--vault-accent);"></div>
+          Vault
+        </div>
+        <div class="nw-app-chip">
+          <div class="nw-app-chip-dot" style="background:var(--vine-accent);"></div>
+          Vine
+        </div>
+        <div class="nw-app-chip">
+          <div class="nw-app-chip-dot" style="background:var(--tide-accent);"></div>
+          Tide
+        </div>
+        <div class="nw-app-chip">
+          <div class="nw-app-chip-dot" style="background:var(--twig-accent);"></div>
+          Twig
+        </div>
+        <div class="nw-app-chip">
+          <div class="nw-app-chip-dot" style="background:var(--relay-accent);"></div>
+          Relay
+        </div>
+        <div class="nw-app-chip">
+          <div class="nw-app-chip-dot" style="background:var(--trail-accent);"></div>
+          Trail
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ DATA DISPLAY ══════════════════ -->
+<section id="section-dataDisplay" class="ds-section">
+  <h1 class="ds-page-title">Data Display</h1>
+  <p class="ds-page-subtitle">Tables, cards, and avatars. Structural chrome stays base-colored — accent only touches truly interactive elements.</p>
+
+  <div class="ds-comp-group">
+    <div class="ds-comp-header">
+      <h3>Table</h3>
+      <p>Zebra-free. Separation via borders, not alternating rows.</p>
+    </div>
+    <div class="ds-comp-body" style="padding:0;">
+      <table class="nw-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>App</th>
+            <th>Size</th>
+            <th>Modified</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>design-system-v2.fig</td>
+            <td><span class="nw-badge" style="background:var(--grove-subtle);color:var(--grove-fg);border-color:var(--grove-border);">Grove</span></td>
+            <td style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">4.2 MB</td>
+            <td style="font-size:var(--text-sm);color:var(--text-secondary);">2 hours ago</td>
+            <td><span class="nw-badge nw-badge-success">synced</span></td>
+          </tr>
+          <tr>
+            <td>passwords.kdbx</td>
+            <td><span class="nw-badge" style="background:var(--vault-subtle);color:var(--vault-fg);border-color:var(--vault-border);">Vault</span></td>
+            <td style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">128 KB</td>
+            <td style="font-size:var(--text-sm);color:var(--text-secondary);">Yesterday</td>
+            <td><span class="nw-badge nw-badge-warning">pending</span></td>
+          </tr>
+          <tr>
+            <td>contacts-backup.json</td>
+            <td><span class="nw-badge" style="background:var(--vine-subtle);color:var(--vine-fg);border-color:var(--vine-border);">Vine</span></td>
+            <td style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">840 KB</td>
+            <td style="font-size:var(--text-sm);color:var(--text-secondary);">3 days ago</td>
+            <td><span class="nw-badge nw-badge-success">synced</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="ds-comp-group">
+    <div class="ds-comp-header">
+      <h3>Cards</h3>
+      <p>Base card: white surface, 1px border, 12px radius. Use shadow only on hover state or when card is interactive.</p>
+    </div>
+    <div class="ds-comp-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+        <div class="nw-card nw-card-padded">
+          <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-4);">
+            <div class="nw-avatar nw-avatar-md" style="background:var(--vine-subtle);color:var(--vine-fg);">AL</div>
+            <div>
+              <div style="font-size:var(--text-sm);font-weight:var(--weight-medium);color:var(--text-primary);">Alex Liang</div>
+              <div style="font-size:var(--text-xs);color:var(--text-muted);">Senior designer</div>
+            </div>
+          </div>
+          <div style="font-size:var(--text-xs);color:var(--text-secondary);">alex@neoworks.io · added via Vine</div>
+        </div>
+        <div class="nw-card" style="overflow:hidden;">
+          <div style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border-base);display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:var(--text-sm);font-weight:var(--weight-medium);">Today, 14:00</span>
+            <span class="nw-badge" style="background:var(--tide-subtle);color:var(--tide-fg);border-color:var(--tide-border);">Tide</span>
+          </div>
+          <div style="padding:var(--space-4) var(--space-5);">
+            <div style="font-size:var(--text-base);font-weight:var(--weight-medium);color:var(--text-primary);margin-bottom:var(--space-1);">Design review</div>
+            <div style="font-size:var(--text-sm);color:var(--text-secondary);">with Alex, Thomas, Sara</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ APPS ══════════════════ -->
+<section id="section-apps" class="ds-section">
+  <h1 class="ds-page-title">App themes</h1>
+  <p class="ds-page-subtitle">How each app looks in practice — same skeleton, single accent color, nothing else differs. These mockups show a sidebar + content area pattern.</p>
+
+  <!-- Grove -->
+  <div class="ds-app-mockup">
+    <div class="ds-app-mockup-header">
+      <div class="ds-app-mockup-header-left">
+        <div class="ds-app-icon" style="background:var(--grove-accent);">G</div>
+        <div class="ds-app-name">Grove</div>
+      </div>
+      <div style="display:flex;gap:var(--space-2);">
+        <button class="nw-btn nw-btn-ghost nw-btn-sm">Filter</button>
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:var(--grove-accent);">Upload</button>
+      </div>
+    </div>
+    <div class="ds-app-mockup-body">
+      <div style="display:grid;grid-template-columns:180px 1fr;gap:var(--space-5);">
+        <div>
+          <div style="font-size:var(--text-xs);font-weight:600;color:var(--text-muted);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:var(--space-2);">Files</div>
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <div style="display:flex;align-items:center;gap:var(--space-2);padding:6px 8px;border-radius:6px;background:var(--grove-subtle);color:var(--grove-fg);font-size:var(--text-sm);font-weight:500;">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--grove-accent);flex-shrink:0;"></div>All files
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--space-2);padding:6px 8px;border-radius:6px;color:var(--text-secondary);font-size:var(--text-sm);">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--border-strong);flex-shrink:0;"></div>Documents
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--space-2);padding:6px 8px;border-radius:6px;color:var(--text-secondary);font-size:var(--text-sm);">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--border-strong);flex-shrink:0;"></div>Images
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--space-2);padding:6px 8px;border-radius:6px;color:var(--text-secondary);font-size:var(--text-sm);">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--border-strong);flex-shrink:0;"></div>Shared
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);">
+            <div class="nw-card" style="padding:var(--space-4);">
+              <div style="font-size:24px;margin-bottom:var(--space-2);">📄</div>
+              <div style="font-size:var(--text-xs);font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">design-system-v2.fig</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">4.2 MB · 2h ago</div>
+            </div>
+            <div class="nw-card" style="padding:var(--space-4);">
+              <div style="font-size:24px;margin-bottom:var(--space-2);">📁</div>
+              <div style="font-size:var(--text-xs);font-weight:500;color:var(--text-primary);">Assets</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">12 files · 18 MB</div>
+            </div>
+            <div class="nw-card" style="padding:var(--space-4);">
+              <div style="font-size:24px;margin-bottom:var(--space-2);">📝</div>
+              <div style="font-size:var(--text-xs);font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">meeting-notes.md</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">8 KB · Yesterday</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tide -->
+  <div class="ds-app-mockup">
+    <div class="ds-app-mockup-header">
+      <div class="ds-app-mockup-header-left">
+        <div class="ds-app-icon" style="background:var(--tide-accent);">T</div>
+        <div class="ds-app-name">Tide</div>
+      </div>
+      <div style="display:flex;gap:var(--space-2);">
+        <button class="nw-btn nw-btn-ghost nw-btn-sm">Week</button>
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:var(--tide-accent);">New event</button>
+      </div>
+    </div>
+    <div class="ds-app-mockup-body">
+      <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+        <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-1);">
+          <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-muted);letter-spacing:0.07em;text-transform:uppercase;width:60px;flex-shrink:0;"></span>
+          <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;flex:1;text-align:center;">Mon 14</span>
+          <span style="font-size:var(--text-xs);font-weight:600;color:var(--tide-fg);letter-spacing:0.05em;text-transform:uppercase;flex:1;text-align:center;">Tue 15 ·</span>
+          <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;flex:1;text-align:center;">Wed 16</span>
+        </div>
+        <div style="display:flex;gap:var(--space-2);align-items:flex-start;">
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);width:60px;flex-shrink:0;padding-top:8px;">09:00</span>
+          <div style="flex:1;min-height:36px;"></div>
+          <div style="flex:1;background:var(--tide-subtle);border:1px solid var(--tide-border);border-radius:6px;padding:6px 8px;">
+            <div style="font-size:12px;font-weight:500;color:var(--tide-fg);">Standup</div>
+            <div style="font-size:11px;color:var(--text-muted);">09:00 – 09:15</div>
+          </div>
+          <div style="flex:1;min-height:36px;"></div>
+        </div>
+        <div style="display:flex;gap:var(--space-2);align-items:flex-start;">
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);width:60px;flex-shrink:0;padding-top:8px;">14:00</span>
+          <div style="flex:1;min-height:36px;"></div>
+          <div style="flex:1;background:var(--tide-subtle);border:1px solid var(--tide-border);border-radius:6px;padding:6px 8px;">
+            <div style="font-size:12px;font-weight:500;color:var(--tide-fg);">Design review</div>
+            <div style="font-size:11px;color:var(--text-muted);">14:00 – 15:00</div>
+          </div>
+          <div style="flex:1;min-height:36px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Twig -->
+  <div class="ds-app-mockup">
+    <div class="ds-app-mockup-header">
+      <div class="ds-app-mockup-header-left">
+        <div class="ds-app-icon" style="background:var(--twig-accent);">T</div>
+        <div class="ds-app-name">Twig</div>
+      </div>
+      <div style="display:flex;gap:var(--space-2);">
+        <button class="nw-btn nw-btn-ghost nw-btn-sm">Filter</button>
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:var(--twig-accent);">Add task</button>
+      </div>
+    </div>
+    <div class="ds-app-mockup-body">
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--border-subtle);">
+          <div class="nw-checkbox checked" style="background:var(--twig-accent);border-color:var(--twig-accent);"></div>
+          <span style="font-size:var(--text-sm);color:var(--text-muted);text-decoration:line-through;">Update design token docs</span>
+          <span class="nw-badge" style="background:var(--twig-subtle);color:var(--twig-fg);border-color:var(--twig-border);margin-left:auto;">done</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--border-subtle);">
+          <div class="nw-checkbox checked" style="background:var(--twig-accent);border-color:var(--twig-accent);"></div>
+          <span style="font-size:var(--text-sm);color:var(--text-muted);text-decoration:line-through;">Define app accent palette</span>
+          <span class="nw-badge" style="background:var(--twig-subtle);color:var(--twig-fg);border-color:var(--twig-border);margin-left:auto;">done</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--border-subtle);">
+          <div class="nw-checkbox"></div>
+          <span style="font-size:var(--text-sm);color:var(--text-primary);">Build Svelte component library</span>
+          <span class="nw-badge nw-badge-warning" style="margin-left:auto;">in progress</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;">
+          <div class="nw-checkbox"></div>
+          <span style="font-size:var(--text-sm);color:var(--text-primary);">Ship to production</span>
+          <span class="nw-badge nw-badge-neutral" style="margin-left:auto;">backlog</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Relay -->
+  <div class="ds-app-mockup">
+    <div class="ds-app-mockup-header">
+      <div class="ds-app-mockup-header-left">
+        <div class="ds-app-icon" style="background:var(--relay-accent);">R</div>
+        <div class="ds-app-name">Relay</div>
+      </div>
+      <div style="display:flex;gap:var(--space-2);">
+        <button class="nw-btn nw-btn-filled nw-btn-sm" style="background:var(--relay-accent);">New message</button>
+      </div>
+    </div>
+    <div class="ds-app-mockup-body">
+      <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+        <div style="display:flex;align-items:flex-start;gap:var(--space-3);">
+          <div class="nw-avatar nw-avatar-sm" style="background:var(--vine-subtle);color:var(--vine-fg);margin-top:2px;">AL</div>
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Alex · 09:42</div>
+            <div style="background:var(--bg-subtle);border:1px solid var(--border-base);border-radius:0 8px 8px 8px;padding:8px 12px;font-size:var(--text-sm);color:var(--text-primary);max-width:280px;line-height:1.5;">
+              Hey, the new design system looks great. The one-accent rule makes everything feel really cohesive.
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:var(--space-3);flex-direction:row-reverse;">
+          <div class="nw-avatar nw-avatar-sm" style="margin-top:2px;">You</div>
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;text-align:right;">You · 09:44</div>
+            <div style="background:var(--relay-subtle);border:1px solid var(--relay-border);border-radius:8px 0 8px 8px;padding:8px 12px;font-size:var(--text-sm);color:var(--relay-fg);max-width:280px;line-height:1.5;">
+              Thanks! It took a while to figure out the right accent for each app — wanted them all to feel distinct but still clearly from the same family.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:var(--space-2);margin-top:var(--space-5);padding-top:var(--space-4);border-top:1px solid var(--border-base);">
+        <input class="nw-input" type="text" placeholder="Message Alex…" style="flex:1;">
+        <button class="nw-btn nw-btn-filled nw-btn-md" style="background:var(--relay-accent);">Send</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ EXPORT ══════════════════ -->
+<section id="section-export" class="ds-section">
+  <h1 class="ds-page-title">Token export</h1>
+  <p class="ds-page-subtitle">Copy this into your <code>globals.css</code> or equivalent token file. This is the single source of truth — all components and apps import from here.</p>
+
+  <div class="ds-token-block">
+    <pre><span class="t-comment">/* ═══════════════════════════════════════════════════
+   NEOWORKS DESIGN SYSTEM — CSS CUSTOM PROPERTIES
+   v2.0 · Light theme · WCAG AA throughout
+   
+   RULE: Every app uses base tokens + its own accent.
+   No cross-app accent references ever.
+═══════════════════════════════════════════════════ */</span>
+
+<span class="t-section">:root {</span>
+
+  <span class="t-comment">/* ── Typography ──────────────────────────────── */</span>
+  <span class="t-key">--font-display</span><span class="t-punct">:</span> <span class="t-value">'Syne', sans-serif</span><span class="t-punct">;</span>
+  <span class="t-key">--font-body</span><span class="t-punct">:</span>    <span class="t-value">'DM Sans', sans-serif</span><span class="t-punct">;</span>
+  <span class="t-key">--font-mono</span><span class="t-punct">:</span>    <span class="t-value">'DM Mono', monospace</span><span class="t-punct">;</span>
+
+  <span class="t-key">--text-xs</span><span class="t-punct">:</span>   <span class="t-value">11px</span><span class="t-punct">;</span>  <span class="t-key">--text-sm</span><span class="t-punct">:</span>   <span class="t-value">13px</span><span class="t-punct">;</span>
+  <span class="t-key">--text-base</span><span class="t-punct">:</span> <span class="t-value">15px</span><span class="t-punct">;</span>  <span class="t-key">--text-md</span><span class="t-punct">:</span>   <span class="t-value">17px</span><span class="t-punct">;</span>
+  <span class="t-key">--text-lg</span><span class="t-punct">:</span>   <span class="t-value">20px</span><span class="t-punct">;</span>  <span class="t-key">--text-xl</span><span class="t-punct">:</span>   <span class="t-value">24px</span><span class="t-punct">;</span>
+  <span class="t-key">--text-2xl</span><span class="t-punct">:</span>  <span class="t-value">30px</span><span class="t-punct">;</span>  <span class="t-key">--text-3xl</span><span class="t-punct">:</span>  <span class="t-value">38px</span><span class="t-punct">;</span>
+  <span class="t-key">--text-4xl</span><span class="t-punct">:</span>  <span class="t-value">48px</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* ── Backgrounds ─────────────────────────────── */</span>
+  <span class="t-key">--bg-page</span><span class="t-punct">:</span>    <span class="t-value">#F8F7F4</span><span class="t-punct">;</span>
+  <span class="t-key">--bg-surface</span><span class="t-punct">:</span> <span class="t-value">#FFFFFF</span><span class="t-punct">;</span>
+  <span class="t-key">--bg-subtle</span><span class="t-punct">:</span>  <span class="t-value">#F3F1ED</span><span class="t-punct">;</span>
+  <span class="t-key">--bg-muted</span><span class="t-punct">:</span>   <span class="t-value">#EAE8E3</span><span class="t-punct">;</span>
+  <span class="t-key">--bg-overlay</span><span class="t-punct">:</span> <span class="t-value">#E1DED8</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* ── Text ─────────────────────────────────────── */</span>
+  <span class="t-key">--text-primary</span><span class="t-punct">:</span>   <span class="t-value">#1C1B18</span><span class="t-punct">;</span>  <span class="t-comment">/* 16.1:1 on white */</span>
+  <span class="t-key">--text-secondary</span><span class="t-punct">:</span> <span class="t-value">#57534E</span><span class="t-punct">;</span>  <span class="t-comment">/*  7.4:1 on white */</span>
+  <span class="t-key">--text-muted</span><span class="t-punct">:</span>     <span class="t-value">#9C9590</span><span class="t-punct">;</span>  <span class="t-comment">/*  3.1:1 — large text only */</span>
+  <span class="t-key">--text-disabled</span><span class="t-punct">:</span>  <span class="t-value">#C9C5C0</span><span class="t-punct">;</span>  <span class="t-comment">/*  decorative only */</span>
+  <span class="t-key">--text-inverted</span><span class="t-punct">:</span>  <span class="t-value">#FFFFFF</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* ── Borders ──────────────────────────────────── */</span>
+  <span class="t-key">--border-subtle</span><span class="t-punct">:</span> <span class="t-value">#EDEAE4</span><span class="t-punct">;</span>
+  <span class="t-key">--border-base</span><span class="t-punct">:</span>   <span class="t-value">#E0DDD7</span><span class="t-punct">;</span>
+  <span class="t-key">--border-strong</span><span class="t-punct">:</span> <span class="t-value">#C9C6BF</span><span class="t-punct">;</span>
+  <span class="t-key">--border-focus</span><span class="t-punct">:</span>  <span class="t-value">#1C1B18</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* ── Spacing ──────────────────────────────────── */</span>
+  <span class="t-key">--space-1</span><span class="t-punct">:</span>4px; <span class="t-key">--space-2</span><span class="t-punct">:</span>8px; <span class="t-key">--space-3</span><span class="t-punct">:</span>12px; <span class="t-key">--space-4</span><span class="t-punct">:</span>16px;
+  <span class="t-key">--space-5</span><span class="t-punct">:</span>20px; <span class="t-key">--space-6</span><span class="t-punct">:</span>24px; <span class="t-key">--space-8</span><span class="t-punct">:</span>32px; <span class="t-key">--space-10</span><span class="t-punct">:</span>40px;
+  <span class="t-key">--space-12</span><span class="t-punct">:</span>48px; <span class="t-key">--space-16</span><span class="t-punct">:</span>64px; <span class="t-key">--space-20</span><span class="t-punct">:</span>80px;
+
+  <span class="t-comment">/* ── Radius ───────────────────────────────────── */</span>
+  <span class="t-key">--radius-sm</span><span class="t-punct">:</span>4px; <span class="t-key">--radius-md</span><span class="t-punct">:</span>8px; <span class="t-key">--radius-lg</span><span class="t-punct">:</span>12px;
+  <span class="t-key">--radius-xl</span><span class="t-punct">:</span>16px; <span class="t-key">--radius-2xl</span><span class="t-punct">:</span>20px; <span class="t-key">--radius-full</span><span class="t-punct">:</span>9999px;
+
+  <span class="t-comment">/* ── Shadows ──────────────────────────────────── */</span>
+  <span class="t-key">--shadow-sm</span><span class="t-punct">:</span>      <span class="t-value">0 1px 2px rgba(28,27,24,.05)</span><span class="t-punct">;</span>
+  <span class="t-key">--shadow-base</span><span class="t-punct">:</span>    <span class="t-value">0 1px 3px rgba(28,27,24,.07), 0 1px 2px rgba(28,27,24,.04)</span><span class="t-punct">;</span>
+  <span class="t-key">--shadow-raised</span><span class="t-punct">:</span>  <span class="t-value">0 4px 6px rgba(28,27,24,.06), 0 1px 3px rgba(28,27,24,.04)</span><span class="t-punct">;</span>
+  <span class="t-key">--shadow-overlay</span><span class="t-punct">:</span> <span class="t-value">0 20px 40px rgba(28,27,24,.12), 0 8px 16px rgba(28,27,24,.06)</span><span class="t-punct">;</span>
+  <span class="t-key">--shadow-focus</span><span class="t-punct">:</span>   <span class="t-value">0 0 0 3px rgba(28,27,24,.12)</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* ── Status (system feedback only) ───────────── */</span>
+  <span class="t-key">--status-success-fg</span><span class="t-punct">:</span>    <span class="t-value">#166534</span><span class="t-punct">;</span>
+  <span class="t-key">--status-success-bg</span><span class="t-punct">:</span>    <span class="t-value">#F0FDF4</span><span class="t-punct">;</span>
+  <span class="t-key">--status-success-border</span><span class="t-punct">:</span> <span class="t-value">#BBF7D0</span><span class="t-punct">;</span>
+  <span class="t-key">--status-warning-fg</span><span class="t-punct">:</span>    <span class="t-value">#92400E</span><span class="t-punct">;</span>
+  <span class="t-key">--status-warning-bg</span><span class="t-punct">:</span>    <span class="t-value">#FFFBEB</span><span class="t-punct">;</span>
+  <span class="t-key">--status-warning-border</span><span class="t-punct">:</span> <span class="t-value">#FDE68A</span><span class="t-punct">;</span>
+  <span class="t-key">--status-error-fg</span><span class="t-punct">:</span>      <span class="t-value">#991B1B</span><span class="t-punct">;</span>
+  <span class="t-key">--status-error-bg</span><span class="t-punct">:</span>      <span class="t-value">#FFF1F2</span><span class="t-punct">;</span>
+  <span class="t-key">--status-error-border</span><span class="t-punct">:</span>   <span class="t-value">#FECDD3</span><span class="t-punct">;</span>
+  <span class="t-key">--status-info-fg</span><span class="t-punct">:</span>       <span class="t-value">#1E3A5F</span><span class="t-punct">;</span>
+  <span class="t-key">--status-info-bg</span><span class="t-punct">:</span>       <span class="t-value">#EFF6FF</span><span class="t-punct">;</span>
+  <span class="t-key">--status-info-border</span><span class="t-punct">:</span>    <span class="t-value">#BFDBFE</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* ── App accents ──────────────────────────────── */</span>
+  <span class="t-comment">/* Neoworks (platform chrome) */</span>
+  <span class="t-key">--neoworks-fg</span><span class="t-punct">:</span>     <span class="t-value">#1C1B18</span><span class="t-punct">;</span>
+  <span class="t-key">--neoworks-accent</span><span class="t-punct">:</span> <span class="t-value">#292623</span><span class="t-punct">;</span>
+  <span class="t-key">--neoworks-subtle</span><span class="t-punct">:</span> <span class="t-value">#F3F1ED</span><span class="t-punct">;</span>
+  <span class="t-key">--neoworks-border</span><span class="t-punct">:</span> <span class="t-value">#C9C6BF</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* Grove — file sync & version history */</span>
+  <span class="t-key">--grove-fg</span><span class="t-punct">:</span>     <span class="t-value">#14532D</span><span class="t-punct">;</span>
+  <span class="t-key">--grove-accent</span><span class="t-punct">:</span> <span class="t-value">#15803D</span><span class="t-punct">;</span>
+  <span class="t-key">--grove-subtle</span><span class="t-punct">:</span> <span class="t-value">#F0FDF4</span><span class="t-punct">;</span>
+  <span class="t-key">--grove-border</span><span class="t-punct">:</span> <span class="t-value">#BBF7D0</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* Vault — passwords & secrets */</span>
+  <span class="t-key">--vault-fg</span><span class="t-punct">:</span>     <span class="t-value">#881337</span><span class="t-punct">;</span>
+  <span class="t-key">--vault-accent</span><span class="t-punct">:</span> <span class="t-value">#BE123C</span><span class="t-punct">;</span>
+  <span class="t-key">--vault-subtle</span><span class="t-punct">:</span> <span class="t-value">#FFF1F2</span><span class="t-punct">;</span>
+  <span class="t-key">--vault-border</span><span class="t-punct">:</span> <span class="t-value">#FECDD3</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* Vine — contacts & relationships */</span>
+  <span class="t-key">--vine-fg</span><span class="t-punct">:</span>     <span class="t-value">#4C1D95</span><span class="t-punct">;</span>
+  <span class="t-key">--vine-accent</span><span class="t-punct">:</span> <span class="t-value">#6D28D9</span><span class="t-punct">;</span>
+  <span class="t-key">--vine-subtle</span><span class="t-punct">:</span> <span class="t-value">#F5F3FF</span><span class="t-punct">;</span>
+  <span class="t-key">--vine-border</span><span class="t-punct">:</span> <span class="t-value">#DDD6FE</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* Tide — calendar & scheduling */</span>
+  <span class="t-key">--tide-fg</span><span class="t-punct">:</span>     <span class="t-value">#164E63</span><span class="t-punct">;</span>
+  <span class="t-key">--tide-accent</span><span class="t-punct">:</span> <span class="t-value">#0E7490</span><span class="t-punct">;</span>
+  <span class="t-key">--tide-subtle</span><span class="t-punct">:</span> <span class="t-value">#ECFEFF</span><span class="t-punct">;</span>
+  <span class="t-key">--tide-border</span><span class="t-punct">:</span> <span class="t-value">#A5F3FC</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* Twig — tasks & projects */</span>
+  <span class="t-key">--twig-fg</span><span class="t-punct">:</span>     <span class="t-value">#3F6212</span><span class="t-punct">;</span>
+  <span class="t-key">--twig-accent</span><span class="t-punct">:</span> <span class="t-value">#4D7C0F</span><span class="t-punct">;</span>
+  <span class="t-key">--twig-subtle</span><span class="t-punct">:</span> <span class="t-value">#F7FEE7</span><span class="t-punct">;</span>
+  <span class="t-key">--twig-border</span><span class="t-punct">:</span> <span class="t-value">#D9F99D</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* Relay — messaging */</span>
+  <span class="t-key">--relay-fg</span><span class="t-punct">:</span>     <span class="t-value">#9A3412</span><span class="t-punct">;</span>
+  <span class="t-key">--relay-accent</span><span class="t-punct">:</span> <span class="t-value">#C2410C</span><span class="t-punct">;</span>
+  <span class="t-key">--relay-subtle</span><span class="t-punct">:</span> <span class="t-value">#FFF7ED</span><span class="t-punct">;</span>
+  <span class="t-key">--relay-border</span><span class="t-punct">:</span> <span class="t-value">#FED7AA</span><span class="t-punct">;</span>
+
+  <span class="t-comment">/* Trail — notes & exploration */</span>
+  <span class="t-key">--trail-fg</span><span class="t-punct">:</span>     <span class="t-value">#78350F</span><span class="t-punct">;</span>
+  <span class="t-key">--trail-accent</span><span class="t-punct">:</span> <span class="t-value">#B45309</span><span class="t-punct">;</span>
+  <span class="t-key">--trail-subtle</span><span class="t-punct">:</span> <span class="t-value">#FFFBEB</span><span class="t-punct">;</span>
+  <span class="t-key">--trail-border</span><span class="t-punct">:</span> <span class="t-value">#FDE68A</span><span class="t-punct">;</span>
+
+<span class="t-section">}</span></pre>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.ds-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.ds-nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: 0 });
+}
+</script>
+
+</body>
+</html>

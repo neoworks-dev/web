@@ -1,0 +1,236 @@
+---
+title: Data Model (SurrealDB)
+description: SurrealDB schema (tables, fields, constraints), the versioning pattern, and the Redis/S3 layout.
+---
+
+Schema is defined incrementally in `sql/migrations/*.surql` (001–017),
+applied in order by `cmd/migrate` (`task db:migrate`). All tables are
+`SCHEMAFULL` unless noted.
+
+## Identity & accounts
+
+### `user`
+| Field | Type | Notes |
+|---|---|---|
+| `first_name`, `last_name` | string | |
+| `email` | string | `ASSERT string::is_email($value)`, unique index |
+| `password_hash` | string | bcrypt |
+| `storage_used_bytes` | int | DEFAULT 0 — running total of object-storage bytes (migration 017) |
+| `created_at` | datetime | DEFAULT `time::now()`, READONLY |
+
+### `user_key`
+Per-user end-to-end-encryption key material (Account Master Key wrapping).
+| Field | Type | Notes |
+|---|---|---|
+| `user` | record\<user\> | READONLY |
+| `recovery_wrapped_amk` | string | AMK wrapped with recovery key |
+| `password_wrapped_amk` | option\<string\> | AMK wrapped with Argon2-derived password key |
+| `argon2_salt` | string | |
+| `argon2_time` | int | DEFAULT 3 |
+| `argon2_memory` | int | DEFAULT 65536 |
+| `argon2_threads` | int | DEFAULT 4 |
+| `argon2_keylen` | int | DEFAULT 32 |
+| `created_at` | datetime | VALUE `time::now()`, READONLY |
+| `updated_at` | datetime | VALUE `time::now()` |
+
+### `device`
+Per-device wrapped copy of the AMK, for the device-invite/QR approval flow.
+| Field | Type | Notes |
+|---|---|---|
+| `user` | record\<user\> | READONLY |
+| `name` | option\<string\> | |
+| `public_key` | string | READONLY |
+| `wrapped_amk` | string | AMK wrapped with this device's public key |
+| `created_at` | datetime | VALUE `time::now()`, READONLY |
+| `last_seen_at` | datetime | VALUE `time::now()` |
+
+---
+
+## OAuth
+
+### `oauth_client`
+`PERMISSIONS NONE` (no client-side access — server-only).
+| Field | Type | Notes |
+|---|---|---|
+| `id` | string | `ASSERT $value != NONE`, unique index — also the OAuth `client_id` |
+| `secret_hash` | option\<string\> | bcrypt hash; absent for public/PKCE-only clients |
+| `redirect_uris` | array\<string\> | DEFAULT [] |
+| `scopes` | array\<string\> | DEFAULT [] — scopes this client may request |
+| `auto_grant_scopes` | bool | DEFAULT false — skip consent screen |
+| `public` | bool | DEFAULT false — PKCE-only, no secret |
+| `db_name` | option\<string\> | added in migration 013 (currently unused — see [project_oauth_client_gql](/docs/api) history; per-client DBs now live in `client_database`) |
+
+### `grant`
+A user's consent for a client to use a set of scopes.
+| Field | Type | Notes |
+|---|---|---|
+| `user` | record\<user\> | |
+| `client` | record\<oauth_client\> | |
+| `scopes` | array\<string\> | granted scopes |
+| `enabled` | bool | DEFAULT true |
+| `created_at` | datetime | DEFAULT `time::now()`, READONLY |
+| `updated_at` | datetime | DEFAULT `time::now()` |
+
+Unique index on `(user, client)` — one grant record per user/client pair;
+scopes are merged/updated in place as consent is extended.
+
+### `refresh_token`
+| Field | Type | Notes |
+|---|---|---|
+| `user` | record\<user\> | |
+| `client` | record\<oauth_client\> | |
+| `scopes` | array\<string\> | scopes granted at issuance |
+| `expires_at` | datetime | |
+| `created_at` | datetime | DEFAULT `time::now()`, READONLY |
+| `revoked` | bool | DEFAULT false |
+| `used` | bool | DEFAULT false — rotation-lock flag; reuse after `used=true` revokes the grant |
+
+Indexes on `user`, `client`, `expires_at`.
+
+---
+
+## Versioning pattern
+
+`contact`/`media` follow the shared versioning pattern documented in the
+project's `CLAUDE.md`:
+
+- **`<entity>`** holds current state, plus `version -> <entity>_version`
+  (pointer to the latest version) and standard `created_at`
+  (`VALUE $before OR time::now() READONLY`, allows backfilled timestamps)
+  / `updated_at` (`VALUE time::now()`).
+- **`<entity>_version`** is append-only: every field `READONLY`, mirrors
+  the entity's data plus `<entity>_id` back-reference and its own
+  `created_at`.
+- **`derived_from`** — a single `TYPE RELATION` table (no IN/OUT type
+  constraint) shared by *all* versioned entities, connecting
+  `old_version -> derived_from -> new_version`. Enables full ancestry graph
+  traversal, including merges (multiple parents).
+
+Writes follow the transactional create/update pattern in `CLAUDE.md`
+(`BEGIN TRANSACTION ... COMMIT TRANSACTION`), with the caller supplying
+`parentVersionIds` for updates so non-linear history (merges) is supported.
+
+### `contact` / `contact_version`
+| Field | Type | Notes |
+|---|---|---|
+| `user` | record\<user\> | READONLY (owner) |
+| `name` | string | |
+| `email` | string | |
+| `phone` | option\<string\> | |
+| `created_at` | datetime | VALUE `$before OR time::now()`, READONLY |
+| `updated_at` | datetime | VALUE `time::now()` |
+| `version` | record\<contact_version\> | pointer to latest version |
+
+`contact_version` mirrors `name`/`email`/`phone` (all READONLY) plus
+`contact_id -> record<contact>` and its own `created_at`.
+
+### `media` / `media_version`
+| Field | Type | Notes |
+|---|---|---|
+| `user` | record\<user\> | READONLY (owner) |
+| `filename` | string | |
+| `mime_type` | string | |
+| `size` | int | sum of chunk sizes |
+| `chunks` | array\<record\<chunk\>\> | ordered chunk references |
+| `created_at` | datetime | VALUE `$before OR time::now()`, READONLY |
+| `updated_at` | datetime | VALUE `time::now()` |
+| `version` | record\<media_version\> | pointer to latest version |
+
+`media_version` mirrors `filename`/`mime_type`/`size`/`chunks` (all
+READONLY) plus `media_id -> record<media>` and its own `created_at`.
+
+---
+
+## Object storage / chunks
+
+### `chunk`
+Content-addressed, **per-user-scoped** (migration 011 — encrypted chunks
+can only dedupe within one user, since different AMKs produce different
+ciphertext for identical plaintext).
+| Field | Type | Notes |
+|---|---|---|
+| `user` | record\<user\> | READONLY |
+| `hash` | string | SHA-256 hex of encrypted bytes, READONLY |
+| `size` | int | READONLY, byte size of encrypted blob |
+| `storage_key` | string | READONLY, S3 key: `chunks/{user}/{hash[0:2]}/{hash[2:4]}/{hash}` |
+| `ref_count` | int | DEFAULT 0 — array-slot references across `media.chunks` + `media_version.chunks`; 0 → garbage collect row + S3 blob |
+| `created_at` | datetime | VALUE `time::now()`, READONLY |
+
+Unique index on `(user, hash)`.
+
+---
+
+## Per-client databases & billing
+
+### `client_database`
+Up to 5 per `oauth_client` (enforced in the resolver, not the schema).
+| Field | Type | Notes |
+|---|---|---|
+| `client` | record\<oauth_client\> | READONLY |
+| `name` | string | READONLY — caller-chosen label |
+| `db_name` | string | READONLY — provisioned SurrealDB database name |
+| `schema_def` | option\<object\> | custom schema (DDL source of truth); `schema_def.*` is `TYPE object FLEXIBLE` (migration 016) to allow arbitrary nested structure (SurrealDB validates nested SCHEMAFULL fields, so a wildcard+FLEXIBLE field is required) |
+| `status` | string | DEFAULT "active", one of `active`/`suspended`/`deleted` |
+| `created_at` | datetime | VALUE `time::now()`, READONLY |
+| `updated_at` | datetime | VALUE `time::now()` |
+
+Unique index on `(client, name)`.
+
+### Billing tables
+
+All four share the same shape (`entity`, `unit_price`, `currency`,
+`status`, `invoice_id`, `ref`, `created_at`, plus a type-specific quantity
+field and `occurred_at`/`start_time`):
+
+| Table | Quantity field | `status` values | Purpose |
+|---|---|---|---|
+| `billing_storage_period` | `tier` (`hot`/`cold`/`archive`) + `size_bytes` (decimal), `start_time`/`end_time` (open interval) | `pending`/`invoiced`/`void` | Storage billed as GB-months: `(size_bytes / 1_073_741_824) * (end_time - start_time).seconds / 2_629_800` |
+| `billing_compute_event` | `units` (decimal seconds) | same | Compute usage |
+| `billing_api_event` | `units` (decimal call count) | same | API usage |
+| `billing_provisioning_event` | `resource` (e.g. `"database"`) + `units` | same | One-off provisioning charges (e.g. creating a `client_database`) |
+
+`entity` is `record<user | oauth_client>` — either a user or an OAuth
+client can be billed. `ref` is an optional pointer to the record that
+caused the event (e.g. a `media_version` or `client_database`).
+Helper constructors live in `storage/database/billing.go`
+(`CreateProvisioningBillingEvent`, `CreateComputeBillingEvent`,
+`CreateAPIBillingEvent`).
+
+---
+
+## Rate limiting
+
+### `rate_limit`
+Schema defined (migration 007) but **not yet wired into the Go
+middleware** — reserved for future use.
+| Field | Type | Notes |
+|---|---|---|
+| `bucket` | string | app-built composite key, e.g. `ip:1.2.3.4:POST:/oauth/token` |
+| `window` | datetime | floored timestamp for the current window |
+| `count` | int | DEFAULT 0 |
+| `expires_at` | datetime | `window + window_duration`, for purge |
+
+Unique index on `(bucket, window)`; index on `expires_at` for a background
+purge job.
+
+---
+
+## Storage backends (non-SurrealDB)
+
+### Redis (`storage/cache`)
+All keys are ephemeral (TTL-based), keeping short-lived OAuth state out of
+SurrealDB:
+- `code:{code}` — authorization code (TTL = code expiry)
+- `rt_lock:{jti}` — refresh-token rotation lock (30s, `SetNX` for replay
+  detection)
+- `revoked:{jti}` — revoked access-token JTIs (TTL = token expiry)
+- `login_challenge:{id}` / `consent_challenge:{id}` — login/consent flow
+  state
+- `device_invite:{token}` (10 min) / `device_invite_result:{token}` (1h) —
+  device-invite/QR approval flow
+- `sso:{token}` — SSO session → user ID mapping
+
+### MinIO / S3 (`storage/objectstore`)
+- `PutChunk` / `GetChunk` / `DeleteChunk` — encrypted blob storage, keyed by
+  `chunks/{userID}/{hash[0:2]}/{hash[2:4]}/{hash}` (sharded for scale).
+- `EnsureBucket` — idempotent bucket creation on startup.

@@ -1,0 +1,26 @@
+---
+title: Folders
+description: Group Muse boards into folders and open them inline on the canvas, without navigating away.
+---
+
+Folders group related boards together. Unlike a traditional file tree, a Muse folder can be
+**opened inline** on the canvas — its boards expand in place so you can move between them
+without losing your spot or your zoom level.
+
+## Creating a folder
+
+Select one or more boards and choose **Group into folder**, or drop a board onto another to
+nest it. A folder is itself an object on the canvas, so it has a position and can live inside
+another folder.
+
+## Opening inline
+
+Clicking a folder expands it in place rather than routing to a new page. The folder's boards
+fan out around it; collapsing returns them to the folder object. This keeps navigation
+spatial — you stay on one continuous surface.
+
+## Where folders are stored
+
+A folder is structured data, not media, so it persists to the
+[queryable layer](/docs/neoworks/openschema) on your NeoWorks account and syncs like any other
+board. See [Sync & data](/docs/muse/sync) for the details.

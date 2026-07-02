@@ -1,0 +1,443 @@
+---
+title: Canonical Entity Surface
+description: A composable capability contract (CRUD, query/filter, soft-delete, versioning, relations, real-time, bulk) with SurrealQL mappings and a roadmap.
+---
+
+A contract for how every domain entity (contact, media, calendar, event,
+organization, connection, notification, …) is queried and mutated. Today each
+entity hand-rolls its own surface and they have drifted apart; this document
+defines one composable contract so existing entities can be made consistent and
+new ones (e.g. the planned email / notifications / assets apps) get a complete,
+predictable surface for free.
+
+This is a **design spec / roadmap**, not yet implemented. The only piece that
+exists today is the contact filter compiler
+(`storage/database/contact_filter.go`) and the contact query surface; everything
+else is the target.
+
+---
+
+## 1. Model: base + opt-in capabilities
+
+An entity has a **base** surface always, then **opts into capabilities**. Each
+capability contributes a slice of queries/mutations/inputs. Capabilities compose
+— a contact is `Queryable + SoftDeletable + Versioned + Related`; a notification
+might be only `Queryable + Subscribable`.
+
+```
+Entity = Identity + CRUD
+       + [Queryable] + [SoftDeletable] + [Versioned] + [Related] + [Subscribable] + [Bulk]
+       × cross-cutting axes (ownership scope, validation, media refs)
+```
+
+Capabilities are **declared once** in an `EntityDescriptor` (Go) and drive the
+generated surface; see §5.
+
+---
+
+## 2. Base surface (every entity)
+
+**Identity** — `id: ID!`, `created_at`, `updated_at`. Modelled as GraphQL
+`interface Node` / `interface Timestamped`.
+
+**CRUD**
+
+| Op | Shape |
+|----|-------|
+| get | `entity(id: ID!): Entity` |
+| create | `createEntity(input: CreateEntityInput!): Entity!` |
+| update | `updateEntity(id: ID!, input: UpdateEntityInput!): Entity!` (Versioned entities also take `parentVersionIds` — see §4.3) |
+| delete | `deleteEntity(id: ID!): Boolean!` — **hard** delete; for soft delete use the SoftDeletable lifecycle |
+
+---
+
+## 3. Capability: Queryable
+
+Collection reads with filter, search, sort, pagination, and count.
+
+```graphql
+entities(
+  scope: Scope = ACTIVE      # only if SoftDeletable
+  search: String             # sugar over the FTS / contains filter
+  filter: EntityFilter
+  sort: [SortInput!]
+  page: PageInput            # { limit, offset }
+): [Entity!]!
+
+entitiesCount(scope: Scope, search: String, filter: EntityFilter): Int!
+```
+
+### 3.1 Filter inputs (shared operator types)
+
+Defined once in `_shared.graphql`, reused by every entity's `EntityFilter`:
+
+```graphql
+input StringFilter {
+  eq ne contains startsWith endsWith in[] isNull
+  matches: String     # regex             (string::matches)
+  fuzzy:   String     # typo-tolerant     (~ operator / string::similarity::fuzzy)
+  search:  String     # full-text, ranked (@@ on an analyzer index)
+}
+input BoolFilter   { eq }
+input IntFilter    { eq gt gte lt lte }
+input DateFilter   { eq gt gte lt lte before after withinLast: Duration }
+input StringListFilter { has hasAll hasAny isEmpty size: IntFilter }
+input GeoFilter        { near: NearInput  within: GeoJSON  isNull: Boolean }   # coordinate fields
+input NearInput        { lat: Float!  lng: Float!  radiusMeters: Float! }
+
+# Repeatable object fields (emails/phones) match when ANY element matches. The
+# element filter is per-entity (its own field shape); for contacts:
+input ContactFieldFilter { value: StringFilter  type: String }               # one email/phone element
+input FieldListFilter    { any: ContactFieldFilter  isEmpty: Boolean  size: IntFilter }
+```
+
+A per-entity `EntityFilter` maps its own fields onto these and adds boolean
+combinators:
+
+```graphql
+input ContactFilter {
+  formatted_name: StringFilter
+  birthday: StringFilter
+  emails: FieldListFilter
+  phones: FieldListFilter
+  favorite: BoolFilter
+  geo: GeoFilter
+  and: [ContactFilter!]
+  or:  [ContactFilter!]
+  not: ContactFilter
+}
+```
+
+> The per-field inputs **must** reference concrete fields, so `EntityFilter` is
+> generated per entity (GraphQL has no input generics). The operator inputs and
+> the `and/or/not` skeleton are shared.
+
+### 3.2 SurrealQL compilation
+
+Each operator compiles to a parameterized WHERE fragment; operators on one filter
+are ANDed; `and/or/not` build the boolean tree with real parentheses. This is the
+existing `filterCompiler` (`storage/database/contact_filter.go`) — to be
+generalized to take an `EntityDescriptor` (field → column + kind) instead of
+hardcoded contact columns.
+
+| Operator | SurrealQL |
+|----------|-----------|
+| `String.eq` | `col = $p` |
+| `String.contains` | `string::lowercase(col) CONTAINS $p` (needle lowercased) |
+| `String.startsWith` | `string::starts_with(string::lowercase(col), $p)` |
+| `String.matches` | `string::matches(col, $re)` (regex per row; anchor patterns to avoid backtracking) |
+| `String.fuzzy` | `col ~ $p` (fuzzy operator); scored variant `string::similarity::fuzzy(string::lowercase(col), $p) > 0` |
+| `String.search` | `col @1@ $p` — full-text via an analyzer index, ranked with `search::score(1)` (see below) |
+| `String.isNull: true` | `col = NONE` |
+| `Int.gt` | `col > $p` |
+| `Date.before` | `col < <datetime>$p` |
+| `Date.withinLast: 30d` | `col > time::now() - 30d` |
+| `StringList.hasAll` | `col CONTAINSALL $p` |
+| `StringList.hasAny` | `col CONTAINSANY $p` |
+| `FieldList.isEmpty: false` | `array::len(col ?? []) > 0` |
+| `FieldList.any.value.contains` | `array::len((col ?? [])[WHERE string::lowercase(value) CONTAINS $p]) > 0` |
+| `and` / `or` / `not` | `( … AND … )` / `( … OR … )` / `!( … )` |
+
+Guardrails: cap boolean nesting depth; always apply a `LIMIT`; param names
+(`f0, f1, …`) never collide with the query's own params.
+
+These never scan the whole table: every query is **ownership-scoped first** (§9),
+so `contains` / `fuzzy` / `matches` only evaluate over the caller's own slice — a
+personal contact list, not the global table — which is cheap even though they're
+linear in that slice. `search` (below) still wins once a single user's collection
+gets large or you want stemming/ranking. `matches` runs a regex per row, so anchor
+patterns to avoid pathological backtracking; `fuzzy` is the typo-tolerant `~`
+operator (or a `string::similarity::*` /
+`string::distance::normalized_levenshtein` threshold when you need a score).
+
+#### Full-text search (`String.search`)
+
+Because reads are already user-scoped, `contains` covers ordinary search at
+personal scale. Reach for `search` when a single user's collection is large, or
+when you want tokenized + stemmed matching and relevance ranking. It uses an
+**analyzer index**, defined once per searchable field (the `EntityDescriptor`
+flags which columns have one):
+
+```surql
+DEFINE ANALYZER std TOKENIZERS blank,class FILTERS lowercase,ascii,snowball(english);
+DEFINE INDEX contact_fts ON contact FIELDS formatted_name SEARCH ANALYZER std BM25 HIGHLIGHTS;
+```
+
+`String.search` then compiles to the `@@` match operator with BM25 relevance
+ranking (the `@1@` reference ties the match to its score/highlight helpers):
+
+```surql
+SELECT *, search::score(1) AS score
+FROM   contact
+WHERE  formatted_name @1@ $q
+ORDER  BY score DESC;
+```
+
+`search::highlight(prefix, suffix, 1)` and `search::offsets(1)` return marked-up
+snippets for result display. Tokenized + stemmed matching ("organize" matches
+"organizing") and ranking are the difference from `contains`. Without an index on
+the field, `search` degrades to a `contains` scan.
+
+### 3.3 Sorting & pagination
+
+`SortInput { field, direction: ASC|DESC }` → `ORDER BY`. `PageInput { limit,
+offset }` → `LIMIT $limit START $offset`. (Cursor pagination is a future option;
+offset is enough at current scale.)
+
+### 3.4 Location / geo filters
+
+For entities with a coordinate field (Contact `geo`, address coordinates), a
+`GeoFilter` does radius and region queries. Store the column as a SurrealDB
+`geometry<point>` — coordinates are **`(longitude, latitude)`** order — so it can
+be spatially indexed; a `{ lat, lng }` object is converted with
+`type::point([lng, lat])`.
+
+| Op | SurrealQL |
+|----|-----------|
+| `near` (within radius) | `geo::distance(col, type::point([$lng, $lat])) <= $radiusMeters` |
+| `within` (polygon/region) | `col INSIDE $geojson` |
+| nearest-first sort | `ORDER BY geo::distance(col, $point)` |
+
+`geo::distance` returns the haversine distance in **metres**. Point-in-region uses
+the geometry operators (`INSIDE` / `OUTSIDE` / `INTERSECTS`), which are SurrealQL
+operators, not `geo::` functions. Related helpers if needed:
+`geo::bearing(a, b)`, `geo::centroid(geom)`, `geo::area(geom)` (m²),
+`geo::hash::encode/decode`, `geo::is_valid(geom)`.
+
+---
+
+## 4. Capability: SoftDeletable
+
+`deleted` / `archived` flags plus a scope enum, and a lifecycle that records a
+version (when also Versioned) instead of mutating in place.
+
+```graphql
+enum Scope { ACTIVE ARCHIVED TRASHED ALL }
+
+trashEntity(id: ID!): Entity!       # deleted = true
+restoreEntity(id: ID!): Entity!     # deleted = false
+archiveEntity(id: ID!): Entity!     # archived = true
+unarchiveEntity(id: ID!): Entity!   # archived = false
+```
+
+Scope → WHERE: `ACTIVE` = `deleted=false AND archived=false`, `ARCHIVED` =
+`archived=true`, `TRASHED` = `deleted=true`, `ALL` = no flag filter.
+
+> Consistency target: Organization/ClientDatabase have a delete flag but no
+> restore; this capability gives them the full lifecycle uniformly.
+
+---
+
+## 5. Capability: Versioned
+
+The `<entity>` + `<entity>_version` + shared `derived_from` pattern (see the
+*Versioning Pattern* section of `apps/api/CLAUDE.md`). The surface is larger than
+"history + revert":
+
+### 5.1 Reads
+
+```graphql
+entityHistory(id: ID!, filter: VersionFilter): [EntityVersion!]!
+entityVersion(versionId: ID!): EntityVersion
+entityDiff(versionA: ID!, versionB: ID!): [FieldChange!]!
+```
+
+`EntityVersion` mirrors the entity's fields (READONLY) plus `parent_ids: [ID!]`
+(lineage). `VersionFilter` reuses the §3.1 field operators **over the snapshot
+fields** and adds:
+
+```graphql
+input VersionFilter {
+  # …the entity's field operators…           # filter over DATA
+  before: String   after: String             # filter over TIME
+  isHead: Boolean                             # the current head version
+  parentOf: ID     childOf: ID                # one hop on derived_from
+  ancestorOf: ID   descendantOf: ID           # transitive lineage walk
+}
+```
+
+This unifies "query entities" and "query their history" under one compiler —
+versions just register the extra lineage/time columns.
+
+### 5.2 Lineage navigation
+
+`derived_from` connects `parent_version -> derived_from -> child_version`. A
+single edit has one parent; a merge has two. Walks:
+
+| Need | SurrealQL |
+|------|-----------|
+| direct parents of V | `V<-derived_from<-entity_version` |
+| direct children of V | `V->derived_from->entity_version` |
+| is V the head | `V = (SELECT version FROM entity WHERE id = $id)` |
+| ancestors / descendants | recursive traversal over `derived_from` |
+
+(The branching tree the contacts history UI renders already consumes
+`parent_ids`.)
+
+### 5.3 Writes
+
+```graphql
+updateEntity(id: ID!, parentVersionIds: [ID!]!, input: UpdateEntityInput!): Entity!
+revertEntityVersion(id: ID!, versionId: ID!): Entity!   # FORK: copy old version → new head, parent = that version
+mergeEntityVersions(id: ID!, parentVersionIds: [ID!]!, input: UpdateEntityInput!): Entity!  # multi-parent
+```
+
+`revert` and `merge` are the two lineage-forking operations: revert forks from one
+old version (already implemented for contacts as `restoreContactVersion`), merge
+records 2+ parents on one new version.
+
+---
+
+## 6. Capability: Related
+
+Typed graph edges between entities, their metadata, and traversal. Relations are
+**plural and typed** — `related` (contact↔contact), `member` (group membership),
+`connection` (user↔user) are distinct edge kinds, not one thing.
+
+```graphql
+relateEntities(fromId: ID!, toId: ID!, kind: RelationKind!, meta: EdgeMetaInput): Boolean!
+unrelateEntities(fromId: ID!, toId: ID!, kind: RelationKind!): Boolean!
+updateEdge(fromId: ID!, toId: ID!, kind: RelationKind!, meta: EdgeMetaInput!): Boolean!   # NEW: edit types/pref/role in place
+```
+
+> Gap this closes: today you can relate/unrelate but **not edit an existing edge's
+> metadata** (`related.types/pref`, `membership.role`). `updateEdge` adds it.
+
+Traversal / filter-by-relation (extends `EntityFilter`):
+
+```graphql
+input RelationFilter {
+  relatedTo: ID            # has edge to this entity
+  memberOf: ID             # is in this group
+  hasRelations: IntFilter  # e.g. count >= 3
+  kind: RelationKind
+}
+```
+
+| Need | SurrealQL |
+|------|-----------|
+| related-to X | `$x IN ->related->entity.id` |
+| member-of group G | `$g IN <-member<-` / `G->member->entity CONTAINS $id` |
+| has ≥N relations | `count(->related->entity) >= $n` |
+
+---
+
+## 7. Capability: Subscribable (real-time)
+
+Currently **absent everywhere** — clients poll. SurrealDB provides `LIVE SELECT`;
+expose it as GraphQL subscriptions.
+
+```graphql
+type Subscription {
+  entityChanged(id: ID!): EntityEvent!
+  entitiesChanged(scope: Scope, filter: EntityFilter): EntityEvent!
+}
+type EntityEvent { action: CREATE|UPDATE|DELETE, entity: Entity }
+```
+
+Backed by a `LIVE SELECT … WHERE <scope+filter>` per subscriber, multiplexed
+through a subscription manager; the SDK gains a subscription transport. This is
+the largest new axis (transport + lifecycle + auth on the live channel) and is
+sequenced last (P6).
+
+---
+
+## 8. Capability: Bulk
+
+Server-side batch instead of client-side loops (how import / trash-many work
+today).
+
+```graphql
+createEntities(inputs: [CreateEntityInput!]!): BulkResult!
+updateEntities(ids: [ID!]!, input: UpdateEntityInput!): BulkResult!
+trashEntities(ids: [ID!]!): BulkResult!
+deleteEntities(ids: [ID!]!): BulkResult!
+type BulkResult { succeeded: Int!, failed: [BulkError!]! }
+```
+
+Run inside one SurrealDB transaction where atomicity matters; partial-success
+reporting otherwise.
+
+---
+
+## 9. Cross-cutting axes (apply to every method)
+
+- **Ownership scope** — every query/mutation is scoped to the caller, and this is
+  the **primary access path**: the scope predicate runs first, so a read only ever
+  touches the caller's own slice (one user's contacts), never the whole table.
+  Keep the ownership column indexed (`DEFINE INDEX … ON <entity> FIELDS user`) so
+  that narrowing is a lookup, not a scan — then the secondary filters evaluate over
+  a small set and stay cheap. Three shapes: **user-scoped**
+  (`user = $claim.subject` — contact, notification, connection), **org-scoped**
+  (membership check — calendar, event, client), and **hybrid-via-parent** (scoped
+  through an owning record — client_database via client→org). The descriptor
+  declares which.
+- **Validation** — per-entity input validation runs before any write.
+- **Media refs** — fields that hold encrypted-media ids (e.g. `photo`, `logo`)
+  resolve through the Vault manifest flow; references are opaque ids in the
+  entity, resolved out-of-band by the client.
+
+---
+
+## 10. Where "define once" lands (per layer)
+
+| Layer | Shared (write once) | Per-entity (generated/concrete) |
+|-------|---------------------|---------------------------------|
+| **Go** | `filterCompiler` (entity-generic via `EntityDescriptor`), `VersionedStore[Row]` with list/lifecycle/history/restore/merge/count/relation/subscribe, lineage + relation helpers | `EntityDescriptor` (table, fields→columns+kinds, capabilities, scope), the row struct |
+| **GraphQL** | operator inputs, `Scope`, `interface Node/Versioned`, `Page`/`Sort`, `VersionFilter` skeleton, `BulkResult` | `EntityFilter`, `EntityVersion`, lifecycle mutations (boilerplate) |
+| **SDK** | `VersionedResource<Sel>` base (list/get/history/restore/relate/subscribe) | selection set + resource name |
+
+GraphQL can't generic the per-entity inputs, so those are **codegen'd from the
+descriptor** once there are ~3 entities; hand-written before that. The biggest
+genuine write-once win is the Go layer (compiler + store) and the shared operator
+inputs.
+
+---
+
+## 11. Current state vs. target
+
+| Entity | Query+filter | Soft-delete | Versioned | Related | Real-time | Bulk |
+|--------|:---:|:---:|:---:|:---:|:---:|:---:|
+| contact | ✅ (filter built) | ✅ full | ✅ (+revert) | ✅ relate/member | ❌ | ❌ |
+| media | ❌ | partial | ✅ | refs only | ❌ | ❌ |
+| calendar | ❌ no pagination | ❌ | ❌ | ref | ❌ | ❌ |
+| event | range only | ❌ | ❌ | refs | ❌ | ❌ |
+| organization | ❌ | flag, no restore | ❌ | membership | ❌ | ❌ |
+| connection | status filter | ❌ | ❌ | edges (status) | ❌ | ❌ |
+| notification | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+Legend: ✅ present · partial · ❌ absent. The contract makes each column uniform
+for entities that opt into the capability.
+
+---
+
+## 12. Implementation roadmap
+
+Sequenced low-risk → high-effort. Each phase is independently shippable.
+
+- **P1** — generalize `filterCompiler` + introduce `EntityDescriptor`; generic
+  `VersionedStore[Row]`; refactor `ContactStore` onto it; prove on `media`; add
+  `count`. *(Server-only, no schema churn.)*
+- **P2** — shared GraphQL primitives (`_shared.graphql`); make Queryable +
+  SoftDeletable consistent across existing entities (pagination for
+  Calendar/Event/Notification; restore for Organization).
+- **P3** — complete Versioned surface generically: `version(id)`, `diff`, lineage
+  navigation, `merge`.
+- **P4** — Related surface: `updateEdge`, relation traversal + filter-by-relation.
+- **P5** — Bulk mutations.
+- **P6** — Real-time: `LIVE SELECT` + GraphQL subscriptions + SDK transport.
+- **P7** — codegen per-entity SDL/resolvers from descriptors; SDK
+  `VersionedResource` base.
+
+### SurrealDB operators available for future filter growth
+
+First-class in the contract: text (`contains`/`startsWith`/`endsWith`/`matches`/
+`fuzzy`/full-text `search`), `CONTAINSALL/ANY` lists, date ranges, and geo
+(`near`/`within`). Still on the menu when a need shows up: `CONTAINSNONE`,
+`INSIDE/ALLINSIDE/ANYINSIDE` for non-geo arrays, edit-distance thresholds
+(`string::distance::normalized_levenshtein`), date-part functions (`time::year`,
+`time::wday`), `string::is::*` format validators, and KNN vector search (`<|K|>`,
+needs embeddings + an MTREE/HNSW index). Expose deliberately: ownership scoping
+keeps most filters cheap over the caller's slice, but each operator is still a
+maintenance surface (and `search`/geo want an index), so grow on demand rather
+than exposing everything SurrealQL can express.

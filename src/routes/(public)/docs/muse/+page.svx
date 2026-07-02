@@ -1,0 +1,25 @@
+---
+title: Muse
+description: Muse is an infinite-canvas studio built on NeoWorks — boards, drawings, and media synced to your own account.
+---
+
+Muse is an infinite-canvas studio. You drop notes, sketches, images, and embeds onto a
+boundless board and arrange them spatially instead of in a list. Everything you create is
+stored on **your** NeoWorks account — synced across devices, with media encrypted end-to-end.
+
+Muse runs as a separate app on its own subdomain, but it signs in with the same NeoWorks
+identity and reads and writes through the same data plane as every other app.
+
+## What's in these docs
+
+- [Canvas](/docs/muse/canvas) — the board: objects, the pegboard grid, pan and zoom.
+- [Folders](/docs/muse/folder) — group boards and open them inline without leaving the canvas.
+- [Sync & data](/docs/muse/sync) — how boards persist to NeoWorks and stay in sync.
+
+## How it relates to NeoWorks
+
+Muse is a thin creative surface over the platform. Auth is the NeoWorks
+[OAuth](/docs/neoworks/oauth) flow, structured board data lives in the
+[queryable layer](/docs/neoworks/openschema), and uploaded media is handled by encrypted
+[storage](/docs/neoworks/storage). If you're building your own app, the same primitives are
+available to you.

@@ -1,0 +1,51 @@
+---
+title: Self-hosting
+description: Run the full NeoWorks stack on your own machine with process-compose and Docker.
+---
+
+NeoWorks is MIT licensed and runs anywhere Docker does. Local development uses
+**process-compose** to supervise the backing services and the app processes together.
+
+## Prerequisites
+
+- Docker
+- [process-compose](https://github.com/F1bonacc1/process-compose)
+- Bun and Go (for the app processes)
+- Caddy (for local HTTPS on `*.neoworks.localhost`)
+
+## Backing services
+
+The infrastructure runs as individual `docker run` processes supervised by
+process-compose — there is no monolithic compose file. Each service streams its logs
+into the process-compose UI:
+
+- **SurrealDB** — the multi-model database (`:8000`).
+- **Redis** — session tokens, write-queue buffer, rate limiting (`:6379`).
+- **NATS** — JetStream for real-time fan-out (`:4222`).
+- **MinIO** — S3-compatible object storage (`:9000`, console `:9001`).
+
+A one-shot `minio-setup` job creates the buckets, then an `infra` aggregator gates the
+app processes until every service reports healthy.
+
+## Start everything
+
+```bash
+process-compose up
+```
+
+This brings up the services, runs database migrations, then starts the `oauth`, `api`,
+`assets`, `web`, and `muse` processes behind Caddy.
+
+## Data persistence
+
+SurrealDB persists to a bind mount under `infra/data/surrealdb`, so your data survives
+restarts. Redis, NATS, and MinIO use named Docker volumes.
+
+## Shutting down
+
+```bash
+process-compose down
+```
+
+Each service is stopped with `docker stop`; because containers run with `--rm`, they are
+removed cleanly on shutdown.

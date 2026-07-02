@@ -1,0 +1,79 @@
+---
+title: Quickstart
+description: Register an OAuth client, request scopes, and exchange your first token in about five minutes.
+---
+
+This guide takes you from zero to a working access token. You'll register a client,
+run the authorization-code flow with PKCE, and make an authenticated request.
+
+## 1. Register a client
+
+Create an OAuth client from the NeoWorks dashboard, or via the API:
+
+```http
+POST /oauth/clients
+Content-Type: application/json
+
+{
+  "name": "My App",
+  "redirect_uris": ["https://myapp.dev/callback"],
+  "scopes": ["contacts:read", "tasks:write"]
+}
+```
+
+You receive a `client_id`. Public clients (SPAs, native apps) use PKCE and never need a
+secret.
+
+## 2. Send the user to authorize
+
+Redirect the user to the authorization endpoint with a PKCE challenge:
+
+```
+GET /oauth/authorize
+  ?response_type=code
+  &client_id=YOUR_CLIENT_ID
+  &redirect_uri=https://myapp.dev/callback
+  &scope=contacts:read tasks:write
+  &code_challenge=BASE64URL(SHA256(verifier))
+  &code_challenge_method=S256
+```
+
+After the user consents, they are redirected back with a `code`.
+
+## 3. Exchange the code for a token
+
+```http
+POST /oauth/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code
+&code=THE_CODE
+&redirect_uri=https://myapp.dev/callback
+&client_id=YOUR_CLIENT_ID
+&code_verifier=THE_VERIFIER
+```
+
+The response contains a scoped JWT:
+
+```json
+{
+  "access_token": "eyJhbGciOi...",
+  "token_type": "Bearer",
+  "expires_in": 3600
+}
+```
+
+## 4. Make an authenticated request
+
+Send the token as a bearer credential. Scope violations are rejected at the database
+layer, so you only ever see data the user granted you.
+
+```http
+GET /v1/contacts
+Authorization: Bearer eyJhbGciOi...
+```
+
+## Where to go next
+
+- The full [OAuth guide](/docs/neoworks/oauth) covers refresh tokens, JWKS, and offline verification.
+- Run the whole stack locally with [Self-hosting](/docs/neoworks/self-host).

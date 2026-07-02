@@ -1,0 +1,17 @@
+{
+  "lsp": {
+    "tailwindcss-language-server": {
+      "binary": {
+        "path": "tailwindcss-language-server",
+        "arguments": ["--stdio"]
+      },
+      "settings": {
+        "tailwindCSS": {
+          "experimental": {
+            "configFile": "./src/routes/neoworks.css"
+          }
+        }
+      }
+    }
+  }
+}

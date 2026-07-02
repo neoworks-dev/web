@@ -1,0 +1,163 @@
+---
+title: OAuth2 / OIDC Flow
+description: The Authorization Code flow with mandatory PKCE — authorize, login, consent, token exchange, and refresh, end to end.
+---
+
+This server implements the **Authorization Code flow with mandatory PKCE
+(S256)**. Plain PKCE is rejected. Supported grants:
+`authorization_code`, `refresh_token`.
+
+Discovery document: `GET /.well-known/openid-configuration`.
+JWKS: `GET /.well-known/jwks.json` (ES256).
+
+## Actors
+
+- **Client app** — the third-party application registered via
+  `createClient` ([graphql-api](/docs/api/graphql-api#oauth-clients-schemaclientsgraphql)).
+- **Auth server** (this service) — issues codes/tokens, owns
+  `/oauth/*` endpoints.
+- **Frontend (SvelteKit, `LOGIN_URL`)** — renders login/signup/consent UI,
+  collects credentials, then calls the `/oauth/callback/*` endpoints to
+  resume the OAuth flow.
+
+## End-to-end sequence
+
+### 1. Authorize
+
+`GET /oauth/authorize?client_id=...&redirect_uri=...&response_type=code&scope=openid+profile+email&state=...&code_challenge=...&code_challenge_method=S256`
+
+The handler (`handlers/oauth/authorize.go`):
+1. Requires `response_type=code`, `code_challenge`, and
+   `code_challenge_method=S256` — anything else returns a redirect with
+   `error=unsupported_response_type` / `invalid_request` (or, if
+   `client_id`/`redirect_uri` are missing/the client is unknown, a direct
+   `400`/`401` since the redirect target isn't trusted yet).
+2. Looks up the client, checks `redirect_uri` is one of its registered
+   `redirect_uris`, and that all requested scopes are in the client's
+   allowed `scopes`.
+3. Stores a `LoginChallenge` in Redis (`login_challenge:{id}`, 10 min TTL)
+   capturing client/redirect/scope/state/PKCE params.
+4. **302** redirect to `/auth/login?login_challenge={id}`.
+
+### 2. Login or signup
+
+The frontend serves `/auth/login` (or `/auth/signup`), collects
+credentials, and:
+- `POST /auth/login` — verifies email/password (bcrypt), sets an
+  `sso_session` cookie (30 days).
+- `POST /auth/signup` — creates the `user` row (password ≥ 8 chars, unique
+  email), then proceeds the same as login.
+
+Either way, the frontend ends up calling **`POST /oauth/callback/login`**
+with `{ "login_challenge": "...", "user_id": "..." }`.
+
+### 3. Login callback → consent or skip
+
+`handlers/oauth/callback.go` `handleLoginCallback`:
+1. Loads + deletes the `LoginChallenge` from Redis (400 if missing/expired).
+2. Checks for an existing `grant` for `(user, client)`. If the grant's
+   scopes already cover the requested scopes (`shared.ScopesAllowed`),
+   **skip consent**: issue an authorization code immediately and return
+   `{ "redirect": "{redirect_uri}?code={code}&state={state}" }`.
+3. Otherwise, store a `ConsentChallenge` in Redis (10 min TTL) and return
+   `{ "redirect": "/oauth/consent?consent_challenge={id}" }`.
+
+### 4. Consent screen
+
+`GET /oauth/consent?consent_challenge=...` (requires `login_session`
+cookie, 10 min TTL) renders human-readable scope descriptions:
+
+| Scope | Label |
+|---|---|
+| `openid` | Verify identity |
+| `profile` | Access profile |
+| `email` | Access email |
+| `offline` | Stay signed in |
+
+`POST /oauth/consent` (form: `login_challenge`, `action=allow`/deny,
+`scopes[]`) is handled by the frontend, which then calls
+**`POST /oauth/callback/consent`** with
+`{ "consent_challenge": "...", "accepted": true|false, "scopes": [...] }`.
+
+### 5. Consent callback → code
+
+`handleConsentCallback`:
+1. Loads + deletes the `ConsentChallenge`.
+2. If `accepted: false` → `{ "redirect": "{redirect_uri}?error=access_denied" }`.
+3. If accepted → `UpsertGrant` persists `(user, client, scopes)` so future
+   authorizations for the same scopes skip consent (step 3 above), then
+   issues a code → `{ "redirect": "{redirect_uri}?code={code}" }`.
+
+   > **Note:** unlike the "skip consent" path in step 3, this redirect does
+   > **not** append `&state=...`. Clients relying on `state` round-tripping
+   > through the consent path should be aware of this.
+
+In both code-issuance paths, the code is stored as `code:{code}` in Redis
+(`oauth.AuthCode`: client/user/redirect_uri/scopes/PKCE challenge, 10 min
+TTL).
+
+### 6. Token exchange
+
+`POST /oauth/token` with `grant_type=authorization_code`:
+- Looks up `code:{code}` in Redis, validates `redirect_uri` matches, and
+  verifies `code_verifier` against the stored `code_challenge`
+  (`base64url(SHA256(code_verifier)) == code_challenge`, S256 only —
+  see `oauth/pkce.go`).
+- On success, deletes the code (one-time use), mints an access token (JWT,
+  ES256, 15 min) via `oauth.TokenIssuer`, and creates a `refresh_token`
+  row (30 days).
+- Returns `{ access_token, token_type: "Bearer", expires_in: 900,
+  refresh_token, scope }`.
+
+### 7. Using the access token
+
+Send `Authorization: Bearer <access_token>` to:
+- `/graphql`
+- `/oauth/userinfo`, `/oauth/introspect`-protected... (introspect/revoke
+  are actually unauthenticated — see [http-api](/docs/api/http-api))
+- `/api/v1/media/*`, authenticated `/api/v1/keys/*`
+
+`middleware.JWTMiddleware` verifies the signature/expiry locally, then does
+one Redis `EXISTS revoked:{jti}` check.
+
+### 8. Refresh
+
+`POST /oauth/token` with `grant_type=refresh_token&refresh_token={jti}`:
+- Acquires a short Redis lock `rt_lock:{jti}` (30s) to serialize concurrent
+  refreshes.
+- If the token is `revoked` or already `used`, the entire grant's tokens
+  are revoked (replay/theft protection) and the request fails.
+- Otherwise: marks the old token `used=true`, issues a new access token +
+  a new rotated refresh token (same scopes), returns the same response
+  shape as step 6.
+
+### 9. Introspection / revocation
+
+- `POST /oauth/introspect` (form: `token`) → RFC 7662 `{ active, sub,
+  client_id, scope, exp, iat, iss, jti, token_type }` or `{ active: false }`.
+- `POST /oauth/revoke` (form: `token`, optional `token_type_hint`) → RFC
+  7009, always `200`. Revoking a refresh token also revokes the grant if it
+  was already used.
+
+## Token claims (access token, ES256 JWT)
+
+| Claim | Meaning |
+|---|---|
+| `sub` | user ID |
+| `client_id` | OAuth client ID |
+| `scope` | array of granted scopes |
+| `iat` / `exp` | issued-at / expiry (15 min lifetime) |
+| `iss` | `ISSUER_URL` |
+| `jti` | unique token ID (used for revocation lookups) |
+
+## Public vs. confidential clients
+
+- **Confidential** (`public: false`, default): `createClient` returns a
+  32-byte random `secret` (shown once, stored as a bcrypt hash). As of this
+  writing, `handlers/oauth/token.go` does **not** verify `client_secret` on
+  `/oauth/token` for either grant type — PKCE is the only enforced proof of
+  possession for `authorization_code`, and `refresh_token` is authorized
+  purely by possession of the refresh token JTI. Don't rely on
+  `secret_hash` for access control until this is wired up.
+- **Public** (`public: true`): no secret; PKCE (S256) is the sole proof of
+  possession. Suitable for SPAs/native apps.

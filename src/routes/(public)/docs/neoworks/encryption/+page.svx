@@ -1,0 +1,108 @@
+---
+title: Encryption model
+description: How NeoWorks encrypts media end-to-end — the account master key, the cross-origin Vault, per-object envelopes, and sharing — and what is deliberately left queryable.
+---
+
+NeoWorks splits data into two classes and encrypts them differently:
+
+- **Media** (files, images, video, documents — anything that is just bytes) is **end-to-end
+  encrypted**. The server only ever holds ciphertext.
+- **Queryable records** (contacts, calendar, tasks) are **not** end-to-end encrypted — they
+  must be filtered, sorted and searched server-side. See [storage](/docs/neoworks/storage).
+
+This page documents the media encryption design and the decisions behind it.
+
+## Threat model & goals
+
+- The server is **honest-but-curious for media**: it stores and serves blobs but must not be
+  able to read them.
+- Compromise of the database or object store must not expose plaintext media.
+- An application embedding NeoWorks (calendar, photos, muse, …) must be able to encrypt and
+  decrypt media **without ever holding the user's master key** — even a malicious or buggy app
+  should not be able to exfiltrate it.
+
+## The account master key (AMK)
+
+Every account has a 32-byte **Account Master Key**. It is derived from the user's password via
+Argon2id and wrapped (sealed) so it can be stored and recovered, but it is **never stored in
+usable form** on the server and **never enters an application's memory**.
+
+From the AMK, an X25519 **account keypair** is derived deterministically
+(`BLAKE2b(AMK, "nw-account-keypair-v1")` → `crypto_box` seed). This keypair is what other users
+seal data *to* when sharing, and what the owner uses to unseal their own data.
+
+## The Vault: a cross-origin crypto sandbox
+
+> **Decision: applications never touch the AMK.** All encryption and decryption happens inside
+> a sandboxed **Vault** served by the OAuth origin and embedded by each app as an iframe.
+
+The Vault is a page (`/vault` on the OAuth server) that an app loads in a cross-origin
+`<iframe>`. The app talks to it only over `postMessage`:
+
+- `encrypt(plaintext, wrappedDEK?)` → `{ ciphertext, wrappedDEK }`
+- `decrypt(ciphertext, wrappedDEK)` → `plaintext`
+- `rewrap(wrappedDEK, recipientPubKey)` → `wrappedDEK` (for sharing)
+
+The AMK lives only inside the Vault's origin and **never crosses the iframe boundary**. The app
+sends plaintext in and gets ciphertext out (or vice-versa); it never sees keys. Browser
+**storage partitioning** keeps each embedder's Vault state isolated, and the Vault uses the
+[Storage Access API](https://developer.mozilla.org/docs/Web/API/Storage_Access_API) to reach
+its first-party session for authenticated key operations.
+
+Which origins may embed the Vault is allowlisted server-side
+(`frame-ancestors` CSP, configured by `VAULT_ALLOWED_ORIGINS`). An origin not on the list
+cannot frame the Vault at all.
+
+## Per-object envelope encryption
+
+Each media object gets its own random **data-encryption key (DEK)**:
+
+1. A fresh 32-byte DEK is minted per object.
+2. Content is encrypted with **AES-GCM** under the DEK. Output is `[12-byte IV ‖ ciphertext]`.
+3. The DEK is **sealed to the account public key** with `crypto_box_seal` → the **wrapped DEK**
+   (a base64 string). It is safe to store: useless without the account private key inside the
+   Vault.
+
+Large files are split into chunks; every chunk reuses the same per-object DEK (the first chunk
+mints it, the rest pass the returned wrapped DEK back in).
+
+### Content-addressed, deduplicated chunks
+
+Ciphertext chunks are addressed by the **SHA-256 of the ciphertext**. Upload first asks which
+chunk hashes are missing, then uploads only those. Deduplication is intentionally **per user** —
+two users encrypting the same file produce different ciphertext, so chunks never collide across
+accounts. Chunks are reference-counted and garbage-collected when no media (or version) points
+at them.
+
+## Sharing without re-encrypting
+
+> **Decision: share by re-sealing the DEK, not by re-encrypting the bytes.**
+
+To share an object, the owner's Vault unseals the DEK and **re-seals it to the recipient's
+account public key** (`rewrap`). The DEK plaintext never leaves the Vault. The server stores:
+
+- a **`media_grant`** row authorizing the recipient to read the object's chunks, and
+- the recipient's **wrapped DEK** in the object's `recipients` list, keyed by their user id.
+
+Each reader fetches the manifest and receives **their own** wrapped DEK. Revocation drops the
+grant and the recipient's wrapper. (Revocation does not rotate the DEK, so content a recipient
+already downloaded is not retroactively protected — a deliberate simplification.)
+
+## Devices & recovery
+
+The AMK is also wrapped to each of the user's **devices** (a per-device keypair stored in the
+Vault's partitioned storage) so returning users unlock silently instead of re-entering a
+password. Account recovery re-wraps the AMK to guardians' devices. Device registration is
+authenticated by the OAuth session, which is why apps must be served on an origin that is
+[same-site with the OAuth server](/docs/neoworks/devices).
+
+## What is *not* encrypted
+
+End-to-end encryption applies to **media bytes only**. Queryable data (contacts, calendar,
+tasks) is stored so the server can index and filter it. Media **metadata** that powers listing
+and search — filename, MIME type, size, timestamps — is likewise queryable, not E2E. When media
+is made searchable by content, a further tradeoff applies: see
+[searchable encrypted media](/docs/neoworks/encrypted-search).
+
+> Don't describe NeoWorks as "everything is encrypted." The accurate claim is: **media is
+> end-to-end encrypted; queryable data and media metadata are not.**

@@ -1,0 +1,63 @@
+---
+title: OAuth
+description: The NeoWorks authorization model — PKCE, scopes, refresh tokens, and offline JWT verification.
+---
+
+NeoWorks uses standard OAuth 2.0 with PKCE. Any compliant OAuth library works — there is
+nothing proprietary in the flow.
+
+## Scopes
+
+Scopes are `resource:action` pairs. Request the minimum your app needs; users see exactly
+what you ask for and can revoke access at any time.
+
+| Scope            | Grants                                  |
+| ---------------- | --------------------------------------- |
+| `contacts:read`  | Read names, emails, phone numbers       |
+| `contacts:write` | Create and update contacts              |
+| `tasks:read`     | Read task titles, due dates, status     |
+| `tasks:write`    | Create, update and complete tasks       |
+| `files:read`     | Read file metadata and content          |
+| `files:write`    | Write files to the user's Grove         |
+
+Scope enforcement happens in SurrealDB, not in middleware. A token can only ever touch
+the rows and actions it was granted.
+
+## Refresh tokens
+
+Access tokens are short-lived (one hour). Use the refresh token to obtain a new one
+without sending the user through authorization again:
+
+```http
+POST /oauth/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=refresh_token
+&refresh_token=THE_REFRESH_TOKEN
+&client_id=YOUR_CLIENT_ID
+```
+
+Refresh tokens rotate on use — the previous one is invalidated, so a leaked refresh token
+has a narrow window.
+
+## Verifying tokens offline
+
+Access tokens are signed JWTs. Your service can verify them without calling NeoWorks by
+fetching the public keys from the JWKS endpoint and caching them:
+
+```
+GET /oauth/.well-known/jwks.json
+```
+
+### What to check
+
+- **Signature** against the JWKS public key.
+- **`exp`** — the token has not expired.
+- **`aud`** — the token was issued for your client.
+- **`scope`** — the action you're about to perform is covered.
+
+## The Vault sandbox
+
+For end-to-end-encrypted data, crypto runs inside a cross-origin Vault iframe served by
+the `oauth` service. Your app requests encrypt/decrypt operations over `postMessage` and
+never receives raw key material — keys never leave the sandbox origin.

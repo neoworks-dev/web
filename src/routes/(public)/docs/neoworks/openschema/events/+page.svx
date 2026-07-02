@@ -1,0 +1,44 @@
+---
+title: Calendar schema
+description: The openschema/events contract — calendar events, recurrence and availability shared across apps.
+---
+
+`openschema/events` describes calendar events on the user's account. Like
+[contacts](/docs/neoworks/openschema/contacts), it's queryable structured data rather than
+[encrypted media](/docs/neoworks/storage) — apps need to filter by time and compute availability.
+
+## Fields
+
+```toml
+[table.events]
+columns = [
+  { name = "title",      type = "string"   },
+  { name = "start_at",   type = "datetime" },
+  { name = "end_at",     type = "datetime" },
+  { name = "location",   type = "string"   },
+  { name = "recurrence", type = "string"   },  # RRULE
+  { name = "attendees",  type = "array"    },  # contact ids
+]
+indexes = [
+  { columns = ["user_id", "start_at"] }
+]
+```
+
+`attendees` references rows in [`contacts`](/docs/neoworks/openschema/contacts).
+
+## Scopes
+
+- `events:read` — read calendar events and availability.
+- `events:write` — create and modify calendar events.
+
+## Querying
+
+```sql
+SELECT title, start_at FROM events
+WHERE user_id = $auth.id
+  AND start_at > time::now()
+ORDER BY start_at ASC;
+```
+
+> **Scaffold** — this page is a stub. Expand with recurrence handling, time zones, and
+> free/busy queries.

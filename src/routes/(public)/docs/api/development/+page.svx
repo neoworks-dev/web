@@ -1,0 +1,112 @@
+---
+title: Development & Operations
+description: Environment variables, running locally, migrations, GraphQL codegen, tests, and project conventions.
+---
+
+## Requirements
+
+- Go 1.26+
+- SurrealDB (reachable at `SURREAL_URL`)
+- Redis
+- MinIO (or any S3-compatible store)
+- [Task](https://taskfile.dev) (optional, for `Taskfile.yml` shortcuts)
+- [bun](https://bun.sh) (for the TypeScript test suites under `tests/`)
+
+## Environment variables
+
+Read in `main.go` via `env(key, fallback)` (falls back to a default if
+unset; `.env` is loaded automatically via `godotenv`):
+
+| Variable | Default | Used for |
+|---|---|---|
+| `SURREAL_URL` | `ws://127.0.0.1:8000` | SurrealDB connection |
+| `SURREAL_USER` | `root` | SurrealDB auth |
+| `SURREAL_PASS` | `root` | SurrealDB auth |
+| `SURREAL_NS` | `neoworks` | SurrealDB namespace |
+| `SURREAL_DB` | `auth` | SurrealDB database |
+| `KEY_PATH` | `./keys/auth.pem` | ECDSA signing key file (dev; auto-generated if missing) |
+| `AUTH_PRIVATE_KEY` | — | PEM-encoded ECDSA key, takes priority over `KEY_PATH` (production) |
+| `REDIS_URL` | `127.0.0.1:6379` | Redis address |
+| `ISSUER_URL` | `https://auth.neoworks.io` | OIDC `iss` claim, discovery doc, JWKS issuer |
+| `LOGIN_URL` | `https://app.neoworks.io/login` | (read but unused as a redirect target — `/auth/login` is served locally; kept for future SvelteKit frontend wiring) |
+| `PORT` | `8080` | HTTP listen port |
+| `S3_ENDPOINT` | `127.0.0.1:9000` | MinIO/S3 endpoint (scheme stripped automatically; `https://` enables TLS) |
+| `S3_ACCESS_KEY_ID` | `minioadmin` | MinIO/S3 access key |
+| `S3_SECRET_ACCESS_KEY` | `minioadmin` | MinIO/S3 secret key |
+| `S3_BUCKET_PRIVATE` | `neoworks-private` | Bucket for encrypted media chunks (auto-created on startup) |
+
+`cmd/migrate` reads the same `SURREAL_*` variables.
+
+> **`.env.example` discrepancies** — fix when touching env config:
+> - It defines `REDIS_ADDR`, but the code reads `REDIS_URL`.
+> - It defines `AUTH_URL` and `S3_FORCE_PATH_STYLE`, neither of which is
+>   read anywhere in the Go code.
+
+## Running locally
+
+```sh
+cp .env.example .env   # then fill in values; see table above for the actual var names
+task db:migrate         # apply pending SurrealDB migrations (cmd/migrate)
+go run .                # start the server on $PORT (default 8080)
+```
+
+`Dockerfile.dev` builds a dev image that runs [`air`](https://github.com/air-verse/air)
+for live-reload (`go install github.com/air-verse/air@latest`, then `air`).
+
+GraphQL Playground: `http://localhost:8080/playground` (no auth required).
+
+## Database migrations
+
+- Source: `sql/migrations/*.surql`, named `NNN_description.surql`.
+- Runner: `cmd/migrate/main.go` — connects to SurrealDB, ensures a
+  `_migration` tracking table exists (idempotent `DEFINE ... IF NOT EXISTS`),
+  then applies any `.surql` file whose version number is higher than the
+  last recorded one, in order, recording each as it succeeds.
+- Run via: `task db:migrate` or `go run ./cmd/migrate`.
+- To add a migration: create the next-numbered `.surql` file. Keep
+  statements idempotent where practical (`IF NOT EXISTS`) since `_migration`
+  tracking is per-version, not per-statement.
+
+See [data model](/docs/api/data-model) for the resulting schema.
+
+## GraphQL code generation
+
+- SDL lives in `schema/*.graphql`; config in `schema/gqlgen.yml`.
+- Generated code: `gql/generated.go` (executable schema),
+  `gql/model/models_gen.go` (types).
+- Resolvers: `gql/resolvers/*.resolvers.go`, layout `follow-schema`.
+- Regenerate: `task gql:generate` (= `go run github.com/99designs/gqlgen generate --config schema/gqlgen.yml`).
+
+> **Resolver convention:** gqlgen moves any non-interface helper function
+> out of a `*.resolvers.go` file into a `// WARNING: not regenerated` block
+> on each run. This project's resolvers are written as **hand-maintained**
+> files (no gqlgen header comment) with all logic — mapping helpers,
+> validation, DDL generation, store calls — inline, so they survive
+> regeneration unchanged. See `gql/resolvers/ClientDatabases.resolvers.go`
+> for the pattern. Only add a gqlgen header to a resolver file if it truly
+> has no extra helpers.
+
+## Tests
+
+- `tests/gql/` (bun + TypeScript) — GraphQL client tests
+  (`oauth_pkce.test.ts`, `contact.test.ts`). Run with `bun test` from that
+  directory against a running dev server.
+- `tests/integration/` (bun + TypeScript) — HTTP integration tests
+  (`keys.test.ts`, `media.test.ts`) against a running dev server +
+  applied migrations.
+
+There is no Go unit test suite at present — verification is via `go build`
+/ `go vet` plus the bun-based integration tests above.
+
+## Project conventions
+
+- **Versioned entities** (`contact`, `media`): see
+  [data model](/docs/api/data-model#versioning-pattern) and `CLAUDE.md` for the
+  exact transactional create/update SQL pattern (`derived_from` graph,
+  `parentVersionIds`).
+- **Comments**: only document the *why* (hidden constraints, workarounds,
+  non-obvious decisions) — not what the code visibly does.
+- **Resolver files**: hand-maintained and self-contained (see GraphQL
+  codegen note above); the storage layer (`storage/database/*.go`) should
+  only hold logic that needs credentials/state resolvers shouldn't have
+  (e.g. admin DB credentials for per-client database provisioning).

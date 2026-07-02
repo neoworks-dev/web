@@ -1,0 +1,43 @@
+---
+title: Tasks schema
+description: The openschema/tasks contract — tasks with due dates, notes and subtasks.
+---
+
+`openschema/tasks` describes to-dos on the user's account. It's queryable structured data — see
+[OpenSchema](/docs/neoworks/openschema) for the model and [contacts](/docs/neoworks/openschema/contacts) for a
+related contract.
+
+## Fields
+
+```toml
+[table.tasks]
+columns = [
+  { name = "title",     type = "string"   },
+  { name = "due_at",    type = "datetime" },
+  { name = "done",      type = "bool"     },
+  { name = "note",      type = "string"   },
+  { name = "contact",   type = "string"   },  # optional linked contact id
+  { name = "parent",    type = "string"   },  # parent task id for subtasks
+]
+indexes = [
+  { columns = ["user_id", "due_at"] }
+]
+```
+
+`contact` references [`contacts`](/docs/neoworks/openschema/contacts); `parent` points at another task
+row to form subtasks.
+
+## Scopes
+
+- `tasks:read` — read task titles, due dates, status.
+- `tasks:write` — create, update and complete tasks.
+
+## Querying
+
+```sql
+SELECT title, due_at FROM tasks
+WHERE user_id = $auth.id AND done = false
+ORDER BY due_at ASC;
+```
+
+> **Scaffold** — this page is a stub. Expand with subtask trees, reminders, and recurrence.

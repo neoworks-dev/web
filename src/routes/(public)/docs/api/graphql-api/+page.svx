@@ -1,0 +1,229 @@
+---
+title: GraphQL API
+description: Schema, queries, and mutations for Contacts, OAuth Clients, Client Databases, and Refresh Tokens.
+---
+
+Endpoint: `POST /graphql` (requires `Authorization: Bearer <access_token>`).
+A GraphQL Playground is available at `/playground` (no auth, dev convenience).
+
+The schema is defined in `schema/*.graphql` (SDL), generated into Go via
+`gqlgen` (`schema/gqlgen.yml`, see [development](/docs/api/development)).
+Resolvers live in `gql/resolvers/`.
+
+---
+
+## Contacts (`schema/Contacts.graphql`)
+
+Versioned per-user address-book entries. Follows the project's
+[versioning pattern](/docs/api/data-model#versioning-pattern)
+(`contact` / `contact_version` / `derived_from`).
+
+```graphql
+type Contact {
+  id: ID!
+  name: String!
+  email: String!
+  phone: String
+  created_at: String!
+  updated_at: String!
+}
+
+type ContactVersion {
+  id: ID!
+  contact_id: ID!
+  name: String!
+  email: String!
+  phone: String
+  created_at: String!
+}
+
+input ContactVersionFilter {
+  name: String
+  email: String
+  phone: String
+  before: String
+}
+
+input CreateContactInput {
+  name: String!
+  email: String!
+  phone: String
+}
+
+input UpdateContactInput {
+  name: String
+  email: String
+  phone: String
+}
+```
+
+### Queries
+
+| Query | Description |
+|---|---|
+| `contacts(limit: Int, offset: Int): [Contact!]!` | Lists the caller's contacts. Default limit 50. |
+| `contact(id: ID!): Contact` | Fetches a single contact, scoped to the caller. |
+| `contactHistory(id: ID!, filter: ContactVersionFilter): [ContactVersion!]!` | Full version history, optionally filtered by field values or a `before` timestamp. |
+
+### Mutations
+
+| Mutation | Description |
+|---|---|
+| `createContact(input: CreateContactInput!): Contact!` | Creates a contact owned by the caller. |
+| `updateContact(id: ID!, parentVersionIds: [ID!]!, input: UpdateContactInput!): Contact!` | Updates a contact, creating a new `contact_version`. `parentVersionIds` records ancestry (1 entry for a normal edit, 2 for a merge of diverging histories). |
+| `deleteContact(id: ID!): Boolean!` | Deletes a contact owned by the caller. |
+
+**Auth:** All operations resolve the caller's user ID from the JWT subject
+(`middleware.ClaimFromContext(ctx).Subject`) and scope reads/writes to that
+user — contacts are private per-user.
+
+---
+
+## OAuth Clients (`schema/Clients.graphql`)
+
+Admin API for managing third-party OAuth clients (the OAuth "applications"
+that can request tokens from this server).
+
+```graphql
+type OAuthClient {
+  id: ID!
+  scopes: [String!]!          # scopes this client may request
+  redirect_uris: [String!]!
+  public: Boolean!            # true = PKCE-only, no client secret
+  auto_grant_scopes: Boolean!  # true = consent screen skipped
+}
+
+type CreateClientResult {
+  client: OAuthClient!
+  secret: String              # null for public clients; shown once
+}
+
+input CreateClientInput {
+  id: String!                 # used as OAuth client_id AND SurrealDB record key; must be unique
+  redirect_uris: [String!]!
+  scopes: [String!]!
+  auto_grant_scopes: Boolean   # skip consent for first-party apps
+  public: Boolean              # true = PKCE-only client, no secret generated
+}
+```
+
+### Queries
+
+| Query | Description |
+|---|---|
+| `clients(limit: Int, offset: Int): [OAuthClient!]!` | Lists registered OAuth clients. Default limit 50. |
+| `oauthClient(id: ID!): OAuthClient` | Fetches a single client by ID. |
+
+### Mutations
+
+| Mutation | Description |
+|---|---|
+| `createClient(input: CreateClientInput!): CreateClientResult!` | Creates a confidential client (32-byte random secret, returned once, stored as a bcrypt hash) or, if `public: true`, a PKCE-only client with no secret. |
+| `deleteClient(id: ID!): Boolean!` | Deletes a client and its associated records. |
+
+**Note:** `createClient` does **not** provision a per-client database — that
+is a separate, opt-in step (see ClientDatabases below).
+
+---
+
+## ClientDatabases (`schema/ClientDatabases.graphql`)
+
+Lets an OAuth client provision its own isolated SurrealDB database(s) — up
+to **5 per client** — with an optional custom schema applied as DDL.
+Provisioning emits a `billing_provisioning_event`.
+
+```graphql
+type ClientDatabase {
+  id: ID!
+  client_id: ID!
+  name: String!       # caller-chosen label, must match ^[a-zA-Z_][a-zA-Z0-9_]*$
+  db_name: String!    # actual provisioned SurrealDB database name
+  status: String!     # "active" | "suspended" | "deleted"
+  created_at: String!
+  updated_at: String!
+}
+
+type CreateClientDatabaseResult {
+  database: ClientDatabase!
+  db_password: String!  # generated DB user password — shown once, store securely
+}
+
+input FieldDefInput {
+  name: String!
+  type: String!  # base: string,int,float,decimal,bool,datetime,duration,bytes,uuid,object,any
+                  # parameterized: option<T>, array<T>, set<T> (recursive)
+}
+
+input IndexDefInput {
+  name: String!
+  fields: [String!]!
+  unique: Boolean
+}
+
+input TableDefInput {
+  name: String!
+  schemafull: Boolean
+  fields: [FieldDefInput!]
+  indexes: [IndexDefInput!]
+}
+
+input DatabaseSchemaInput {
+  tables: [TableDefInput!]!
+}
+```
+
+### Queries
+
+| Query | Description |
+|---|---|
+| `clientDatabases(clientId: ID!): [ClientDatabase!]!` | Lists non-deleted databases for a client, oldest first. |
+
+### Mutations
+
+| Mutation | Description |
+|---|---|
+| `createClientDatabase(clientId: ID!, name: String!, schema: DatabaseSchemaInput): CreateClientDatabaseResult!` | Provisions a new SurrealDB database for the client (rejects if the client already has 5). Validates `name`. If `schema` is given, generates and applies `DEFINE TABLE` / `DEFINE FIELD` / `DEFINE INDEX` DDL. Returns the new DB's name and a one-time password. |
+| `updateClientDatabaseSchema(clientId: ID!, name: String!, schema: DatabaseSchemaInput!): ClientDatabase!` | Applies additional/updated DDL to an existing client database and stores the new `schema_def`. |
+
+**Implementation note:** the resolver (`gql/resolvers/ClientDatabases.resolvers.go`)
+is hand-maintained (not gqlgen-regenerated) and owns all logic — quota
+check, name/type validation, DDL generation, billing — inline. The store
+(`storage/database/surreal.go`) only exposes the two operations that need
+admin DB credentials: `ProvisionClientDatabase` and `ApplyDDLToClientDB`.
+
+---
+
+## RefreshTokens (`schema/RefreshTokens.graphql`)
+
+Lets clients/users inspect and revoke issued refresh tokens.
+
+```graphql
+type RefreshToken {
+  id: ID!
+  client: OAuthClient!
+  scopes: [String!]!
+  expires_at: String!
+  created_at: String!
+  revoked: Boolean!
+  used: Boolean!
+}
+```
+
+### Queries
+
+| Query | Description |
+|---|---|
+| `refreshTokens(limit: Int, offset: Int): [RefreshToken!]!` | Lists refresh tokens. Default limit 50. |
+
+### Mutations
+
+| Mutation | Description |
+|---|---|
+| `revokeRefreshToken(id: ID!): Boolean!` | Revokes a refresh token (and its underlying grant). |
+
+**Auth (scope-gated):**
+- `tokens:read` — caller may list/revoke only their **own** tokens (results
+  filtered to the caller's user ID, optionally a specific client).
+- `tokens:all:read` — caller may list/revoke **any** user's tokens.
+- The `client` field is lazily resolved from the linked `oauth_client`
+  record only if requested.
