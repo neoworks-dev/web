@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import DatabaseIcon from 'phosphor-svelte/lib/DatabaseIcon';
+	import ChartLineIcon from 'phosphor-svelte/lib/ChartLineIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import CopyIcon from 'phosphor-svelte/lib/CopyIcon';
 	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
@@ -12,6 +13,8 @@
 	import type { ClientDatabase } from '@neoworks-dev/sdk';
 
 	const clientId = $derived($page.params.clientId ?? '');
+	const orgId = $derived($page.params.id ?? '');
+	const dbBase = $derived(`/dashboard/organizations/${orgId}/clients/${clientId}/databases`);
 
 	let databases = $state<ClientDatabase[]>([]);
 	let loading = $state(true);
@@ -180,17 +183,29 @@
 								<th class="px-4 py-2.5 text-left font-medium text-dim uppercase tracking-caps text-[11px]">DB Name</th>
 								<th class="px-4 py-2.5 text-left font-medium text-dim uppercase tracking-caps text-[11px]">Status</th>
 								<th class="px-4 py-2.5 text-left font-medium text-dim uppercase tracking-caps text-[11px]">Created</th>
+								<th class="px-4 py-2.5 text-right font-medium text-dim uppercase tracking-caps text-[11px]">Usage</th>
 							</tr>
 						</thead>
 						<tbody>
 							{#each databases as db (db.id)}
 								<tr class="border-b border-line-faint last:border-0 hover:bg-hover transition-colors duration-fast">
-									<td class="px-4 py-3 font-medium text-default">{db.name}</td>
+									<td class="px-4 py-3 font-medium text-default">
+										<a href="{dbBase}/{db.name}" class="hover:text-primary transition-colors">{db.name}</a>
+									</td>
 									<td class="px-4 py-3 font-mono text-[12px] text-muted">{db.db_name}</td>
 									<td class="px-4 py-3">
 										<span class="text-[11px] font-medium capitalize {statusColor(db.status)}">{db.status}</span>
 									</td>
 									<td class="px-4 py-3 text-muted">{fmt(db.created_at)}</td>
+									<td class="px-4 py-3 text-right">
+										<a
+											href="{dbBase}/{db.name}"
+											class="inline-flex items-center gap-1 text-[12px] font-medium text-dim hover:text-primary transition-colors"
+										>
+											<ChartLineIcon size={13} />
+											View
+										</a>
+									</td>
 								</tr>
 							{/each}
 						</tbody>
