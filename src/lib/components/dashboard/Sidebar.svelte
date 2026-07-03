@@ -75,9 +75,9 @@
 <SidebarShell {user} bind:collapsed bind:mobileOpen>
 	{@const panel = viewCtx?.sidebarPanel}
 	{#if panel}
-		{@const Panel = panel.component}
+		{@const Panel = panel?.component}
 		<div class="flex-1 min-h-0 overflow-y-auto">
-			<Panel {...panel.props()} {collapsed} />
+			<Panel {...panel?.props()} {collapsed} />
 		</div>
 	{:else}
 		<nav
