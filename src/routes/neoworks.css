@@ -16,7 +16,6 @@
  */
 
 @import "tailwindcss";
-@plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
 @plugin "daisyui" {
   themes: neoworks --default;
@@ -502,6 +501,21 @@
     outline: none;
     box-shadow: var(--ring);
     border-radius: var(--radius-sm);
+  }
+
+  /* Text inputs live inside their own styled containers, where the global ring
+     renders as a stray rectangular border. They manage their own focus state.
+     CodeMirror's contenteditable is the same case. */
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible,
+  [contenteditable]:focus,
+  [contenteditable]:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
 
   /* Input / button resets */

@@ -9,7 +9,7 @@
 	import PageHeader from '$lib/components/dashboard/PageHeader.svelte';
 	import WidgetCard from '$lib/components/dashboard/WidgetCard.svelte';
 	import { sdk } from '$lib/sdk';
-	import type { ClientDatabase, DatabaseSchema } from '@neoworks-dev/sdk';
+	import type { ClientDatabase } from '@neoworks-dev/sdk';
 
 	const clientId = $derived($page.params.clientId ?? '');
 
@@ -54,9 +54,9 @@
 		}
 	}
 
-	async function handleDesignerConfirm(name: string, schema: DatabaseSchema) {
+	async function handleDesignerConfirm(name: string, schemaSource: string) {
 		createError = null;
-		const res = await sdk.databases.create(clientId, name, schema);
+		const res = await sdk.databases.create(clientId, name, schemaSource);
 		databases = [res.database, ...databases];
 		newDbPassword = res.db_password;
 		view = 'list';

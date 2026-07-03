@@ -17,7 +17,6 @@
     "@sveltejs/adapter-auto": "^7.0.1",
     "@sveltejs/kit": "^2.57.0",
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
-    "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.2.2",
     "@types/bcrypt": "^6.0.0",
@@ -32,13 +31,20 @@
     "vite": "^8.0.7"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.18.6",
+    "@codemirror/commands": "^6.8.0",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.36.5",
     "@neoworks-dev/sdk": "workspace:*",
     "@neoworks-dev/ui": "workspace:*",
     "@faker-js/faker": "^10.4.0",
     "bcrypt": "^6.0.0",
+    "codemirror": "^6.0.2",
     "daisyui": "^5.5.23",
     "jsonwebtoken": "^9.0.3",
+    "openschema": "file:../../../openschema",
     "phosphor-svelte": "^3.1.0",
-    "surrealdb": "^2.0.3"
+    "surrealdb": "^2.0.3",
+    "web-tree-sitter": "^0.26.9"
   }
 }
