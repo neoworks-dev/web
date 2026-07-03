@@ -42,7 +42,7 @@
     "codemirror": "^6.0.2",
     "daisyui": "^5.5.23",
     "jsonwebtoken": "^9.0.3",
-    "openschema": "file:../../../openschema",
+    "openschema": "workspace:*",
     "phosphor-svelte": "^3.1.0",
     "surrealdb": "^2.0.3",
     "web-tree-sitter": "^0.26.9"
