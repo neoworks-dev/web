@@ -50,6 +50,7 @@ export const docProducts: DocProduct[] = [
 					{ label: 'OAuth', href: '/docs/neoworks/oauth' },
 					{ label: 'File & media storage', href: '/docs/neoworks/storage' },
 					{ label: 'Encryption model', href: '/docs/neoworks/encryption' },
+					{ label: 'Spaces', href: '/docs/neoworks/spaces' },
 					{ label: 'Searchable encrypted media', href: '/docs/neoworks/encrypted-search' },
 					{ label: 'Devices', href: '/docs/neoworks/devices' }
 				]

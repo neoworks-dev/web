@@ -7,8 +7,11 @@ NeoWorks splits data into two classes and encrypts them differently:
 
 - **Media** (files, images, video, documents — anything that is just bytes) is **end-to-end
   encrypted**. The server only ever holds ciphertext.
-- **Queryable records** (contacts, calendar, tasks) are **not** end-to-end encrypted — they
-  must be filtered, sorted and searched server-side. See [storage](/docs/neoworks/storage).
+- **Contacts** are **end-to-end encrypted** too, in [spaces](/docs/neoworks/spaces): the query
+  engine runs client-side inside the Vault, so filtering and search never need server-readable
+  fields.
+- **Remaining queryable records** (calendar, tasks) are **not** end-to-end encrypted — they are
+  still filtered and sorted server-side. See [storage](/docs/neoworks/storage).
 
 This page documents the media encryption design and the decisions behind it.
 
@@ -98,11 +101,13 @@ authenticated by the OAuth session, which is why apps must be served on an origi
 
 ## What is *not* encrypted
 
-End-to-end encryption applies to **media bytes only**. Queryable data (contacts, calendar,
-tasks) is stored so the server can index and filter it. Media **metadata** that powers listing
-and search — filename, MIME type, size, timestamps — is likewise queryable, not E2E. When media
-is made searchable by content, a further tradeoff applies: see
+End-to-end encryption covers **media bytes** and **contact payloads**. Calendar and task data is
+still stored so the server can index and filter it. Media **metadata** that powers listing and
+search — filename, MIME type, size, timestamps — is likewise queryable, not E2E. Encrypted
+spaces also leak structural metadata: membership, write timestamps, row counts. When media is
+made searchable by content, a further tradeoff applies: see
 [searchable encrypted media](/docs/neoworks/encrypted-search).
 
-> Don't describe NeoWorks as "everything is encrypted." The accurate claim is: **media is
-> end-to-end encrypted; queryable data and media metadata are not.**
+> Don't describe NeoWorks as "everything is encrypted." The accurate claim is: **media and
+> contacts are end-to-end encrypted; calendar, tasks, media metadata and space metadata are
+> not.**

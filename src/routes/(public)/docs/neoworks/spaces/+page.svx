@@ -1,0 +1,315 @@
+---
+title: Spaces
+description: The unit of end-to-end encrypted sharing and sync — space keys, epochs, members, signed envelopes, and the SDK surface for creating, sharing and rotating a space.
+---
+
+A **space** is the unit of sharing and sync for end-to-end encrypted records. Every encrypted
+row belongs to exactly one space, every space has one symmetric **space key**, and membership
+of a space is what grants a user the ability to decrypt its rows at all.
+
+The server stores wrapped keys and opaque ciphertext envelopes. It never holds a space key, and
+it cannot read, filter or search the rows inside a space. Everything below happens in the
+[Vault](/docs/neoworks/encryption) — a sandboxed origin your app embeds but never reads keys
+from.
+
+## What a space is
+
+| Property | Meaning |
+|---|---|
+| `space_id` | Client-minted UUID. Chosen before upload so signatures can bind it. |
+| `collection` | Which entity family the space holds — `contacts` today. Keys are per collection. |
+| `kind` | `personal`, `shared` or `adhoc`. |
+| `key_epoch` | Current key generation. Starts at 1, increments on every rotation. |
+| `seq` | Monotonic per-space write counter. Drives the sync cursor. |
+| `purge_horizon` | Seq below which tombstoned rows have been reaped. Pulling from under it forces a full resync. |
+
+Three kinds, one mechanism:
+
+- **`personal`** — the user's own space, created on first run. Server-side creation is
+  idempotent per collection, so two devices racing produce one space, not two.
+- **`shared`** — a long-lived space with named members. This is "a shared address book".
+- **`adhoc`** — same machinery, meant for short-lived sharing of a small set of rows.
+
+A space is not a folder. Rows do not move between spaces implicitly: which space you write to
+is chosen at write time, and re-sharing a row means writing it into the target space.
+
+## Key hierarchy
+
+```
+Account Master Key (AMK)          — never leaves the Vault
+  ├── scope keypair (X25519)      — per collection, e.g. "contacts"
+  │     └── receives sealed space keys (crypto_box_seal)
+  ├── signing keypair (Ed25519)   — blake2b(AMK, "nw-space-signing-v1")
+  │     └── signs envelopes and wrapped keys; same identity on every device
+  └── (per space)
+        space key (32 random bytes, per epoch)
+          └── row key = blake2b(space_key, "nw-space-item:" + item_id)
+                └── AES-256-GCM over the row payload
+```
+
+Four things follow from this shape:
+
+1. **No stored per-row keys.** The row key is derived on demand from the space key and the item
+   id, so a space of 10 000 contacts still stores exactly one key per epoch per member.
+2. **Sharing costs one seal per member, not one re-encryption per row.** Inviting someone seals
+   the existing space key to their scope public key; the ciphertext is untouched.
+3. **The signing identity is account-level, not device-level.** Every device derives the same
+   Ed25519 key from the AMK, so peers pin one signer key per user rather than tracking devices.
+4. **Scope keypairs are per collection.** A client granted `contacts:*` receives contacts space
+   keys and nothing else, even if the same user has spaces in other collections.
+
+## Members, roles and wrapped keys
+
+A membership row carries the caller's own view of the space:
+
+```ts
+{
+  space: { space_id, owner_id, collection, kind, key_epoch, seq, purge_horizon },
+  member: {
+    user_id,
+    role: 'owner' | 'writer' | 'reader',
+    status: 'invited' | 'active',
+    added_by_id,
+    wrapped_keys: [{ epoch, wrapped_key, signature }],
+    accept_signature
+  }
+}
+```
+
+`wrapped_keys` holds **one entry per epoch the member is allowed to read** — not just the
+current one. Old epochs are kept so a member can still decrypt rows that have not been
+re-encrypted yet (see [rotation](#rotation-and-lazy-re-encryption)). A single
+`GET /api/v1/spaces?collection=…` therefore bootstraps every key the client needs.
+
+`role` is enforced server-side on writes: a `reader` pushing an envelope gets `403`.
+
+### Wrap signatures and pinning
+
+Each wrapped key is signed by the inviter over
+
+```
+"nw-space-key-v1" | space_id | member_user_id | epoch | blake2b(space_key)
+```
+
+The context includes a fingerprint of the space key itself, so a valid signature proves the
+signer actually held the key. The server cannot substitute key material and re-sign it.
+
+On unlock, the recipient's Vault verifies that signature against the inviter's published
+signing key and **pins** it. A later wrap that verifies against a different signer, or fails to
+verify at all, comes back as `ok: false` from `unlockAll()`:
+
+> **Treat a pin mismatch as fatal for that space.** It means the key material for a space you
+> already trusted changed underneath you. Surface it to the user and stop syncing that space —
+> do not silently re-pin.
+
+Accepting an invite uploads the recipient's own re-signature over the same context
+(`accept_signature`), which is what makes acceptance verifiable to the other members rather
+than a server-asserted flag.
+
+## Envelopes
+
+A row on the wire is an **envelope**: a header the server can read, plus a blob it cannot.
+
+```
+item_id, space_id, seq, key_epoch, schema_ver,
+deleted, author_id, created_at, updated_at   ← server-visible header
+blob                                          ← AES-256-GCM ciphertext
+sig                                           ← Ed25519, author's signing key
+```
+
+The GCM **additional authenticated data** binds the header to the ciphertext:
+
+```
+"nw-space-item-v1" | item_id | space_id | collection | key_epoch | schema_ver | base_seq | deleted
+```
+
+That binding is what stops the server from splicing a valid blob into a different row, space or
+epoch — any such move changes the AAD and decryption fails.
+
+Two details worth knowing:
+
+- The AAD binds **`base_seq`**, not `seq`. The client encrypts before the server assigns a
+  sequence number, so the envelope commits to the version it was written *against*.
+- `deleted` is inside the AAD, so a tombstone cannot be resurrected by replaying an older blob
+  with the flag flipped.
+
+`sig` is Ed25519 over `blake2b(AAD ‖ blob)`. A tombstone signs the AAD with an empty blob.
+Readers verify it against the author's published signing key, fetched from the key directory
+(`GET /api/v1/keys/public?scope=…&user=…`) and cached.
+
+### Two kinds of delete
+
+- **Soft delete** — a flag *inside* the encrypted payload. The row still syncs, still has
+  history, and can be restored. This is what a user's "trash" means. The server cannot tell a
+  trashed row from an active one.
+- **Envelope tombstone** — `deleted: true` on the header. The server drops the ciphertext,
+  peers purge the row locally, and after the retention window the row falls below
+  `purge_horizon`. Irreversible.
+
+## Sync
+
+Sync is per space, cursor-based on `seq`.
+
+**Pull** — `GET /api/v1/spaces/{id}/items?since={cursor}&limit={n}` returns envelopes with
+`seq > since`, ordered by `seq` (default limit 200, max 500). The client decrypts, verifies the
+signature, and advances its cursor.
+
+**Push** — `PUT /api/v1/spaces/{id}/items/{item}` with `base_seq` as the optimistic-concurrency
+token. Three outcomes:
+
+| Response | Meaning | What the client does |
+|---|---|---|
+| `200 { seq, key_epoch }` | Accepted | Advance the local row's seq, drop the outbox entry |
+| `409 { error: "conflict", current }` | Someone else wrote first | Decrypt `current`, merge on device, retry against the new seq |
+| `409 { error: "stale_epoch", current_epoch }` | Key rotated underneath the write | Re-encrypt at the new epoch, retry |
+| `410` | Cursor below `purge_horizon` | Wipe the local space and resync from 0 |
+
+Merging happens on the device, in plaintext, because the server cannot see field values. Batch
+import uses `POST /api/v1/spaces/{id}/items/batch` (1–500 items, one transaction each, so a
+single conflict does not fail the import).
+
+**History** — `GET /api/v1/spaces/{id}/items/{item}/versions` returns the encrypted version
+chain oldest first; each entry is decrypted client-side like any other envelope.
+
+## Rotation and lazy re-encryption
+
+Removing a member is two steps, and the second is not optional:
+
+1. `DELETE /api/v1/spaces/{id}/members/{user}` removes the membership and answers
+   `{ rotation_required: true, key_epoch }`.
+2. The owner's Vault mints epoch `key_epoch + 1`, rewraps it for every remaining member, and
+   uploads the rewraps with `expected_epoch` as an assert. A concurrent rotation loses with
+   `409` — refetch and retry.
+
+Existing rows are **not** re-encrypted eagerly. They keep their old epoch and are re-encrypted
+opportunistically as they are next written. `GET …/items?stale_epoch=true` returns the worklist
+of rows still below the current epoch, so a client can drain it in the background.
+
+> Rotation protects **future** writes. A removed member who already synced a row still has that
+> plaintext copy — nothing can retract it. Rotation guarantees they cannot read anything
+> written after removal.
+
+## Using spaces from the SDK
+
+Configure the SDK once, then take a `SpacesResource` per collection. It needs your own bare
+user id, because wrap signatures bind the member they are addressed to.
+
+```ts
+import { sdk, type SpacesResource } from '@neoworks-dev/sdk';
+
+sdk.config({
+  url: OAUTH_URL,
+  apiUrl: API_URL,
+  clientId: CLIENT_ID,
+  redirectUri: `${location.origin}/callback`,
+  scopes: ['contacts:read', 'contacts:write']
+});
+
+const spaces: SpacesResource = sdk.spaces('contacts', ownUserId);
+```
+
+`ownUserId` is the `sub` claim of the access token.
+
+### Listing and unlocking
+
+```ts
+// Every membership for this collection, including the caller's wrapped keys.
+const memberships = await spaces.list();
+
+// Unwrap + pin all keys, auto-accept fresh invites. Call before syncing.
+const results = await spaces.unlockAll();
+for (const result of results) {
+  if (!result.ok) {
+    // Pin mismatch or unsealing failure — do not sync this space.
+    console.error(result.spaceId, result.error);
+  }
+}
+```
+
+For encrypted **contacts** you do not call this yourself: `sdk.contacts` unlocks its spaces on
+the first data op. Use `SpacesResource` directly when you are building sharing UI.
+
+### Creating a space
+
+```ts
+// Personal space, created on first run and idempotent across devices.
+const personal = await spaces.ensurePersonal();
+
+// A shared space. `nameEnc` is a client-encrypted label — the server never sees the name.
+const shared = await spaces.create('shared', nameEnc);
+```
+
+### Sharing
+
+```ts
+// Look up by user id or email; the SDK fetches their scope public key and
+// wraps every epoch the caller holds.
+await spaces.invite(spaceId, { email: 'ada@example.com' }, 'writer');
+
+// Roles: 'writer' | 'reader'. The owner role is only ever the creator's.
+await spaces.invite(spaceId, { userId }, 'reader');
+```
+
+The invitee's client accepts implicitly on its next `unlockAll()`.
+
+### Removing a member
+
+```ts
+// Removes the membership and immediately rotates the key for everyone left.
+await spaces.removeMember(spaceId, userId);
+```
+
+Do not call `DELETE …/members/{user}` directly unless you then rotate — `removeMember()` exists
+precisely so the two cannot drift apart.
+
+### Inspecting and verifying
+
+```ts
+const { space, members } = await spaces.getDetail(spaceId);
+
+// Re-verify every wrap against the Vault's pin store, no side effects.
+const pins = await spaces.verifyPins();
+
+await spaces.deleteSpace(spaceId);
+```
+
+## REST reference
+
+All routes take `Authorization: Bearer <token>` and are scoped to the collection the space
+belongs to.
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/api/v1/spaces` | Create a space with the creator's self-wrap |
+| `GET` | `/api/v1/spaces?collection=` | Caller's memberships + wrapped keys |
+| `GET` | `/api/v1/spaces/{id}` | Space plus its member list |
+| `DELETE` | `/api/v1/spaces/{id}` | Delete a space |
+| `POST` | `/api/v1/spaces/{id}/members` | Invite a member with per-epoch wraps |
+| `POST` | `/api/v1/spaces/{id}/accept` | Accept an invite with a pin re-signature |
+| `DELETE` | `/api/v1/spaces/{id}/members/{user}` | Remove a member (rotation required after) |
+| `POST` | `/api/v1/spaces/{id}/rotate` | Bump the epoch with rewraps for remaining members |
+| `GET` | `/api/v1/spaces/{id}/items` | Pull envelopes after a cursor |
+| `PUT` | `/api/v1/spaces/{id}/items/{item}` | Push one envelope (OCC on `base_seq`) |
+| `POST` | `/api/v1/spaces/{id}/items/batch` | Push 1–500 envelopes |
+| `GET` | `/api/v1/spaces/{id}/items/{item}/versions` | Encrypted version history |
+| `GET` | `/api/v1/keys/public?scope=&user=` | Key directory: scope public key + signing key |
+
+## What the server can and cannot see
+
+**Can see:** space ids, collection, kind, membership graph, roles, epoch numbers, sequence
+numbers, row ids, blob sizes, write timestamps, tombstone flags, and who authored each write.
+
+**Cannot see:** space keys, row keys, any field of any row, space names, or which rows relate to
+which. It cannot filter, sort or search encrypted rows — all of that runs client-side inside the
+Vault against decrypted data.
+
+Metadata is a real disclosure. A space with three members and daily writes tells the server
+that three people collaborate daily, just not on what.
+
+## Where to go next
+
+- [Encryption model](/docs/neoworks/encryption) — the AMK, the Vault sandbox, and media
+  encryption.
+- [Contacts schema](/docs/neoworks/openschema/contacts) — the payload shape inside a contacts
+  envelope.
+- [Devices](/docs/neoworks/devices) — how the AMK reaches each of a user's devices.
