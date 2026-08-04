@@ -137,6 +137,20 @@ Two details worth knowing:
 Readers verify it against the author's published signing key, fetched from the key directory
 (`GET /api/v1/keys/public?scope=…&user=…`) and cached.
 
+### Version envelopes
+
+A history entry is its own envelope, with its own AAD and its own key:
+
+```
+version AAD:  "nw-space-version-v1" | version_id | item_id | space_id | collection
+                                    | key_epoch | schema_ver | base_seq | deleted
+version key:  blake2b(space_key, "nw-space-version:" + version_id)
+```
+
+Binding `version_id` stops a version blob being moved onto another version of the same row, and
+the separate derivation means the row's key cannot open its own history. Each version carries
+its own signature.
+
 ### Two kinds of delete
 
 - **Soft delete** — a flag *inside* the encrypted payload. The row still syncs, still has
@@ -144,7 +158,8 @@ Readers verify it against the author's published signing key, fetched from the k
   trashed row from an active one.
 - **Envelope tombstone** — `deleted: true` on the header. The server drops the ciphertext,
   peers purge the row locally, and after the retention window the row falls below
-  `purge_horizon`. Irreversible.
+  `purge_horizon`. Its version history is deleted with it, so nothing survives the purge.
+  Irreversible.
 
 ## Sync
 
@@ -155,7 +170,19 @@ Sync is per space, cursor-based on `seq`.
 signature, and advances its cursor.
 
 **Push** — `PUT /api/v1/spaces/{id}/items/{item}` with `base_seq` as the optimistic-concurrency
-token. Three outcomes:
+token. The body carries the new row *and* the history it appends, so a write and its version
+land in one transaction:
+
+```json
+{
+  "base_seq": 4, "key_epoch": 2, "schema_ver": 1, "deleted": false,
+  "blob": "…", "sig": "…",
+  "versions": [{ "version_id": "…", "blob": "…", "sig": "…" }]
+}
+```
+
+One entry for an ordinary edit, two for a conflict merge, none for a tombstone. The last entry
+becomes the row's current version. Three outcomes:
 
 | Response | Meaning | What the client does |
 |---|---|---|
@@ -168,8 +195,36 @@ Merging happens on the device, in plaintext, because the server cannot see field
 import uses `POST /api/v1/spaces/{id}/items/batch` (1–500 items, one transaction each, so a
 single conflict does not fail the import).
 
-**History** — `GET /api/v1/spaces/{id}/items/{item}/versions` returns the encrypted version
-chain oldest first; each entry is decrypted client-side like any other envelope.
+## History is a tree, not a list
+
+`GET /api/v1/spaces/{id}/items/{item}/versions` returns the encrypted history oldest first. Each
+entry decrypts to a payload carrying `parent_ids`, so the lineage lives **inside the
+ciphertext**: the server can order versions by seq but cannot tell a branch point from a leaf,
+nor see which rows are contested.
+
+```
+create   parent_ids = []
+edit     parent_ids = [previous]
+merge    parent_ids = [remote, local]
+restore  parent_ids = [the version restored from]
+```
+
+Three consequences worth designing against:
+
+- **A conflict does not destroy the losing edit.** Last-writer-wins still decides which side
+  becomes the head, but the loser is pushed as a branch off the shared ancestor and the merge
+  names both parents. Nothing an edit contained is lost, only demoted.
+- **Restoring forks rather than overwrites.** `restoreVersion` makes the restored version the
+  parent of the new head, so the versions you skipped stay reachable on the abandoned branch.
+  Renderers have to draw a tree; a flat list will misrepresent it.
+- **A version is a complete snapshot**, relations and group membership included, so a restore
+  reproduces the contact exactly rather than partially.
+
+Two versions written by one merge share a seq. Their order within it is resolved on device from
+the decrypted parents — the server has no basis to break the tie.
+
+Nothing prunes history. Every write stores a full encrypted copy of the row, and per-row keys
+make deduplication impossible, so a heavily edited space grows linearly with its edit count.
 
 ## Rotation and lazy re-encryption
 
@@ -262,6 +317,26 @@ await spaces.removeMember(spaceId, userId);
 Do not call `DELETE …/members/{user}` directly unless you then rotate — `removeMember()` exists
 precisely so the two cannot drift apart.
 
+### Reading and restoring history
+
+History belongs to the collection, not to `SpacesResource` — for contacts it hangs off
+`sdk.contacts`:
+
+```ts
+// Oldest first. parentIds is the lineage: 1 entry for an edit, 2 for a merge.
+const versions = await sdk.contacts.history(contactId);
+for (const version of versions) {
+  version.versionId; version.parentIds; version.seq; version.createdAt; version.authorId;
+  version.data; // a full ContactVersion snapshot, relations included
+}
+
+// Branch from an earlier version: its content becomes the head, lineage forks there.
+await sdk.contacts.restoreVersion(contactId, versionId);
+```
+
+Build the tree from `parentIds`, not from array order — a merge writes two entries under one
+seq, and a restore makes the newest entry a child of an older one.
+
 ### Inspecting and verifying
 
 ```ts
@@ -289,7 +364,7 @@ belongs to.
 | `DELETE` | `/api/v1/spaces/{id}/members/{user}` | Remove a member (rotation required after) |
 | `POST` | `/api/v1/spaces/{id}/rotate` | Bump the epoch with rewraps for remaining members |
 | `GET` | `/api/v1/spaces/{id}/items` | Pull envelopes after a cursor |
-| `PUT` | `/api/v1/spaces/{id}/items/{item}` | Push one envelope (OCC on `base_seq`) |
+| `PUT` | `/api/v1/spaces/{id}/items/{item}` | Push one envelope plus its versions (OCC on `base_seq`) |
 | `POST` | `/api/v1/spaces/{id}/items/batch` | Push 1–500 envelopes |
 | `GET` | `/api/v1/spaces/{id}/items/{item}/versions` | Encrypted version history |
 | `GET` | `/api/v1/keys/public?scope=&user=` | Key directory: scope public key + signing key |
@@ -299,9 +374,9 @@ belongs to.
 **Can see:** space ids, collection, kind, membership graph, roles, epoch numbers, sequence
 numbers, row ids, blob sizes, write timestamps, tombstone flags, and who authored each write.
 
-**Cannot see:** space keys, row keys, any field of any row, space names, or which rows relate to
-which. It cannot filter, sort or search encrypted rows — all of that runs client-side inside the
-Vault against decrypted data.
+**Cannot see:** space keys, row keys, any field of any row, space names, the edit lineage, or
+which rows relate to which. It cannot filter, sort or search encrypted rows — all of that runs
+client-side inside the Vault against decrypted data.
 
 Metadata is a real disclosure. A space with three members and daily writes tells the server
 that three people collaborate daily, just not on what.
