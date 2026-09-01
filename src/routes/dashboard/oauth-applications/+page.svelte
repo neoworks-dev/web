@@ -118,7 +118,7 @@
 	<PageHeader title="OAuth Applications" subtitle="Manage OAuth 2.0 clients for your applications.">
 		{#snippet actions()}
 			<button
-				class="flex items-center gap-2 h-9 px-4 rounded-lg bg-primary text-primary-content text-[13px] font-medium hover:opacity-90 transition-opacity"
+				class="flex items-center gap-2 h-9 px-4 rounded-lg bg-action text-action-fg text-[13px] font-medium hover:opacity-90 transition-opacity"
 				onclick={() => { resetForm(); showCreate = true; }}
 			>
 				<PlusIcon size={15} />
@@ -284,7 +284,7 @@
 					onclick={() => showCreate = false}
 				>Cancel</button>
 				<button
-					class="flex items-center gap-2 h-9 px-4 rounded-lg bg-primary text-primary-content text-[13px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+					class="flex items-center gap-2 h-9 px-4 rounded-lg bg-action text-action-fg text-[13px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
 					onclick={createClient}
 					disabled={creating}
 				>
@@ -323,7 +323,7 @@
 
 			<div class="px-6 py-4 border-t border-line-faint">
 				<button
-					class="w-full h-9 rounded-lg bg-primary text-primary-content text-[13px] font-medium hover:opacity-90 transition-opacity"
+					class="w-full h-9 rounded-lg bg-action text-action-fg text-[13px] font-medium hover:opacity-90 transition-opacity"
 					onclick={() => newCredentials = null}
 				>Done</button>
 			</div>

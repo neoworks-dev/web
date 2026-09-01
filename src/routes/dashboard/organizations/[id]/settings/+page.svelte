@@ -122,7 +122,7 @@
 
 			<div class="flex items-center gap-3 pt-1">
 				<button
-					class="h-9 px-4 rounded-lg bg-primary text-primary-content text-[13px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+					class="h-9 px-4 rounded-lg bg-action text-action-fg text-[13px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
 					onclick={save}
 					disabled={saving}
 				>{saving ? 'Saving…' : 'Save changes'}</button>

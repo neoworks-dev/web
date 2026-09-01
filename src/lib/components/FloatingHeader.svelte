@@ -143,7 +143,7 @@
 					</a>
 					<a
 						href={resolve('/auth/signup')}
-						class="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-inverse transition-opacity hover:opacity-90 active:scale-[0.98]"
+						class="rounded-full bg-action px-4 py-2 text-sm font-semibold text-action-fg transition-opacity hover:opacity-90 active:scale-[0.98]"
 					>
 						Get started
 					</a>
@@ -291,7 +291,7 @@
 						<form method="POST" action="/auth/logout">
 							<button
 								type="submit"
-								class="w-full rounded-full bg-primary px-4 py-2.5 text-center text-sm font-semibold text-inverse transition-opacity hover:opacity-90"
+								class="w-full rounded-full bg-action px-4 py-2.5 text-center text-sm font-semibold text-action-fg transition-opacity hover:opacity-90"
 							>
 								Log out
 							</button>
@@ -307,7 +307,7 @@
 						<a
 							href={resolve('/auth/signup')}
 							onclick={closeAll}
-							class="rounded-full bg-primary px-4 py-2.5 text-center text-sm font-semibold text-inverse transition-opacity hover:opacity-90"
+							class="rounded-full bg-action px-4 py-2.5 text-center text-sm font-semibold text-action-fg transition-opacity hover:opacity-90"
 						>
 							Get started
 						</a>

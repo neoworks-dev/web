@@ -191,16 +191,9 @@
 		let dpr = 1;
 		let w = 0,
 			h = 0;
-		let zoom = 1;
 
 		let yaw = 0.4;
-		let pitch = -0.25;
-		let yawVel = 0;
-		let pitchVel = 0;
-		let dragging = false;
-		let dragDist = 0;
-		let lastX = 0,
-			lastY = 0;
+		const pitch = -0.25;
 
 		let raf = 0;
 		let running = false;
@@ -235,7 +228,7 @@
 		function draw() {
 			const cx = w / 2;
 			const cy = h / 2;
-			const radius = Math.min(w, h) * 0.34 * zoom;
+			const radius = Math.min(w, h) * 0.34;
 			const focal = 3;
 
 			const cosY = Math.cos(yaw),
@@ -310,22 +303,21 @@
 			ctx.globalAlpha = 1;
 		}
 
+		/** The graph holds still while a node is selected, so its card stays put. */
+		function spinRate(): number {
+			if (selected !== null) return 0;
+			return autoSpeed;
+		}
+
 		function frame(now: number) {
 			frameTime = now;
 			flashes = flashes.filter((flash) => now - flash.start < flashDuration);
 
-			const spin = selected === null ? autoSpeed : 0;
-			if (!dragging) {
-				yaw += yawVel + spin;
-				pitch += pitchVel;
-				pitch = Math.max(-1.1, Math.min(1.1, pitch));
-				yawVel *= 0.92;
-				pitchVel *= 0.92;
-			}
+			const spin = spinRate();
+			yaw += spin;
 			draw();
 
-			const settling = Math.abs(yawVel) > 0.0002 || Math.abs(pitchVel) > 0.0002;
-			if (visible && (spin !== 0 || settling || dragging || flashes.length > 0)) {
+			if (visible && (spin !== 0 || flashes.length > 0)) {
 				raf = requestAnimationFrame(frame);
 			} else {
 				running = false;
@@ -339,57 +331,32 @@
 		}
 		wake = request;
 
-		function onDown(e: PointerEvent) {
-			dragging = true;
-			dragDist = 0;
-			lastX = e.clientX;
-			lastY = e.clientY;
-			yawVel = pitchVel = 0;
-			canvas.setPointerCapture(e.pointerId);
-			request();
-		}
-		function onMove(e: PointerEvent) {
-			if (!dragging) return;
-			const dx = e.clientX - lastX;
-			const dy = e.clientY - lastY;
-			dragDist += Math.abs(dx) + Math.abs(dy);
-			lastX = e.clientX;
-			lastY = e.clientY;
-			yawVel = dx * 0.005;
-			pitchVel = dy * 0.005;
-			yaw += yawVel;
-			pitch = Math.max(-1.1, Math.min(1.1, pitch + pitchVel));
-			draw();
-		}
-		function onUp(e: PointerEvent) {
-			dragging = false;
-			canvas.releasePointerCapture?.(e.pointerId);
-			// A click (negligible drag) selects the nearest node, or clears the selection.
-			if (dragDist < 5) {
-				const rect = canvas.getBoundingClientRect();
-				const px = e.clientX - rect.left;
-				const py = e.clientY - rect.top;
-				let best = -1;
-				let bestX = 0;
-				let bestY = 0;
-				let bestD = 14 * 14;
-				for (const n of nodeScreen) {
-					const d = (n.x - px) ** 2 + (n.y - py) ** 2;
-					if (d < bestD) {
-						bestD = d;
-						best = n.ni;
-						bestX = n.x;
-						bestY = n.y;
-					}
-				}
-				selected = best >= 0 ? best : null;
-				if (best >= 0) positionCard(bestX, bestY);
+		/** Nearest node within a 14px radius of the pointer, or null. */
+		function nearestNode(event: MouseEvent): { x: number; y: number; ni: number } | null {
+			const rect = canvas.getBoundingClientRect();
+			const px = event.clientX - rect.left;
+			const py = event.clientY - rect.top;
+			let best: { x: number; y: number; ni: number } | null = null;
+			let bestDistance = 14 * 14;
+			for (const node of nodeScreen) {
+				const distance = (node.x - px) ** 2 + (node.y - py) ** 2;
+				if (distance >= bestDistance) continue;
+				bestDistance = distance;
+				best = node;
 			}
-			request();
+			return best;
 		}
-		function onWheel(e: WheelEvent) {
-			e.preventDefault();
-			zoom = Math.max(0.55, Math.min(3, zoom * (e.deltaY < 0 ? 1.12 : 1 / 1.12)));
+
+		// A click selects the nearest node, or clears the selection.
+		function onClick(event: MouseEvent) {
+			const node = nearestNode(event);
+			if (!node) {
+				selected = null;
+				request();
+				return;
+			}
+			selected = node.ni;
+			positionCard(node.x, node.y);
 			request();
 		}
 
@@ -421,11 +388,7 @@
 		};
 		document.addEventListener('visibilitychange', onVisibility);
 
-		canvas.addEventListener('pointerdown', onDown);
-		canvas.addEventListener('pointermove', onMove);
-		canvas.addEventListener('pointerup', onUp);
-		canvas.addEventListener('pointercancel', onUp);
-		canvas.addEventListener('wheel', onWheel, { passive: false });
+		canvas.addEventListener('click', onClick);
 
 		return () => {
 			cancelAnimationFrame(raf);
@@ -433,11 +396,7 @@
 			ro.disconnect();
 			io.disconnect();
 			document.removeEventListener('visibilitychange', onVisibility);
-			canvas.removeEventListener('pointerdown', onDown);
-			canvas.removeEventListener('pointermove', onMove);
-			canvas.removeEventListener('pointerup', onUp);
-			canvas.removeEventListener('pointercancel', onUp);
-			canvas.removeEventListener('wheel', onWheel);
+			canvas.removeEventListener('click', onClick);
 			wake = null;
 		};
 	});
@@ -451,7 +410,7 @@
 <div class="relative h-full w-full {className}">
 	<canvas
 		bind:this={canvas}
-		class="block h-full w-full cursor-grab touch-none select-none active:cursor-grabbing"
+		class="block h-full w-full select-none"
 	></canvas>
 
 	{#if selected !== null}

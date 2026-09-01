@@ -12,8 +12,8 @@
 			<div class="flex items-center gap-2.5">
 				<div
 					class="flex items-center justify-center w-6 h-6 rounded-full text-[12px] font-semibold shrink-0 transition-colors"
-					class:bg-primary={done || active}
-					class:text-primary-content={done || active}
+					class:bg-action={done || active}
+					class:text-action-fg={done || active}
 					class:bg-surface={!done && !active}
 					class:text-dim={!done && !active}
 					class:border={!done && !active}
@@ -35,7 +35,7 @@
 				</span>
 			</div>
 			{#if index < steps.length - 1}
-				<div class="flex-1 h-px mx-3 bg-line" class:bg-primary={index < current}></div>
+				<div class="flex-1 h-px mx-3 bg-line" class:bg-action={index < current}></div>
 			{/if}
 		{/each}
 	</div>

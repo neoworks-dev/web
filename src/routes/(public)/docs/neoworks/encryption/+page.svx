@@ -48,13 +48,16 @@ The Vault is a page (`/vault` on the OAuth server) that an app loads in a cross-
 
 The AMK lives only inside the Vault's origin and **never crosses the iframe boundary**. The app
 sends plaintext in and gets ciphertext out (or vice-versa); it never sees keys. Browser
-**storage partitioning** keeps each embedder's Vault state isolated, and the Vault uses the
-[Storage Access API](https://developer.mozilla.org/docs/Web/API/Storage_Access_API) to reach
-its first-party session for authenticated key operations.
+**storage partitioning** keeps each embedder's Vault state isolated. Authenticated key
+operations carry the embedder's access token as a bearer credential, so the Vault needs no
+first-party session of its own.
 
-Which origins may embed the Vault is allowlisted server-side
-(`frame-ancestors` CSP, configured by `VAULT_ALLOWED_ORIGINS`). An origin not on the list
-cannot frame the Vault at all.
+Any origin may embed the Vault (`frame-ancestors *`). The embedding origin grants nothing:
+what a caller may decrypt is resolved by **introspecting its access token** against the auth
+server, and each encryption scope binds to its own derived keypair — so a frame without a
+token carrying that scope gets no key. Storage partitioning means a page that frames the
+Vault reaches its own empty partition, never another app's state. The capability is
+re-checked periodically, so a revoked or narrowed grant stops decrypting without a reload.
 
 ## Per-object envelope encryption
 

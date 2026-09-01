@@ -97,7 +97,7 @@
 						view = 'designer';
 						createError = null;
 					}}
-					class="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-medium bg-primary text-inverse hover:opacity-90 transition-opacity duration-fast"
+					class="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-medium bg-action text-action-fg hover:opacity-90 transition-opacity duration-fast"
 				>
 					<PlusIcon size={15} />
 					New Database

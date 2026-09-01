@@ -269,7 +269,7 @@
 			onclick={finish}
 		>Set up later</button>
 		<button
-			class="h-9 px-4 rounded-lg bg-primary text-primary-content text-[13px] font-medium hover:opacity-90 transition-opacity"
+			class="h-9 px-4 rounded-lg bg-action text-action-fg text-[13px] font-medium hover:opacity-90 transition-opacity"
 			onclick={finish}
 		>Finish</button>
 	</div>

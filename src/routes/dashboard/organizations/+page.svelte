@@ -45,7 +45,7 @@
 	<PageHeader title="Organizations" subtitle="Organizations own clients and are billed for their usage.">
 		{#snippet actions()}
 			<button
-				class="flex items-center gap-2 h-9 px-4 rounded-lg bg-primary text-primary-content text-[13px] font-medium hover:opacity-90 transition-opacity"
+				class="flex items-center gap-2 h-9 px-4 rounded-lg bg-action text-action-fg text-[13px] font-medium hover:opacity-90 transition-opacity"
 				onclick={() => goto('/dashboard/organizations/new')}
 			>
 				<PlusIcon size={15} />

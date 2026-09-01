@@ -89,7 +89,7 @@
 					<option value="owner">Owner</option>
 				</select>
 				<button
-					class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-primary text-primary-content text-[13px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+					class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-action text-action-fg text-[13px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
 					onclick={sendInvite}
 					disabled={inviting}
 				>

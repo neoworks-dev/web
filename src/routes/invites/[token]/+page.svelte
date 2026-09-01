@@ -43,7 +43,7 @@
 				You've joined <span class="font-medium text-default">{organization?.name}</span>.
 			</p>
 			<button
-				class="h-9 px-4 rounded-lg bg-primary text-primary-content text-[13px] font-medium hover:opacity-90 transition-opacity"
+				class="h-9 px-4 rounded-lg bg-action text-action-fg text-[13px] font-medium hover:opacity-90 transition-opacity"
 				onclick={() => goto(`/dashboard/organizations/${organization?.id}/clients`)}
 			>
 				Open organization

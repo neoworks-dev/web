@@ -14,8 +14,8 @@
 </script>
 
 <svelte:head>
-	<title>NeoWorks — One account for every app, owned by you</title>
-	<meta name="description" content="NeoWorks is an encrypted identity and data layer. One account across an open ecosystem of apps — your data encrypted with keys only you hold, priced at cost." />
+	<title>NeoWorks — Your life is out there, reclaim it</title>
+	<meta name="description" content="NeoWorks builds everyday apps — maps, chat, a canvas for ideas — encrypted on your device before they leave it, so no company can read or sell your data. €2 a month, no ads." />
 </svelte:head>
 
 <main>

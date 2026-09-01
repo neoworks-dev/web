@@ -83,7 +83,7 @@
 			<a
 				href={tier.href}
 				class="mt-7 rounded-full px-4 py-2.5 text-center text-sm font-semibold transition-colors {tier.featured
-					? 'bg-primary text-inverse hover:opacity-90'
+					? 'bg-action text-action-fg hover:opacity-90'
 					: 'border border-line text-muted hover:bg-hover hover:text-default'}"
 			>
 				{tier.cta}

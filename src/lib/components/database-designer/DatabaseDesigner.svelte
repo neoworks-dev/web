@@ -137,7 +137,7 @@ model Todo {
 				type="button"
 				onclick={handleConfirm}
 				disabled={!canCreate}
-				class="flex items-center gap-2 h-7 px-4 rounded text-[12px] font-medium bg-primary text-inverse hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity duration-fast"
+				class="flex items-center gap-2 h-7 px-4 rounded text-[12px] font-medium bg-action text-action-fg hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity duration-fast"
 			>
 				{#if confirming}<span class="loading loading-spinner loading-xs"></span>{/if}
 				Create Database

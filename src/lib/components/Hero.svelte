@@ -1,87 +1,67 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { onMount } from 'svelte';
-	import DotCanvas from './ImageDots/ImageDots.svelte';
+	import HeroGallery from './HeroGallery.svelte';
 	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
-
-	// Dots are dark by default; flip to light on the dark theme so the pillars read.
-	let theme = $state('dark');
-	const dotColor = $derived<[number, number, number]>(
-		theme === 'light' ? [0.08, 0.08, 0.1] : [0.9, 0.9, 0.92]
-	);
-
-	onMount(() => {
-		const root = document.documentElement;
-		const read = () => (theme = root.dataset.theme ?? 'dark');
-		read();
-		const observer = new MutationObserver(read);
-		observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-		return () => observer.disconnect();
-	});
+	import LockKeyIcon from 'phosphor-svelte/lib/LockKeyIcon';
+	import { heroPhotos } from '$lib/heroPhotos';
 </script>
 
-<section class="relative flex min-h-screen items-center justify-center overflow-hidden">
-	<!-- The three pillars as a dot field with a subtle parallax drift (no hover physics, no ripple). -->
-	<DotCanvas
-		src="/pillars.png"
-		class="absolute inset-0 h-full w-full"
-		color={dotColor}
-		background={[0, 0, 0, 0]}
-		cellSize={5}
-		contrast={2}
-		scale={0.8}
-		ripple={false}
-		repelStrength={0}
-		parallax={0.04}
-	/>
+<section class="relative flex min-h-screen items-center overflow-hidden">
+  <HeroGallery images={heroPhotos} />
 
-	<!-- Soften the dots behind the copy for legibility. -->
-	<div
-		class="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_60%_50%_at_center,var(--bg)_25%,transparent_75%)]"
-	></div>
+  <!-- Soften the wall behind the copy for legibility. -->
+  <div
+    class="pointer-events-none absolute inset-0 z-30 bg-[radial-gradient(ellipse_58%_62%_at_28%_50%,var(--bg)_20%,transparent_72%)]"
+  ></div>
 
-	<div class="pointer-events-none relative z-10 w-full max-w-[820px] px-6 pb-28 pt-32 text-center">
-		<span
-			class="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-line bg-elevated/80 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-dim backdrop-blur-md"
-		>
-			<span class="size-1.5 rounded-full bg-primary"></span>
-			Open beta · one account, every app
-		</span>
+  <div
+    class="pointer-events-none relative z-40 mx-auto w-full max-w-[1240px] px-6 pb-28 pt-32"
+  >
+    <div class="max-w-[720px]">
+      <h1
+        class="text-[clamp(34px,4.4vw,56px)] font-semibold leading-[1.05] tracking-tight text-default"
+      >
+        <span class="block">Your life is out there.</span>
+        <span class="block text-muted">Reclaim it.</span>
+      </h1>
 
-		<h1
-			class="mx-auto mt-6 max-w-[14ch] text-[clamp(40px,5.5vw,68px)] font-semibold leading-[0.98] tracking-tight text-default"
-		>
-			One account for every app — and it's yours.
-		</h1>
+      <p
+        class="mt-6 max-w-[510px] text-[clamp(15px,1.6vw,18px)] leading-relaxed text-muted"
+      >
+        Your photos, messages and conversations sit on someone else's servers,
+        feeding someone else's ads. NeoWorks builds what you actually use —
+        maps, chat, calendars and contacts — and encrypts everything on your
+        device. Nobody, us included, can read it.
+      </p>
 
-		<p class="mx-auto mt-6 max-w-[540px] text-[clamp(15px,1.6vw,18px)] leading-relaxed text-muted">
-			NeoWorks is an encrypted identity and data layer. Sign in once and every app in the
-			ecosystem reads and writes your data — encrypted with keys only you hold, portable, and
-			priced at cost.
-		</p>
+      <div class="pointer-events-auto mt-9 flex flex-wrap items-center gap-3">
+        <a
+          href={resolve("/auth/signup")}
+          class="flex items-center gap-2 rounded-full bg-action px-5 py-2.5 text-sm font-semibold text-action-fg transition-opacity hover:opacity-90 active:scale-[0.98]"
+        >
+          Reclaim your data
+          <ArrowRightIcon size={15} weight="bold" />
+        </a>
+        <a
+          href="/#apps"
+          class="rounded-full border border-line bg-elevated/60 px-5 py-2.5 text-sm font-medium text-muted backdrop-blur-md transition-colors hover:bg-hover hover:text-default"
+        >
+          See the apps
+        </a>
+      </div>
 
-		<div class="pointer-events-auto mt-9 flex flex-wrap items-center justify-center gap-3">
-			<a
-				href={resolve('/auth/signup')}
-				class="flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-inverse transition-opacity hover:opacity-90 active:scale-[0.98]"
-			>
-				Create your account
-				<ArrowRightIcon size={15} weight="bold" />
-			</a>
-			<a
-				href="/#apps"
-				class="rounded-full border border-line bg-elevated/60 px-5 py-2.5 text-sm font-medium text-muted backdrop-blur-md transition-colors hover:bg-hover hover:text-default"
-			>
-				Explore the ecosystem
-			</a>
-		</div>
+      <p class="mt-5 flex items-center gap-1.5 text-xs font-medium text-dim">
+        <LockKeyIcon size={13} weight="bold" />
+        Encrypted on your device. No ads, no tracking. Leave with your data anytime.
+      </p>
 
-		<a
-			href="/developers"
-			class="pointer-events-auto mt-5 inline-flex items-center gap-1 text-xs font-medium text-dim transition-colors hover:text-default"
-		>
-			Building an app? Read the developer docs
-			<ArrowRightIcon size={12} weight="bold" />
-		</a>
-	</div>
+      <a
+        href="/developers"
+        class="pointer-events-auto mt-4 inline-flex items-center gap-1 text-xs font-medium text-dim transition-colors hover:text-default"
+      >
+        Building an app? Read the developer docs
+        <ArrowRightIcon size={12} weight="bold" />
+      </a>
+    </div>
+  </div>
 </section>
