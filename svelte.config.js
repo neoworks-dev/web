@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-auto';
+import adapter from '@sveltejs/adapter-node';
 import { mdsvex } from 'mdsvex';
 import mdsvexConfig from './mdsvex.config.js';
 
@@ -17,9 +17,10 @@ const config = {
 		}
 	},
 	kit: {
-		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
+		// A node server, not a static bundle: `/auth/callback`, `/auth/logout` and
+		// `/auth/refresh` are server endpoints, and the layout loads run server-side
+		// to read the session cookie. `ssr = false` in the root layout only turns off
+		// HTML rendering — it does not make the app static.
 		adapter: adapter()
 	}
 };
