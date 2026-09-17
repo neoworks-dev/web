@@ -1,0 +1,27 @@
+---
+title: Latent
+description: Latent is a non-destructive RAW photo editor for the desktop — cull a shoot, develop the keepers, and mask locally, with the original files left untouched.
+---
+
+Latent is a desktop RAW editor. You point it at a folder of files, cull the shoot down to the
+frames worth keeping, and develop those from the sensor data rather than from a baked JPEG.
+Nothing you do rewrites the original: every adjustment lives in a sidecar beside the file.
+
+It is free and open source, and it runs entirely on your machine — no account, no upload, no
+catalogue service in the middle.
+
+## What's in these docs
+
+- [Install](/docs/latent/install) — get the AppImage running.
+- [Library & culling](/docs/latent/library) — folders, collections, ratings, picks and rejects.
+- [Develop](/docs/latent/develop) — the Light, Curve, Color, Effects, Detail, Optics and Geometry panels.
+- [Masks & layers](/docs/latent/masks) — radial, gradient and brush layers, and the adjustments they carry.
+- [Presets & history](/docs/latent/presets) — the preset library, saving your own, and stepping back.
+- [Files & sidecars](/docs/latent/files) — what Latent writes to disk and what it never touches.
+
+## How it relates to NeoWorks
+
+Latent is a local tool and stands on its own — it does not need a NeoWorks account to run. What
+it does not do is store anything for you. If you want the results backed up and synced across
+devices, that is what a NeoWorks plan and its encrypted
+[storage](/docs/neoworks/storage) are for; the platform holds ciphertext it cannot read.

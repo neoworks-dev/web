@@ -1,0 +1,46 @@
+---
+title: Install
+description: Download the Latent AppImage, make it executable, and run it. Linux x86_64 today; macOS later.
+---
+
+Latent ships as an [AppImage](https://appimage.org) — a single executable file with no install
+step and no package manager involved. Linux on x86_64 today. macOS is planned; there are no
+Windows builds.
+
+## Download and run
+
+Grab the latest build from the
+[releases page](https://github.com/neoworks-dev/latent/releases/latest), mark it executable and
+start it:
+
+```sh
+chmod +x Latent-x86_64.AppImage
+./Latent-x86_64.AppImage
+```
+
+That is the whole install. To remove Latent, delete the file.
+
+## Keeping it somewhere sensible
+
+An AppImage runs from wherever it sits, but it is easier to find if you keep it with your other
+local binaries:
+
+```sh
+mkdir -p ~/.local/bin
+mv Latent-x86_64.AppImage ~/.local/bin/latent
+chmod +x ~/.local/bin/latent
+```
+
+With `~/.local/bin` on your `PATH`, `latent` then starts it from any shell.
+
+## Building from source
+
+Latent is open source. The repository is at
+[github.com/neoworks-dev/latent](https://github.com/neoworks-dev/latent); build instructions live
+in its README, which is the authoritative copy as the toolchain moves.
+
+## First run
+
+Open a folder with **Folder…** or individual files with **Files…** in the Library sidebar. Latent
+reads what is already on disk — there is no import step that copies your photos into a catalogue
+of its own. See [Library & culling](/docs/latent/library) for what happens next.

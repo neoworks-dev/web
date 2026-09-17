@@ -1,0 +1,45 @@
+---
+title: Presets & history
+description: Start from a preset, take it apart, and walk the session back — every operation Latent applies is listed and reversible.
+---
+
+## Presets
+
+The Presets panel is a starting point, not a filter: applying one adds its operations to the edit
+stack, where every one of them stays yours to change. The library is grouped by intent —
+**Essentials**, **Portrait**, **Landscape**, **Cinematic**, **Film**, **Black & white** and
+**Detail** — and each preset shows how many operations it carries, so you know what you are about
+to inherit.
+
+The Essentials group is the plain-tool end of it: *Punch*, *Recover*, *Flat (grade base)*,
+*Soft matte*, *Warm* and *Cool*. *Flat (grade base)* is the one to reach for when you intend to
+grade by hand — it sets a neutral base rather than a look.
+
+### Saving your own
+
+**Save these settings as…** turns the current stack into a named preset. Once saved it behaves
+like any built-in one: apply it to the next frame, then adjust from there.
+
+## History
+
+Every operation is recorded, in order, in the History panel — adjustments added, values changed,
+masks edited, layers reordered, a layer switched off, a preset applied. Applying a preset records
+as a single entry that expands into the individual operations it contributed, so a look stays
+legible instead of flooding the list.
+
+Select any entry to return the frame to that point. Nothing is destroyed on the way — history is a
+record of the edit stack, not a queue of pending changes, and the file on disk is untouched
+throughout. The status bar carries a revision counter and undo/redo for step-by-step work.
+
+## Scripting
+
+For the operations you repeat often, Latent has a Python console, toggled with `` Ctrl+` ``. It
+addresses the same edit stack the panels do:
+
+```python
+latent.photo.develop.exposure = 1.0
+latent.photo.stack.add("clarity", amount=20)
+```
+
+Changes made from the console land in the history like any other operation, and the panels update
+to match. `Ctrl+Enter` runs the buffer.

@@ -3,6 +3,7 @@ import type { Component } from 'svelte';
 import { appUrl } from '$lib/urls';
 import TreeStructureIcon from 'phosphor-svelte/lib/TreeStructureIcon';
 import PaintBrushIcon from 'phosphor-svelte/lib/PaintBrushIcon';
+import SlidersHorizontalIcon from 'phosphor-svelte/lib/SlidersHorizontalIcon';
 import MapTrifoldIcon from 'phosphor-svelte/lib/MapTrifoldIcon';
 import ChatCircleIcon from 'phosphor-svelte/lib/ChatCircleIcon';
 import CodeIcon from 'phosphor-svelte/lib/CodeIcon';
@@ -78,6 +79,15 @@ export const flagships: Flagship[] = [
 		external: true
 	},
 	{
+		name: 'Latent',
+		blurb: 'Non-destructive RAW photo editor for the desktop. Free, open source, runs on your machine.',
+		href: appUrl('latent'),
+		accent: '#f87171',
+		gradient: 'linear-gradient(135deg, #7d3f3f 0%, #4a2530 50%, #170e12 100%)',
+		icon: SlidersHorizontalIcon,
+		external: true
+	},
+	{
 		name: 'Chat',
 		blurb: 'Signal-grade encrypted messaging, end-to-end, on your own account.',
 		href: appUrl('chat-relay'),
@@ -93,6 +103,7 @@ export const projectQuickLinks: Project[] = [
 	{ name: 'Pricing', tagline: 'One €2 subscription', href: '/pricing', accent: '#a3e635', icon: CoinsIcon },
 	{ name: 'All apps', tagline: 'The full ecosystem', href: '/#apps', accent: '#60a5fa', icon: StackIcon },
 	{ name: 'Docs', tagline: 'Guides & reference', href: '/docs', accent: '#22d3ee', icon: BracketsCurlyIcon },
+	{ name: 'Latent docs', tagline: 'RAW photo editor', href: '/docs/latent', accent: '#f87171', icon: SlidersHorizontalIcon },
 	{ name: 'Self-host', tagline: 'Run your own node', href: '/docs/neoworks/self-host', accent: '#fb923c', icon: HardDrivesIcon }
 ];
 

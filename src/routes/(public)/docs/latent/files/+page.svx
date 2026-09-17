@@ -1,0 +1,36 @@
+---
+title: Files & sidecars
+description: What Latent writes to disk, what it leaves alone, and how to move a catalogue or back it up.
+---
+
+Latent is non-destructive in the literal sense: it does not rewrite your RAW files. What it writes
+instead is a **sidecar** — a separate file beside the original, holding the edit stack for that
+frame. The Info panel reports the sidecar's state per frame, so you can see whether the current
+edit has been written out.
+
+Your folders stay the organising principle. There is no import step that copies photos into a
+library of Latent's own, which means a folder of RAWs plus its sidecars is the complete,
+self-contained record of the work.
+
+## What that gets you
+
+- **The original is always recoverable.** Delete the sidecar and the frame is back to how the
+  camera wrote it.
+- **Edits travel with the photos.** Copy a folder to another machine, sidecars included, and the
+  work comes with it.
+- **Backups are ordinary file backups.** Whatever you already use for the RAWs covers the edits,
+  because they are just more files in the same directory.
+
+## Identifying frames
+
+Alongside the metadata it reads from the file, Latent records a content hash per frame. That is
+what lets it recognise a photo as the same photo after it has been moved or renamed, rather than
+treating it as something new.
+
+## Storing the results
+
+Latent itself stores nothing for you — it edits what is on your disk and stops there. Keeping the
+results safe is a separate job, and one a NeoWorks plan will do: encrypted
+[storage](/docs/neoworks/storage) with the keys derived on your device, so the platform holds
+ciphertext it cannot read. The [encryption model](/docs/neoworks/encryption) covers how that
+works.

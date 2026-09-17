@@ -1,0 +1,47 @@
+---
+title: Library & culling
+description: Open folders, sort by capture time, and cut a shoot down with picks, rejects and star ratings before you develop anything.
+---
+
+The Library sidebar is where a session starts. **Files…** opens individual photos, **Folder…**
+opens a directory. Latent reads the folder as it finds it — your existing tree stays the
+organising principle, and nothing is copied into a catalogue of its own.
+
+Opened folders appear under **Folders** with a count beside each one, and nest as your directories
+do. **Collections** are the one grouping Latent adds on top: a named set you assemble by hand,
+for frames that belong together but do not live in the same directory.
+
+## Culling
+
+The point of the grid is to get from everything you shot down to the frames worth developing.
+Three independent marks do that work:
+
+- **Rating** — zero to five stars.
+- **Pick** — the keeper flag.
+- **Reject** — the opposite.
+
+Pick and reject are separate from the star rating, so you can flag a frame as a keeper and still
+rank it against the other keepers.
+
+In the grid view the shortcuts are on the hint line at the bottom of the window:
+
+- `0`–`5` — set the star rating
+- `P` — pick
+- `X` — reject
+- arrow keys — move between frames
+- `Enter` or double-click — open the selected frame for editing
+
+The **Size** slider scales the grid thumbnails; **Done** returns you to the editing view.
+
+## Filtering and sorting
+
+Above the folder tree, the filter tabs narrow what you are looking at: **All**, **Picks**,
+**Rejects**, and **3★+** for everything rated three stars or better. The search field matches on
+filename and camera, and **Sort** orders the set — by capture time, so a shoot reads in the order
+you took it, rather than in whatever order the filenames happen to fall.
+
+## Grid and filmstrip
+
+The filmstrip along the bottom keeps the whole set to hand while you work on one frame, and shows
+each thumbnail's rating and flags. **Grid** switches to the full-window contact sheet for culling
+in bulk. Both views share the same selection, filters and sort.

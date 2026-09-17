@@ -1,6 +1,7 @@
 import type { Component } from 'svelte';
 import StackIcon from 'phosphor-svelte/lib/StackIcon';
 import PaintBrushIcon from 'phosphor-svelte/lib/PaintBrushIcon';
+import SlidersHorizontalIcon from 'phosphor-svelte/lib/SlidersHorizontalIcon';
 import CodeIcon from 'phosphor-svelte/lib/CodeIcon';
 
 export type DocLink = {
@@ -83,6 +84,37 @@ export const docProducts: DocProduct[] = [
 					{ label: 'Folders', href: '/docs/muse/folder' },
 					{ label: 'Sync & data', href: '/docs/muse/sync' }
 				]
+			}
+		]
+	},
+	{
+		id: 'latent',
+		label: 'Latent',
+		tagline: 'RAW photo editor',
+		href: '/docs/latent',
+		basePath: '/docs/latent',
+		accent: '#f87171',
+		icon: SlidersHorizontalIcon,
+		sections: [
+			{
+				title: 'Getting started',
+				links: [
+					{ label: 'Introduction', href: '/docs/latent' },
+					{ label: 'Install', href: '/docs/latent/install' }
+				]
+			},
+			{
+				title: 'Editing',
+				links: [
+					{ label: 'Library & culling', href: '/docs/latent/library' },
+					{ label: 'Develop', href: '/docs/latent/develop' },
+					{ label: 'Masks & layers', href: '/docs/latent/masks' },
+					{ label: 'Presets & history', href: '/docs/latent/presets' }
+				]
+			},
+			{
+				title: 'Under the hood',
+				links: [{ label: 'Files & sidecars', href: '/docs/latent/files' }]
 			}
 		]
 	},

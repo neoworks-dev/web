@@ -1,0 +1,46 @@
+---
+title: Masks & layers
+description: Build a mask from radial, gradient and brush layers, hang adjustments off it, and grade one part of a frame without touching the rest.
+---
+
+A mask is how you adjust part of a frame rather than all of it — lift a subject out of the
+background, hold a sky down, warm one corner. In Latent a mask is not a single shape: it is a
+stack of layers that combine into one selection, and the adjustments hang off that selection.
+
+## Building a mask
+
+**Create new mask** starts one. The tool row under **Add to this mask** adds a layer to it —
+radial gradients, linear gradients and brush strokes among them. Each layer you add appears under
+**Layers of this mask**, and the panel reports what the combination covers, as a percentage of the
+frame.
+
+Per layer you get:
+
+- **Feather** — how hard the edge falls off
+- **Opacity** — how much of the layer counts
+- Duplicate and delete
+- A visibility toggle, so you can see the mask with a layer taken out
+
+The mask as a whole has its own **Opacity** on top of that, which scales everything hanging off
+it. While you are working on a mask, the covered region is shown as a red overlay on the canvas;
+the eye control at the top of the Masks panel turns that overlay off so you can judge the result
+instead of the selection.
+
+Every frame also has a **Whole photo** entry — the global adjustments from
+[Develop](/docs/latent/develop), listed alongside the masks so the whole stack reads in one place.
+
+## Adjustments in a mask
+
+An empty mask does nothing. Move a slider in the Edit panel while a mask is selected and that
+adjustment lands under **Adjustments in this mask** — exposure, clarity, and the rest of the
+develop controls, scoped to the selection.
+
+## The layer stack
+
+The **Layers** panel gives you the whole edit as an ordered stack: global adjustments and masks
+together, each with its own opacity, visibility toggle, duplicate and delete. Entries scoped to
+the whole frame are marked as such; a mask expands to show the adjustments it carries. Layers can
+be reordered, which changes the order they are applied in.
+
+That ordering is the thing to reach for when two adjustments fight each other — it is usually
+cheaper to move one than to compensate with a third.

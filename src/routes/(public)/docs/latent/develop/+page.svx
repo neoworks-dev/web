@@ -1,0 +1,58 @@
+---
+title: Develop
+description: The Light, Curve, Color, Effects, Detail, Optics and Geometry panels — the global adjustments Latent applies to a frame.
+---
+
+The Edit rail on the right holds the global adjustments: everything that applies to the whole
+frame, as opposed to the local work described in [Masks & layers](/docs/latent/masks). Above it
+sit the **Histogram** and the **Info** panel, which reads the frame's own metadata — camera, lens,
+exposure, capture time, dimensions, rating, flag, folder, sidecar state and a content hash.
+
+Each panel has a reset control, and a dot marks panels you have actually touched.
+
+## Light
+
+The tonal foundation, in stops and in points:
+
+- **Exposure**, in EV
+- **Contrast**
+- **Highlights** and **Shadows** — recover the ends of the range
+- **Whites** and **Blacks** — set where the range clips
+
+The histogram updates as you move them, so you can see what a recovery actually bought you.
+
+## Curve
+
+Beneath Light is the tone curve, in two forms. **Parametric** gives you banded controls —
+highlights, lights and the bands below them — which move the curve without letting you tear it.
+The channel dots beside it switch between the composite curve and the individual **R**, **G** and
+**B** channels, for colour work you cannot do with a saturation slider. The readout under the
+grid reports the mapping at the point you are dragging, as input → output.
+
+## Color
+
+White balance and saturation:
+
+- **Mode** — how the temperature control is interpreted, relative or as an absolute value
+- **Temperature**, in kelvin, and **Tint**
+- **Vibrance** and **Saturation**
+
+Below them, the **Color Mixer** works per colour range rather than globally, with **Hue**,
+**Saturation** and **Luminance** tabs — the way to lift one colour in a frame without dragging
+every other one with it.
+
+## Effects, Detail, Optics, Geometry
+
+The remaining panels hold the finishing work: **Effects** for treatments applied over the graded
+image, **Detail** for sharpening and noise, and **Optics** for lens corrections.
+
+**Geometry** is crop and perspective. The crop is expressed as **Left**, **Top**, **Right** and
+**Bottom** edges in normalised coordinates, so the numbers mean the same thing whatever the
+frame's resolution. **Straighten** and **Rotate** are in degrees, there are horizontal and
+vertical flips, and the perspective controls correct converging verticals and horizontals.
+
+## Nothing is baked in
+
+Every panel writes into the frame's edit stack rather than into the image. Adjustments can be
+reset individually, reordered, or walked back through the [history](/docs/latent/presets); the
+RAW file itself is never rewritten. See [Files & sidecars](/docs/latent/files).
