@@ -1,30 +1,32 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-
 	let {
+		image,
+		alt,
 		video = '',
-		poster = '',
-		image = '',
-		alt = '',
-		children
+		poster = ''
 	}: {
-		/** Looping screen capture. Takes precedence over `image` once one exists. */
+		image: string;
+		alt: string;
+		/** Looping screen capture. Takes over from the still once one exists. */
 		video?: string;
 		poster?: string;
-		image?: string;
-		alt?: string;
-		/** Rendered while neither a capture nor a still has been supplied. */
-		children?: Snippet;
 	} = $props();
+
+	const videoPoster = $derived(resolvePoster());
+
+	function resolvePoster() {
+		if (poster) return poster;
+		return image;
+	}
 </script>
 
 <div
-	class="relative overflow-hidden rounded-2xl border border-line-faint bg-raised shadow-[0_24px_60px_-30px_rgba(0,0,0,0.75)]"
+	class="overflow-hidden rounded-2xl border border-line-faint bg-raised shadow-[0_24px_60px_-30px_rgba(0,0,0,0.75)]"
 >
 	{#if video}
 		<video
 			src={video}
-			{poster}
+			poster={videoPoster}
 			autoplay
 			muted
 			loop
@@ -32,9 +34,7 @@
 			aria-label={alt}
 			class="block size-full object-cover"
 		></video>
-	{:else if image}
-		<img src={image} {alt} class="block size-full object-cover" />
-	{:else if children}
-		{@render children()}
+	{:else}
+		<img src={image} {alt} loading="lazy" class="block size-full object-cover" />
 	{/if}
 </div>

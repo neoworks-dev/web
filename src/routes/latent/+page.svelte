@@ -2,30 +2,29 @@
 	import LatentHero from '$lib/components/latent/LatentHero.svelte';
 	import FeatureSection from '$lib/components/latent/FeatureSection.svelte';
 	import MediaFrame from '$lib/components/latent/MediaFrame.svelte';
-	import MockDevelopPanel from '$lib/components/latent/MockDevelopPanel.svelte';
-	import MockHistoryPanel from '$lib/components/latent/MockHistoryPanel.svelte';
-	import MockCullPanel from '$lib/components/latent/MockCullPanel.svelte';
 	import OpenSourceCta from '$lib/components/latent/OpenSourceCta.svelte';
 </script>
 
-<!-- Each MediaFrame takes a `video` (and `poster`) once screen captures exist;
-     until then it renders the mock panel passed as its child. -->
+<!-- Each MediaFrame swaps its still for a looping capture once given a `video`. -->
 {#snippet developMedia()}
-	<MediaFrame alt="The develop panel: histogram, light sliders and tone curve">
-		<MockDevelopPanel />
-	</MediaFrame>
+	<MediaFrame
+		image="/latent/develop.webp"
+		alt="Latent's develop panel: light sliders, a tone curve being edited per channel, and colour controls"
+	/>
 {/snippet}
 
 {#snippet masksMedia()}
-	<MediaFrame alt="Mask groups and the editing history stack">
-		<MockHistoryPanel />
-	</MediaFrame>
+	<MediaFrame
+		image="/latent/masks.webp"
+		alt="A radial and brush mask overlaid in red, with its adjustment layers and the edit history"
+	/>
 {/snippet}
 
 {#snippet libraryMedia()}
-	<MediaFrame alt="The library grid with picks, rejects and rating filters">
-		<MockCullPanel />
-	</MediaFrame>
+	<MediaFrame
+		image="/latent/library.webp"
+		alt="Latent's library: folders, rating and pick filters, and a filmstrip of the shoot"
+	/>
 {/snippet}
 
 <LatentHero />
@@ -48,13 +47,12 @@
 	<FeatureSection
 		eyebrow="Masks & history"
 		title="Nothing you do is permanent."
-		body="Grade the sky without touching the subject. Stack masks into groups, switch any of them off, and walk the history back to any point in the session — the original file is never rewritten."
+		body="Grade the sky without touching the subject. Stack radial, gradient and brush layers into one mask, switch any of them off, and walk the history back to any point in the session — the original file is never rewritten."
 		points={[
-			'Gradient, brush and subject masks, grouped and toggleable',
+			'Radial, gradient and brush layers, combined per mask',
 			'Full edit history you can step back through',
 			'Edits stored in a sidecar; the RAW stays untouched'
 		]}
-		mediaFirst
 		media={masksMedia}
 	/>
 </div>
@@ -63,7 +61,7 @@
 	<FeatureSection
 		eyebrow="Library"
 		title="Get through the shoot, then edit the keepers."
-		body="Point Latent at a folder and it reads what is already there. Flag, reject and rate your way down from three hundred frames, filter to what survived, and start developing."
+		body="Point Latent at a folder and it reads what is already there. Flag, reject and rate your way down from a few hundred frames, filter to what survived, and start developing."
 		points={[
 			'Picks, rejects and star ratings with keyboard-speed culling',
 			'Grid and filmstrip views, sorted by capture time',
