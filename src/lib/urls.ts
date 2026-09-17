@@ -15,6 +15,9 @@ const BASE_SCHEME =
 
 export const urls = neoworksUrls({ baseDomain: BASE_DOMAIN, scheme: BASE_SCHEME })
 
+/** The main site at the base domain, for links out of a product subdomain. */
+export const siteUrl = `${BASE_SCHEME}://${BASE_DOMAIN}`
+
 /** URL of a sibling app served at `<subdomain>.<base>` (e.g. muse, calendar). */
 export function appUrl(subdomain: string): string {
   return `${BASE_SCHEME}://${subdomain}.${BASE_DOMAIN}`
