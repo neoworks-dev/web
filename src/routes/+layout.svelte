@@ -2,8 +2,11 @@
 	import './neoworks.css';
 	import { page } from '$app/stores';
 	import { onNavigate } from '$app/navigation';
+	import { resolveMeta } from '$lib/meta';
 
 	let { children } = $props();
+
+	const meta = $derived(resolveMeta($page.data.meta));
 
 	onNavigate((navigation) => {
 		if (!document.startViewTransition) return;
@@ -15,33 +18,27 @@
 		});
 	});
 
-	const defaultMeta = {
-		title:       'NeoWorks — Your data, your rules',
-		description: 'A personal cloud built on ownership, not surveillance. One identity.',
-		ogImage:     '/og-default.png',
-		twitterCard: 'summary_large_image',
-	};
 </script>
 
 <svelte:head>
-  <title>{defaultMeta.title}</title>
-  <meta name="description" content={defaultMeta.description} />
+  <title>{meta.title}</title>
+  <meta name="description" content={meta.description} />
 
   <meta property="og:type" content="website" />
   <meta property="og:url" content={$page.url.href} />
-  <meta property="og:title" content={defaultMeta.title} />
-  <meta property="og:description" content={defaultMeta.description} />
-  <meta property="og:image" content={defaultMeta.ogImage} />
+  <meta property="og:title" content={meta.title} />
+  <meta property="og:description" content={meta.description} />
+  <meta property="og:image" content={meta.ogImage} />
 
-  <meta name="twitter:card" content={defaultMeta.twitterCard} />
-  <meta name="twitter:site" content="@neoworks" />
-  <meta name="twitter:title" content={defaultMeta.title} />
-  <meta name="twitter:description" content={defaultMeta.description} />
-  <meta name="twitter:image" content={defaultMeta.ogImage} />
+  <meta name="twitter:card" content={meta.twitterCard} />
+  <meta name="twitter:site" content={meta.twitterSite} />
+  <meta name="twitter:title" content={meta.title} />
+  <meta name="twitter:description" content={meta.description} />
+  <meta name="twitter:image" content={meta.ogImage} />
 
   <link rel="canonical" href={$page.url.href} />
-  <meta name="theme-color" content="#040906" />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content={meta.themeColor} />
+  <link rel="icon" href={meta.icon} type="image/svg+xml" />
 </svelte:head>
 
 {@render children()}
