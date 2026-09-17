@@ -67,7 +67,7 @@
 <header class="pointer-events-none fixed inset-x-0 top-2 z-nav flex justify-center">
 	<!-- Dock: groups the bar and the mega panel so hover-intent spans both. -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="pointer-events-none flex flex-col items-center px-6 w-[min(1320px,calc(100vw-2rem))] " onmouseleave={closeMega}>
+	<div class="pointer-events-none flex flex-col items-center px-6 max-md:px-0 w-[min(1320px,calc(100vw-2rem))] " onmouseleave={closeMega}>
 		<!-- Header card: the pill, plus an attached sub-nav row on docs pages. -->
 		<div
 			class="pointer-events-auto border w-full border-line bg-elevated/80 shadow-lg backdrop-blur-xl backdrop-saturate-150 {hasSubnav

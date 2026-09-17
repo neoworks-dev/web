@@ -1,5 +1,4 @@
 <script lang="ts">
-	import DownloadSimpleIcon from 'phosphor-svelte/lib/DownloadSimpleIcon';
 	import GithubLogoIcon from 'phosphor-svelte/lib/GithubLogoIcon';
 	import { latent } from '$lib/latent';
 
@@ -31,20 +30,11 @@
 		Docs
 	</a>
 
-	<div class="ml-auto flex items-center gap-1.5">
-		<a
-			href={latent.sourceUrl}
-			aria-label="Latent on GitHub"
-			class="flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-hover hover:text-default"
-		>
-			<GithubLogoIcon size={16} weight="fill" />
-		</a>
-		<a
-			href={latent.appImageUrl}
-			class="flex items-center gap-1.5 rounded-full bg-action px-3 py-1.5 text-sm font-semibold text-action-fg transition-opacity hover:opacity-90 active:scale-[0.98]"
-		>
-			<DownloadSimpleIcon size={14} weight="bold" />
-			AppImage
-		</a>
-	</div>
+	<a
+		href={latent.sourceUrl}
+		aria-label="Latent on GitHub"
+		class="ml-auto flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-hover hover:text-default"
+	>
+		<GithubLogoIcon size={16} weight="fill" />
+	</a>
 </nav>
