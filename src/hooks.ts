@@ -6,7 +6,10 @@ import type { Reroute } from '@sveltejs/kit';
  * header works the same on that host as on the main domain.
  */
 const latentRoutes: Record<string, string> = {
-	'/': '/latent'
+	'/': '/latent',
+	'/sky-replacement': '/latent/sky-replacement',
+	'/automatic-masking': '/latent/automatic-masking',
+	'/light-reframing': '/latent/light-reframing'
 };
 
 /**

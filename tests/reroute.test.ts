@@ -15,6 +15,18 @@ describe('reroute', () => {
 		expect(rerouteFor('https://latent.neoworks.dev/')).toBe('/latent');
 	});
 
+	it('maps the feature pages onto the /latent subtree', () => {
+		expect(rerouteFor('https://latent.neoworks.dev/sky-replacement')).toBe(
+			'/latent/sky-replacement'
+		);
+		expect(rerouteFor('https://latent.neoworks.dev/automatic-masking')).toBe(
+			'/latent/automatic-masking'
+		);
+		expect(rerouteFor('https://latent.neoworks.dev/light-reframing')).toBe(
+			'/latent/light-reframing'
+		);
+	});
+
 	it('works on the dev base domain', () => {
 		expect(rerouteFor('https://latent.neoworks.localhost/')).toBe('/latent');
 	});

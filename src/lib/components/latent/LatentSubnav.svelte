@@ -1,25 +1,39 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import GithubLogoIcon from 'phosphor-svelte/lib/GithubLogoIcon';
-	import { latent } from '$lib/latent';
+	import { latent, latentFeatures, latentHref } from '$lib/latent';
 
-	// Anchors, so they resolve on latent.<base-domain> and on /latent alike.
-	const sectionLinks = [
-		{ label: 'Develop', href: '#develop' },
-		{ label: 'Masks', href: '#masks' },
-		{ label: 'Library', href: '#library' }
-	];
+	const hostname = $derived($page.url.hostname);
+
+	function isCurrent(path: string) {
+		return $page.route.id === `/latent${path}`;
+	}
+
+	function ariaCurrent(path: string) {
+		if (isCurrent(path)) return 'page';
+		return undefined;
+	}
 </script>
 
 <!-- Sub-nav row attached under the main header, mirroring the docs product tabs. -->
 <nav class="flex items-center gap-1 px-3">
-	<span class="shrink-0 px-2.5 py-2 text-sm font-semibold tracking-tight text-default">Latent</span>
+	<a
+		href={latentHref(hostname, '')}
+		class="shrink-0 px-2.5 py-2 text-sm font-semibold tracking-tight text-default"
+	>
+		Latent
+	</a>
 
-	{#each sectionLinks as { label, href }}
+	{#each latentFeatures as feature}
 		<a
-			{href}
-			class="shrink-0 rounded-full px-2.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-hover hover:text-default"
+			href={latentHref(hostname, feature.path)}
+			aria-current={ariaCurrent(feature.path)}
+			class="shrink-0 rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-hover hover:text-default"
+			class:text-default={isCurrent(feature.path)}
+			class:bg-hover={isCurrent(feature.path)}
+			class:text-muted={!isCurrent(feature.path)}
 		>
-			{label}
+			{feature.label}
 		</a>
 	{/each}
 
