@@ -1,16 +1,19 @@
 import type { Reroute } from '@sveltejs/kit';
 
 /**
- * `latent.<base-domain>` is served by this same app: requests to that host are
- * mapped onto the `/latent` subtree, so the product site keeps root-level paths
- * on its own domain while `/latent` stays reachable on the main domain.
- *
- * Universal hook — it runs for SSR and for client-side navigation, so in-page
- * links can use plain paths like `/features` on the latent host.
+ * Paths the Latent site owns on `latent.<base-domain>`. Everything else — docs,
+ * pricing, the auth routes — falls through unchanged, so the shared NeoWorks
+ * header works the same on that host as on the main domain.
+ */
+const latentRoutes: Record<string, string> = {
+	'/': '/latent'
+};
+
+/**
+ * Universal hook — it runs for SSR and for client-side navigation, so the same
+ * mapping applies to in-page links.
  */
 export const reroute: Reroute = ({ url }) => {
 	if (!url.hostname.startsWith('latent.')) return;
-	if (url.pathname.startsWith('/latent')) return;
-	if (url.pathname === '/') return '/latent';
-	return `/latent${url.pathname}`;
+	return latentRoutes[url.pathname];
 };

@@ -15,16 +15,14 @@ describe('reroute', () => {
 		expect(rerouteFor('https://latent.neoworks.dev/')).toBe('/latent');
 	});
 
-	it('prefixes deeper paths on the latent host', () => {
-		expect(rerouteFor('https://latent.neoworks.dev/changelog')).toBe('/latent/changelog');
-	});
-
-	it('does not prefix twice when the path already points at the subtree', () => {
-		expect(rerouteFor('https://latent.neoworks.dev/latent')).toBeUndefined();
-	});
-
 	it('works on the dev base domain', () => {
 		expect(rerouteFor('https://latent.neoworks.localhost/')).toBe('/latent');
+	});
+
+	it('lets main-site paths through on the latent host', () => {
+		expect(rerouteFor('https://latent.neoworks.dev/docs/latent')).toBeUndefined();
+		expect(rerouteFor('https://latent.neoworks.dev/auth/login')).toBeUndefined();
+		expect(rerouteFor('https://latent.neoworks.dev/pricing')).toBeUndefined();
 	});
 
 	it('does not match a domain that merely contains the name', () => {

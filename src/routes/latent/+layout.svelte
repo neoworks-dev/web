@@ -1,16 +1,16 @@
 <script lang="ts">
-	import LatentNav from '$lib/components/latent/LatentNav.svelte';
-	import LatentFooter from '$lib/components/latent/LatentFooter.svelte';
+	import FloatingHeader from '$lib/components/FloatingHeader.svelte';
+	import Footer from '$lib/components/Footer.svelte';
 
-	let { children } = $props();
+	let { children, data } = $props();
 </script>
 
 <div id="top" class="flex min-h-screen flex-col bg-canvas text-primary antialiased">
-	<LatentNav />
+	<FloatingHeader user={data.user} />
 
 	<main class="flex-1">
 		{@render children()}
 	</main>
 
-	<LatentFooter />
+	<Footer />
 </div>

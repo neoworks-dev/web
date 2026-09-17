@@ -10,10 +10,17 @@
 	import ThemeToggle from './ThemeToggle.svelte';
 	import ProfileMenu from './ProfileMenu.svelte';
 	import DocsHeader from './docs/DocsHeader.svelte';
+	import LatentSubnav from './latent/LatentSubnav.svelte';
 	import { flagships, projectQuickLinks, developerMenu } from '$lib/data/projects';
 
 	// On docs pages the header grows a second row of product tabs, TensorFlow-style.
 	const isDocs = $derived($page.url.pathname.startsWith('/docs'));
+
+	// The Latent site reuses this header with its own second row. Matched on the
+	// route rather than the path, because on latent.<base-domain> the URL is `/`.
+	const isLatent = $derived(Boolean($page.route.id?.startsWith('/latent')));
+
+	const hasSubnav = $derived(isDocs || isLatent);
 
 	interface User {
 		email?: string;
@@ -63,7 +70,7 @@
 	<div class="pointer-events-none flex flex-col items-center px-6 w-[min(1320px,calc(100vw-2rem))] " onmouseleave={closeMega}>
 		<!-- Header card: the pill, plus an attached sub-nav row on docs pages. -->
 		<div
-			class="pointer-events-auto border w-full border-line bg-elevated/80 shadow-lg backdrop-blur-xl backdrop-saturate-150 {isDocs
+			class="pointer-events-auto border w-full border-line bg-elevated/80 shadow-lg backdrop-blur-xl backdrop-saturate-150 {hasSubnav
 				? 'rounded-[26px]'
 				: 'rounded-full'}"
 		>
@@ -167,10 +174,14 @@
 			</button>
 			</nav>
 
-			<!-- Attached docs sub-nav (desktop) -->
+			<!-- Attached sub-nav (desktop) -->
 			{#if isDocs}
 				<div class="hidden border-t border-line-faint md:block">
 					<DocsHeader />
+				</div>
+			{:else if isLatent}
+				<div class="hidden border-t border-line-faint md:block">
+					<LatentSubnav />
 				</div>
 			{/if}
 		</div>

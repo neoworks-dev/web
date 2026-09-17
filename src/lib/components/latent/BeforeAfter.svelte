@@ -106,12 +106,12 @@
 	</div>
 
 	<span
-		class="absolute top-6 left-6 rounded-full border border-white/20 bg-black/45 px-3 py-1 font-mono text-[11px] tracking-[0.14em] text-white/80 uppercase backdrop-blur-md max-md:top-4 max-md:left-4"
+		class="absolute top-32 left-6 rounded-full border border-white/20 bg-black/45 px-3 py-1 font-mono text-[11px] tracking-[0.14em] text-white/80 uppercase backdrop-blur-md max-md:top-20 max-md:left-4"
 	>
 		{beforeLabel}
 	</span>
 	<span
-		class="absolute top-6 right-6 rounded-full border border-white/20 bg-black/45 px-3 py-1 font-mono text-[11px] tracking-[0.14em] text-white/80 uppercase backdrop-blur-md max-md:top-4 max-md:right-4"
+		class="absolute top-32 right-6 rounded-full border border-white/20 bg-black/45 px-3 py-1 font-mono text-[11px] tracking-[0.14em] text-white/80 uppercase backdrop-blur-md max-md:top-20 max-md:right-4"
 	>
 		{afterLabel}
 	</span>
