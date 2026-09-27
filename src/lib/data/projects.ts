@@ -20,6 +20,7 @@ import GlobeIcon from 'phosphor-svelte/lib/GlobeIcon';
 import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
 import StackIcon from 'phosphor-svelte/lib/StackIcon';
 import HardDrivesIcon from 'phosphor-svelte/lib/HardDrivesIcon';
+import PulseIcon from 'phosphor-svelte/lib/PulseIcon';
 
 export type Project = {
 	name: string;
@@ -116,7 +117,8 @@ export const developerMenu: ProjectColumn[] = [
 		items: [
 			{ name: 'Developers', tagline: 'Build & earn', href: '/developers', accent: DEV_ACCENT, icon: CodeIcon },
 			{ name: 'Quickstart', tagline: 'Zero to shipping', href: '/docs/neoworks/quickstart', accent: DEV_ACCENT, icon: RocketLaunchIcon },
-			{ name: 'Revenue model', tagline: 'Get paid for good software', href: '/developers#revenue', accent: DEV_ACCENT, icon: CoinsIcon }
+			{ name: 'Revenue model', tagline: 'Get paid for good software', href: '/developers#revenue', accent: DEV_ACCENT, icon: CoinsIcon },
+			{ name: 'Vitals', tagline: 'Code intelligence for agents', href: '/dev/vitals', accent: DEV_ACCENT, icon: PulseIcon }
 		]
 	},
 	{

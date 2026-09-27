@@ -11,6 +11,7 @@
 	import ProfileMenu from './ProfileMenu.svelte';
 	import DocsHeader from './docs/DocsHeader.svelte';
 	import LatentSubnav from './latent/LatentSubnav.svelte';
+	import VitalsSubnav from './vitals/VitalsSubnav.svelte';
 	import { flagships, projectQuickLinks, developerMenu } from '$lib/data/projects';
 
 	// On docs pages the header grows a second row of product tabs, TensorFlow-style.
@@ -20,7 +21,10 @@
 	// route rather than the path, because on latent.<base-domain> the URL is `/`.
 	const isLatent = $derived(Boolean($page.route.id?.startsWith('/latent')));
 
-	const hasSubnav = $derived(isDocs || isLatent);
+	// Same arrangement for the Vitals site on vitals.<base-domain>.
+	const isVitals = $derived(Boolean($page.route.id?.startsWith('/dev/vitals')));
+
+	const hasSubnav = $derived(isDocs || isLatent || isVitals);
 
 	interface User {
 		email?: string;
@@ -182,6 +186,10 @@
 			{:else if isLatent}
 				<div class="hidden border-t border-line-faint md:block">
 					<LatentSubnav />
+				</div>
+			{:else if isVitals}
+				<div class="hidden border-t border-line-faint md:block">
+					<VitalsSubnav />
 				</div>
 			{/if}
 		</div>

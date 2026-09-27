@@ -39,5 +39,16 @@ describe('reroute', () => {
 
 	it('does not match a domain that merely contains the name', () => {
 		expect(rerouteFor('https://notlatent.neoworks.dev/')).toBeUndefined();
+		expect(rerouteFor('https://notvitals.neoworks.dev/')).toBeUndefined();
+	});
+
+	it('maps the vitals host root onto the /dev/vitals page', () => {
+		expect(rerouteFor('https://vitals.neoworks.dev/')).toBe('/dev/vitals');
+		expect(rerouteFor('https://vitals.neoworks.localhost/')).toBe('/dev/vitals');
+	});
+
+	it('lets main-site paths through on the vitals host', () => {
+		expect(rerouteFor('https://vitals.neoworks.dev/pricing')).toBeUndefined();
+		expect(rerouteFor('https://vitals.neoworks.dev/auth/login')).toBeUndefined();
 	});
 });

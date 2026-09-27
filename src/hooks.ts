@@ -12,11 +12,16 @@ const latentRoutes: Record<string, string> = {
 	'/light-reframing': '/latent/light-reframing'
 };
 
+/** Paths the Vitals site owns on `vitals.<base-domain>`. */
+const vitalsRoutes: Record<string, string> = {
+	'/': '/dev/vitals'
+};
+
 /**
  * Universal hook — it runs for SSR and for client-side navigation, so the same
  * mapping applies to in-page links.
  */
 export const reroute: Reroute = ({ url }) => {
-	if (!url.hostname.startsWith('latent.')) return;
-	return latentRoutes[url.pathname];
+	if (url.hostname.startsWith('latent.')) return latentRoutes[url.pathname];
+	if (url.hostname.startsWith('vitals.')) return vitalsRoutes[url.pathname];
 };
