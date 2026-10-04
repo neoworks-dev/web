@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { Component, Snippet } from 'svelte';
-	import type { IconComponentProps } from 'phosphor-svelte/lib/shared';
+	import type { Component, ComponentProps, Snippet } from 'svelte';
 	import DotsSixVerticalIcon from 'phosphor-svelte/lib/DotsSixVerticalIcon';
 	import LockSimpleIcon from 'phosphor-svelte/lib/LockSimpleIcon';
 	import LockSimpleOpenIcon from 'phosphor-svelte/lib/LockSimpleOpenIcon';
@@ -12,6 +11,9 @@
 	import LockKeyOpenIcon from 'phosphor-svelte/lib/LockKeyOpenIcon';
 	import { tick } from 'svelte';
 	import { menuReveal, menuHide } from '$lib/transitions';
+
+
+	type IconComponentProps = ComponentProps<typeof DotsSixVerticalIcon>;
 
 	let {
 		title = '',

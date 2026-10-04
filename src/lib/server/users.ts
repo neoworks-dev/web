@@ -63,7 +63,7 @@ export async function getUserByID(id: string): Promise<User | null> {
 	}
 	
 	return {
-		id: result.id.id,
+		id: String(result.id.id),
 		email: result.email,
 		password_hash: result.password_hash,
 		created_at: result.created_at,

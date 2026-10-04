@@ -4,7 +4,8 @@ import type { LayoutLoad } from './$types';
 // tags, so it opts back into the server rendering the root layout turns off.
 export const ssr = true;
 
-export const load: LayoutLoad = () => ({
+export const load: LayoutLoad = ({ data }) => ({
+	...data,
 	meta: {
 		title: 'Latent — RAW editing that stays on your machine',
 		description:

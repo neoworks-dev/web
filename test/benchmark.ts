@@ -57,7 +57,7 @@ async function batchGenerateContacts(db: Surreal, count: number, depth: number) 
       user: userId
     })
 
-    let lastUpdate = contacts[contacts.length - 1].id
+    let lastUpdate: RecordId = contacts[contacts.length - 1].id
     for (let j = 0; j < depth; j++) {
       contacts.push({
         id: new RecordId("contacts", Uuid.v4()),

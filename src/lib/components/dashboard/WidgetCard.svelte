@@ -1,6 +1,8 @@
 <script lang="ts">
-	import type { Component, Snippet } from 'svelte';
-	import type { IconComponentProps } from 'phosphor-svelte/lib/shared';
+	import type { Component, ComponentProps, Snippet } from 'svelte';
+	import type DotsSixVerticalIcon from 'phosphor-svelte/lib/DotsSixVerticalIcon';
+
+	type IconComponentProps = ComponentProps<typeof DotsSixVerticalIcon>;
 
 	let {
 		title,
