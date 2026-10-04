@@ -117,40 +117,6 @@ export const docProducts: DocProduct[] = [
 				links: [{ label: 'Files & sidecars', href: '/docs/latent/files' }]
 			}
 		]
-	},
-	{
-		id: 'api',
-		label: 'API',
-		tagline: 'Reference & internals',
-		href: '/docs/api',
-		basePath: '/docs/api',
-		accent: '#34d399',
-		icon: CodeIcon,
-		sections: [
-			{
-				title: 'Getting started',
-				links: [
-					{ label: 'Overview', href: '/docs/api' },
-					{ label: 'Development', href: '/docs/api/development' }
-				]
-			},
-			{
-				title: 'Concepts',
-				links: [
-					{ label: 'Architecture', href: '/docs/api/architecture' },
-					{ label: 'Data model', href: '/docs/api/data-model' },
-					{ label: 'Entity surface', href: '/docs/api/entity-surface' }
-				]
-			},
-			{
-				title: 'Reference',
-				links: [
-					{ label: 'HTTP API', href: '/docs/api/http-api' },
-					{ label: 'GraphQL API', href: '/docs/api/graphql-api' },
-					{ label: 'OAuth', href: '/docs/api/oauth' }
-				]
-			}
-		]
 	}
 ];
 

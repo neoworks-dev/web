@@ -32,11 +32,6 @@ export type Project = {
 	external?: boolean;
 };
 
-export type ProjectColumn = {
-	heading: string;
-	items: Project[];
-};
-
 /** A spotlighted flagship rendered as a large gradient feature card. */
 export type Flagship = {
 	name: string;
@@ -106,39 +101,4 @@ export const projectQuickLinks: Project[] = [
 	{ name: 'Docs', tagline: 'Guides & reference', href: '/docs', accent: '#22d3ee', icon: BracketsCurlyIcon },
 	{ name: 'Latent docs', tagline: 'RAW photo editor', href: '/docs/latent', accent: '#f87171', icon: SlidersHorizontalIcon },
 	{ name: 'Self-host', tagline: 'Run your own node', href: '/docs/neoworks/self-host', accent: '#fb923c', icon: HardDrivesIcon }
-];
-
-const DEV_ACCENT = '#60a5fa';
-
-// Grouped link columns for the separate Developers mega menu.
-export const developerMenu: ProjectColumn[] = [
-	{
-		heading: 'Build',
-		items: [
-			{ name: 'Developers', tagline: 'Build & earn', href: '/developers', accent: DEV_ACCENT, icon: CodeIcon },
-			{ name: 'Quickstart', tagline: 'Zero to shipping', href: '/docs/neoworks/quickstart', accent: DEV_ACCENT, icon: RocketLaunchIcon },
-			{ name: 'Revenue model', tagline: 'Get paid for good software', href: '/developers#revenue', accent: DEV_ACCENT, icon: CoinsIcon },
-			{ name: 'Vitals', tagline: 'Code intelligence for agents', href: '/dev/vitals', accent: DEV_ACCENT, icon: PulseIcon }
-		]
-	},
-	{
-		heading: 'OpenSchema',
-		items: [
-			{ name: 'Overview', tagline: 'Shared data contracts', href: '/docs/neoworks/openschema', accent: DEV_ACCENT, icon: TreeStructureIcon },
-			{ name: 'Contacts', tagline: 'Schema', href: '/docs/neoworks/openschema/contacts', accent: DEV_ACCENT, icon: AddressBookIcon },
-			{ name: 'Events', tagline: 'Schema', href: '/docs/neoworks/openschema/events', accent: DEV_ACCENT, icon: CalendarBlankIcon },
-			{ name: 'Tasks', tagline: 'Schema', href: '/docs/neoworks/openschema/tasks', accent: DEV_ACCENT, icon: CheckSquareIcon }
-		]
-	},
-	{
-		heading: 'API reference',
-		items: [
-			{ name: 'Overview', tagline: 'Endpoints & SDKs', href: '/docs/api/development', accent: DEV_ACCENT, icon: BracketsCurlyIcon },
-			{ name: 'Architecture', tagline: 'How it fits together', href: '/docs/api/architecture', accent: DEV_ACCENT, icon: BlueprintIcon },
-			{ name: 'Data model', tagline: 'Entities & records', href: '/docs/api/data-model', accent: DEV_ACCENT, icon: DatabaseIcon },
-			{ name: 'GraphQL API', tagline: 'Typed data plane', href: '/docs/api/graphql-api', accent: DEV_ACCENT, icon: GraphIcon },
-			{ name: 'HTTP API', tagline: 'REST surface', href: '/docs/api/http-api', accent: DEV_ACCENT, icon: GlobeIcon },
-			{ name: 'OAuth', tagline: 'Scopes & tokens', href: '/docs/api/oauth', accent: DEV_ACCENT, icon: ShieldCheckIcon }
-		]
-	}
 ];

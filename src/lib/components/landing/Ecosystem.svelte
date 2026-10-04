@@ -51,26 +51,5 @@
 				<AppShowcase {...screen} reverse={index % 2 === 1} />
 			{/each}
 		</div>
-
-		<!-- Open invitation to the rest of the ecosystem. -->
-		<div
-			class="mt-16 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-dashed border-line bg-transparent px-6 py-5"
-		>
-			<div>
-				<h3 class="text-sm font-semibold tracking-tight text-default">Build your own</h3>
-				<p class="mt-0.5 text-2xs text-dim">Any app, on the same encrypted layer.</p>
-			</div>
-			<a
-				href="/developers"
-				class="group inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-medium text-muted transition-colors hover:bg-hover hover:text-default"
-			>
-				Start building
-				<ArrowRightIcon
-					size={14}
-					weight="bold"
-					class="transition-transform group-hover:translate-x-0.5"
-				/>
-			</a>
-		</div>
 	</div>
 </section>

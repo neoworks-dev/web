@@ -6,7 +6,6 @@
 	import DataEncrypted from '$lib/components/landing/DataEncrypted.svelte';
 	import DataOwnership from '$lib/components/landing/DataOwnership.svelte';
 	import Pricing from '$lib/components/landing/Pricing.svelte';
-	import DeveloperTeaser from '$lib/components/landing/DeveloperTeaser.svelte';
 	import Faq from '$lib/components/landing/Faq.svelte';
 	import FinalCta from '$lib/components/landing/FinalCta.svelte';
 
@@ -21,7 +20,6 @@
 	<DataEncrypted />
 	<DataOwnership />
 	<Pricing />
-	<DeveloperTeaser />
 	<Faq />
 	<FinalCta />
 </main>

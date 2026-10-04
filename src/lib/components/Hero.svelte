@@ -55,13 +55,6 @@
         Encrypted on your device. No ads, no tracking. Leave with your data anytime.
       </p>
 
-      <a
-        href="/developers"
-        class="pointer-events-auto mt-4 inline-flex items-center gap-1 text-xs font-medium text-dim transition-colors hover:text-default"
-      >
-        Building an app? Read the developer docs
-        <ArrowRightIcon size={12} weight="bold" />
-      </a>
     </div>
   </div>
 </section>

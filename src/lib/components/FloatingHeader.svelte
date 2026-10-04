@@ -6,13 +6,12 @@
 	import ListIcon from 'phosphor-svelte/lib/ListIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import MegaMenu from './MegaMenu.svelte';
-	import DevelopersMenu from './DevelopersMenu.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 	import ProfileMenu from './ProfileMenu.svelte';
 	import DocsHeader from './docs/DocsHeader.svelte';
 	import LatentSubnav from './latent/LatentSubnav.svelte';
 	import VitalsSubnav from './vitals/VitalsSubnav.svelte';
-	import { flagships, projectQuickLinks, developerMenu } from '$lib/data/projects';
+	import { flagships, projectQuickLinks } from '$lib/data/projects';
 
 	// On docs pages the header grows a second row of product tabs, TensorFlow-style.
 	const isDocs = $derived($page.url.pathname.startsWith('/docs'));
@@ -39,22 +38,14 @@
 		{ label: 'Pricing', href: '/pricing' }
 	];
 
-	// Two independent mega panels; at most one is open at a time.
 	let projectsOpen = $state(false);
-	let devOpen = $state(false);
 	let mobileOpen = $state(false);
 
 	function openProjects() {
 		projectsOpen = true;
-		devOpen = false;
-	}
-	function openDev() {
-		devOpen = true;
-		projectsOpen = false;
 	}
 	function closeMega() {
 		projectsOpen = false;
-		devOpen = false;
 	}
 	function closeAll() {
 		closeMega();
@@ -110,23 +101,6 @@
 						size={12}
 						weight="bold"
 						class="transition-transform duration-200 {projectsOpen ? 'rotate-180' : ''}"
-					/>
-				</button>
-				<button
-					type="button"
-					aria-expanded={devOpen}
-					aria-haspopup="true"
-					onmouseenter={openDev}
-					onclick={() => (devOpen ? closeMega() : openDev())}
-					class="flex items-center gap-1 rounded-full px-3.5 py-2 text-base font-medium text-muted transition-colors hover:bg-hover hover:text-default"
-					class:text-default={devOpen}
-					class:bg-hover={devOpen}
-				>
-					Developers
-					<CaretDownIcon
-						size={12}
-						weight="bold"
-						class="transition-transform duration-200 {devOpen ? 'rotate-180' : ''}"
 					/>
 				</button>
 				{#each navLinks as link}
@@ -200,11 +174,6 @@
 				<MegaMenu onNavigate={closeAll} />
 			</div>
 		{/if}
-		{#if devOpen}
-			<div class="pointer-events-auto hidden w-full pt-2 md:block">
-				<DevelopersMenu onNavigate={closeAll} />
-			</div>
-		{/if}
 
 		<!-- Mobile menu -->
 		{#if mobileOpen}
@@ -268,35 +237,6 @@
 						{/each}
 					</div>
 				</div>
-
-				<!-- Developers groups -->
-				{#each developerMenu as column}
-					<div class="mt-4 border-t border-line-faint pt-3">
-						<h3
-							class="mb-2 ml-1 text-2xs font-medium uppercase tracking-[0.12em] text-faint [font-family:var(--font-mono)]"
-						>
-							{column.heading}
-						</h3>
-						<div class="grid grid-cols-2 gap-0.5">
-							{#each column.items as item}
-								{@const Icon = item.icon}
-								<a
-									href={item.href}
-									onclick={closeAll}
-									class="flex items-center gap-2.5 rounded-lg p-2 transition-colors hover:bg-hover"
-								>
-									<span
-										class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border"
-										style="background: color-mix(in oklab, {item.accent} 14%, transparent); border-color: color-mix(in oklab, {item.accent} 28%, transparent);"
-									>
-										<Icon size={15} weight="duotone" color={item.accent} />
-									</span>
-									<span class="truncate text-sm font-medium text-default">{item.name}</span>
-								</a>
-							{/each}
-						</div>
-					</div>
-				{/each}
 
 				<div class="mt-4 flex flex-col gap-2 border-t border-line-faint pt-4">
 					{#if user}

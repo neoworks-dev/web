@@ -6,13 +6,11 @@
 	import DashboardMobileBar from '$lib/components/dashboard/DashboardMobileBar.svelte';
 	import { PegboardCanvas } from '@neoworks-dev/ui';
 	import { CommandPalette } from '$lib/components/CommandPalette';
-	import { createViewContext } from '$lib/context/viewContext.svelte.js';
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props();
 
 	let collapsed = $state(false);
 	let mobileNavOpen = $state(false);
-	const viewCtx = createViewContext();
 </script>
 
 <PegboardCanvas></PegboardCanvas>
@@ -30,7 +28,7 @@
     ></button>
   {/if}
 
-  <Sidebar bind:collapsed bind:mobileOpen={mobileNavOpen} user={data.user} {viewCtx} />
+  <Sidebar bind:collapsed bind:mobileOpen={mobileNavOpen} user={data.user} />
 
   <main class="flex-1 min-h-0 overflow-hidden" tabindex="-1">
     {@render children()}
