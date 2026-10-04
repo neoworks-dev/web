@@ -31,6 +31,6 @@ treating it as something new.
 
 Latent itself stores nothing for you — it edits what is on your disk and stops there. Keeping the
 results safe is a separate job, and one a NeoWorks plan will do: encrypted
-[storage](/docs/neoworks/storage) with the keys derived on your device, so the platform holds
+[storage](/docs/neoworks/encryption) with the keys derived on your device, so the platform holds
 ciphertext it cannot read. The [encryption model](/docs/neoworks/encryption) covers how that
 works.

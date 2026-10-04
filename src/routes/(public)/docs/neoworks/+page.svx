@@ -1,42 +1,29 @@
 ---
 title: Introduction
-description: NeoWorks is a personal cloud built on ownership, not surveillance. One identity, seven apps, your data.
+description: NeoWorks is a personal cloud built on ownership, not surveillance. One identity, your data, encrypted so only you can read it.
 ---
 
-NeoWorks is a personal cloud platform. You get one identity and a single subscription
-that unlocks seven first-party apps — files, contacts, calendar, tasks, passwords,
-sharing, and trips — all backed by storage that belongs to **you**, not a tech giant.
+NeoWorks is a personal cloud platform. You get one identity that works across apps and
+devices, and your calendar, contacts, photos and files are encrypted on your devices before
+they reach our servers.
 
-Everything is open source and self-hostable. Run it on our infrastructure, or run your
-own node and own the whole stack.
-
-## What you get
-
-- **One identity** — a single OAuth 2.0 account across every app and device.
-- **Seven apps** — Grove, Vault, Vine, Tide, Twig, Relay, and Trail.
-- **End-to-end encryption** — Vault secrets and shared media are encrypted client-side.
-- **Real-time sync** — changes fan out across your devices over NATS JetStream.
-- **A developer platform** — build third-party apps and earn a share of every Pro split.
+Everything is source-available and self-hostable. Run it on our infrastructure, or run your
+own node.
 
 ## How it fits together
 
-The platform is a small set of Go services in front of SurrealDB:
+- **oauth** signs you in, issues tokens and hosts the account vault, the one place your
+  account key is unlocked.
+- **api** stores encrypted data and enforces who may read or write it. It only ever holds
+  ciphertext.
+- **Apps** run the NeoWorks client library in your browser or on your device. Each app
+  receives access to exactly the data you choose to give it.
 
-- **oauth** — issues tokens, hosts the cross-origin Vault crypto sandbox.
-- **api** — the GraphQL data plane; enforces row-level isolation in the database.
-- **assets** — public, cached asset delivery (encrypted media is handled separately).
-
-Apps never read raw key material. All crypto runs inside the cross-origin Vault iframe
-and is brokered over `postMessage`, so a compromised app cannot exfiltrate your keys.
-
-### Storage model
-
-Each user's rows are isolated at the SurrealDB layer. Scopes granted to an OAuth client
-are enforced by the database, not by application middleware — a stolen token can only do
-what it was explicitly granted.
+See the [encryption model](/docs/neoworks/encryption) for how keys work and
+[sharing](/docs/neoworks/sharing) for how access is granted and revoked.
 
 ## Next steps
 
-- Follow the [Quickstart](/docs/neoworks/quickstart) to register an app and get your first token.
-- Read the [OAuth guide](/docs/neoworks/oauth) for the full authorization flow.
+- Read the [OAuth guide](/docs/neoworks/oauth) for how apps are authorized.
+- Learn how [devices](/docs/neoworks/devices) are registered and revoked.
 - Prefer to own everything? See [Self-hosting](/docs/neoworks/self-host).

@@ -1,6 +1,5 @@
 import type { Component } from 'svelte';
 import StackIcon from 'phosphor-svelte/lib/StackIcon';
-import PaintBrushIcon from 'phosphor-svelte/lib/PaintBrushIcon';
 import SlidersHorizontalIcon from 'phosphor-svelte/lib/SlidersHorizontalIcon';
 import CodeIcon from 'phosphor-svelte/lib/CodeIcon';
 
@@ -41,7 +40,6 @@ export const docProducts: DocProduct[] = [
 				title: 'Getting started',
 				links: [
 					{ label: 'Introduction', href: '/docs/neoworks' },
-					{ label: 'Quickstart', href: '/docs/neoworks/quickstart' },
 					{ label: 'Self-hosting', href: '/docs/neoworks/self-host' }
 				]
 			},
@@ -49,40 +47,9 @@ export const docProducts: DocProduct[] = [
 				title: 'Platform',
 				links: [
 					{ label: 'OAuth', href: '/docs/neoworks/oauth' },
-					{ label: 'File & media storage', href: '/docs/neoworks/storage' },
 					{ label: 'Encryption model', href: '/docs/neoworks/encryption' },
-					{ label: 'Spaces', href: '/docs/neoworks/spaces' },
-					{ label: 'Searchable encrypted media', href: '/docs/neoworks/encrypted-search' },
+					{ label: 'Sharing', href: '/docs/neoworks/sharing' },
 					{ label: 'Devices', href: '/docs/neoworks/devices' }
-				]
-			},
-			{
-				title: 'Schemas',
-				links: [
-					{ label: 'OpenSchema', href: '/docs/neoworks/openschema' },
-					{ label: 'Contacts', href: '/docs/neoworks/openschema/contacts' },
-					{ label: 'Calendar', href: '/docs/neoworks/openschema/events' },
-					{ label: 'Tasks', href: '/docs/neoworks/openschema/tasks' }
-				]
-			}
-		]
-	},
-	{
-		id: 'muse',
-		label: 'Muse',
-		tagline: 'Infinite canvas',
-		href: '/docs/muse',
-		basePath: '/docs/muse',
-		accent: '#f472b6',
-		icon: PaintBrushIcon,
-		sections: [
-			{
-				title: 'Muse',
-				links: [
-					{ label: 'Introduction', href: '/docs/muse' },
-					{ label: 'Canvas', href: '/docs/muse/canvas' },
-					{ label: 'Folders', href: '/docs/muse/folder' },
-					{ label: 'Sync & data', href: '/docs/muse/sync' }
 				]
 			}
 		]

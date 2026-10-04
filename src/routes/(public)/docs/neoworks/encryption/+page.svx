@@ -1,116 +1,49 @@
 ---
 title: Encryption model
-description: How NeoWorks encrypts media end-to-end — the account master key, the cross-origin Vault, per-object envelopes, and sharing — and what is deliberately left queryable.
+description: How NeoWorks encrypts your data end to end, who holds which keys, and how recovery works.
 ---
 
-NeoWorks splits data into two classes and encrypts them differently:
+Your data is encrypted on your device. The server stores ciphertext and public keys, and
+checks permissions, but it cannot read your content.
 
-- **Media** (files, images, video, documents — anything that is just bytes) is **end-to-end
-  encrypted**. The server only ever holds ciphertext.
-- **Contacts** are **end-to-end encrypted** too, in [spaces](/docs/neoworks/spaces): the query
-  engine runs client-side inside the Vault, so filtering and search never need server-readable
-  fields.
-- **Remaining queryable records** (calendar, tasks) are **not** end-to-end encrypted — they are
-  still filtered and sorted server-side. See [storage](/docs/neoworks/storage).
+## The account key
 
-This page documents the media encryption design and the decisions behind it.
+Every account has an **account master key**. It is created on your device when you sign up
+and is never sent to the server in readable form. It is stored wrapped twice:
 
-## Threat model & goals
+- by a key derived from your password, so you can sign in on a new device;
+- by a **recovery phrase** shown once at signup.
 
-- The server is **honest-but-curious for media**: it stores and serves blobs but must not be
-  able to read them.
-- Compromise of the database or object store must not expose plaintext media.
-- An application embedding NeoWorks (calendar, photos, muse, …) must be able to encrypt and
-  decrypt media **without ever holding the user's master key** — even a malicious or buggy app
-  should not be able to exfiltrate it.
+Your password is never sent to the server either. Your browser derives a separate
+authentication secret from it, and that is all the server sees.
 
-## The account master key (AMK)
+The account key is unlocked only in the **account vault**, a page on its own origin, or on
+the **authenticator** app, which holds it behind your biometrics. Apps never see it.
 
-Every account has a 32-byte **Account Master Key**. It is derived from the user's password via
-Argon2id and wrapped (sealed) so it can be stored and recovered, but it is **never stored in
-usable form** on the server and **never enters an application's memory**.
+## Nodes and keys
 
-From the AMK, an X25519 **account keypair** is derived deterministically
-(`BLAKE2b(AMK, "nw-account-keypair-v1")` → `crypto_box` seed). This keypair is what other users
-seal data *to* when sharing, and what the owner uses to unseal their own data.
+Your data is a tree of encrypted **nodes**: each collection (calendar, contacts, photos,
+files) has a root, with containers and items below it. Every node has its own key, wrapped
+by its parent's key. Whoever holds a node's key can read that node and everything below it,
+and nobody else can.
 
-## The Vault: a cross-origin crypto sandbox
+Every write is signed by its author, so a compromised server cannot forge content.
 
-> **Decision: applications never touch the AMK.** All encryption and decryption happens inside
-> a sandboxed **Vault** served by the OAuth origin and embedded by each app as an iframe.
+## Apps
 
-The Vault is a page (`/vault` on the OAuth server) that an app loads in a cross-origin
-`<iframe>`. The app talks to it only over `postMessage`:
+When you authorize an app, the vault gives it keys for the nodes you pick, and nothing else.
+The app runs the NeoWorks client library, which stores and syncs those nodes locally. Revoking
+an app removes its access, and the affected keys are rotated.
 
-- `encrypt(plaintext, wrappedDEK?)` → `{ ciphertext, wrappedDEK }`
-- `decrypt(ciphertext, wrappedDEK)` → `plaintext`
-- `rewrap(wrappedDEK, recipientPubKey)` → `wrappedDEK` (for sharing)
+## Recovery
 
-The AMK lives only inside the Vault's origin and **never crosses the iframe boundary**. The app
-sends plaintext in and gets ciphertext out (or vice-versa); it never sees keys. Browser
-**storage partitioning** keeps each embedder's Vault state isolated. Authenticated key
-operations carry the embedder's access token as a bearer credential, so the Vault needs no
-first-party session of its own.
+If you lose your password, the recovery phrase restores your account. If you lose both, the
+data cannot be recovered, unless you turned on **escrow**.
 
-Any origin may embed the Vault (`frame-ancestors *`). The embedding origin grants nothing:
-what a caller may decrypt is resolved by **introspecting its access token** against the auth
-server, and each encryption scope binds to its own derived keypair — so a frame without a
-token carrying that scope gets no key. Storage partitioning means a page that frames the
-Vault reaches its own empty partition, never another app's state. The capability is
-re-checked periodically, so a revoked or narrowed grant stops decrypting without a reload.
+Escrow is optional and off by default. If you opt in, a copy of your account key sealed to
+the escrow service is stored. Recovering through escrow always starts a waiting period, you
+are notified, and you can cancel it.
 
-## Per-object envelope encryption
+## Audit
 
-Each media object gets its own random **data-encryption key (DEK)**:
-
-1. A fresh 32-byte DEK is minted per object.
-2. Content is encrypted with **AES-GCM** under the DEK. Output is `[12-byte IV ‖ ciphertext]`.
-3. The DEK is **sealed to the account public key** with `crypto_box_seal` → the **wrapped DEK**
-   (a base64 string). It is safe to store: useless without the account private key inside the
-   Vault.
-
-Large files are split into chunks; every chunk reuses the same per-object DEK (the first chunk
-mints it, the rest pass the returned wrapped DEK back in).
-
-### Content-addressed, deduplicated chunks
-
-Ciphertext chunks are addressed by the **SHA-256 of the ciphertext**. Upload first asks which
-chunk hashes are missing, then uploads only those. Deduplication is intentionally **per user** —
-two users encrypting the same file produce different ciphertext, so chunks never collide across
-accounts. Chunks are reference-counted and garbage-collected when no media (or version) points
-at them.
-
-## Sharing without re-encrypting
-
-> **Decision: share by re-sealing the DEK, not by re-encrypting the bytes.**
-
-To share an object, the owner's Vault unseals the DEK and **re-seals it to the recipient's
-account public key** (`rewrap`). The DEK plaintext never leaves the Vault. The server stores:
-
-- a **`media_grant`** row authorizing the recipient to read the object's chunks, and
-- the recipient's **wrapped DEK** in the object's `recipients` list, keyed by their user id.
-
-Each reader fetches the manifest and receives **their own** wrapped DEK. Revocation drops the
-grant and the recipient's wrapper. (Revocation does not rotate the DEK, so content a recipient
-already downloaded is not retroactively protected — a deliberate simplification.)
-
-## Devices & recovery
-
-The AMK is also wrapped to each of the user's **devices** (a per-device keypair stored in the
-Vault's partitioned storage) so returning users unlock silently instead of re-entering a
-password. Account recovery re-wraps the AMK to guardians' devices. Device registration is
-authenticated by the OAuth session, which is why apps must be served on an origin that is
-[same-site with the OAuth server](/docs/neoworks/devices).
-
-## What is *not* encrypted
-
-End-to-end encryption covers **media bytes** and **contact payloads**. Calendar and task data is
-still stored so the server can index and filter it. Media **metadata** that powers listing and
-search — filename, MIME type, size, timestamps — is likewise queryable, not E2E. Encrypted
-spaces also leak structural metadata: membership, write timestamps, row counts. When media is
-made searchable by content, a further tradeoff applies: see
-[searchable encrypted media](/docs/neoworks/encrypted-search).
-
-> Don't describe NeoWorks as "everything is encrypted." The accurate claim is: **media and
-> contacts are end-to-end encrypted; calendar, tasks, media metadata and space metadata are
-> not.**
+Every grant and revocation is recorded in a signed access log that your devices can verify.

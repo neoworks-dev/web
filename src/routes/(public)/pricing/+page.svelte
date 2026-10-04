@@ -101,7 +101,7 @@
 
 		<p class="mt-6 text-center text-xs text-dim">
 			Storage is measured on encrypted media. See
-			<a href="/docs/neoworks/storage" class="text-muted underline-offset-2 hover:text-default hover:underline"
+			<a href="/docs/neoworks/encryption" class="text-muted underline-offset-2 hover:text-default hover:underline"
 				>how storage works →</a
 			>
 		</p>

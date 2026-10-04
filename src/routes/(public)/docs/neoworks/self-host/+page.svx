@@ -34,7 +34,7 @@ process-compose up
 ```
 
 This brings up the services, runs database migrations, then starts the `oauth`, `api`,
-`assets`, `web`, and `muse` processes behind Caddy.
+`web` and app processes behind Caddy.
 
 ## Data persistence
 

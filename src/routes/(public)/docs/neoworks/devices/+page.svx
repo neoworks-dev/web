@@ -1,35 +1,17 @@
 ---
 title: Devices
-description: How a user's devices are registered, synced, and revoked across the NeoWorks ecosystem.
+description: How your devices are registered and revoked.
 ---
 
-A NeoWorks account can be active on many devices at once. Each device holds the keys needed
-to decrypt the user's [media](/docs/neoworks/storage) and stays in sync through real-time events.
+A NeoWorks account can be active on many devices. When you sign in on a new device, it
+registers a device record with a name and kind. Each device keeps its own protected copy of
+your account key, which never leaves the device.
 
-## Registration
+## Authenticator
 
-When a user signs in on a new device, it completes the OAuth flow and registers a device
-record — name, platform, and a public key. The account owner can see every registered device.
-
-## Sync
-
-Changes fan out to a user's devices over NATS JetStream in near real time, so an edit on one
-device appears on the others without polling.
+The authenticator app can hold your account key behind biometrics and hand it to a new
+browser by QR code, so you do not have to type your password on every device.
 
 ## Revocation
 
-A user can revoke any device from their account. Revocation invalidates that device's tokens
-and removes its access to encrypted media immediately.
-
-```http
-DELETE /devices/:id
-Authorization: Bearer <token>
-```
-
-## Querying devices
-
-Device records are part of the [queryable data layer](/docs/neoworks/openschema), reachable with the
-appropriate scope.
-
-> **Scaffold** — this page is a stub. Expand with the device record shape, pairing flow, and
-> push-notification details.
+You can revoke any device from your dashboard. Revocation ends that device's sessions.

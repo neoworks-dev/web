@@ -1,0 +1,36 @@
+---
+title: Sharing
+description: How access to your data is granted, shared with other people, and revoked.
+---
+
+Access to data is controlled by **grants** on nodes. A grant gives a person or an app a role
+on a node and everything below it, together with the key needed to read it.
+
+## Roles
+
+- **read** can read the node and its subtree.
+- **write** can also change them.
+- **admin** can also change who has access.
+
+An app's role is also limited by the scopes you approved for it, such as `calendar:read`.
+
+## Sharing with people
+
+Share a node with another NeoWorks user, and their devices receive its key sealed to their
+public identity. Sharing can cover a whole calendar or a single item, and some data can be
+shared in part, for example only when you are free or busy.
+
+## Link shares
+
+A link share lets anyone with the link open a node. The key is part of the link after the
+`#`, so it is never sent to the server.
+
+## Revoking
+
+Revoking a grant removes the server's willingness to serve the data. The affected node keys
+are rotated the next time you open the account vault, so a revoked key stops protecting new
+data.
+
+## Audit
+
+Grants and revocations are written to a signed access log.

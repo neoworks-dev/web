@@ -24,4 +24,4 @@ catalogue service in the middle.
 Latent is a local tool and stands on its own — it does not need a NeoWorks account to run. What
 it does not do is store anything for you. If you want the results backed up and synced across
 devices, that is what a NeoWorks plan and its encrypted
-[storage](/docs/neoworks/storage) are for; the platform holds ciphertext it cannot read.
+[storage](/docs/neoworks/encryption) are for; the platform holds ciphertext it cannot read.
