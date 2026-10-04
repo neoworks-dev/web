@@ -1,22 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import FloatingHeader from '$lib/components/FloatingHeader.svelte';
 	import Footer from '$lib/components/Footer.svelte';
-	import { sdk } from '$lib/sdk';
 
 	let { children, data } = $props();
-
-	// "Sign in with NeoWorks" One Tap: offer a frictionless sign-in to logged-out
-	// visitors who already have a NeoWorks SSO session. Accept routes through the
-	// app's own server-side PKCE login so the callback's verifier cookie matches.
-	onMount(() => {
-		if (data.user) return;
-		sdk.signIn.promptSignIn({
-			onAccept: () => {
-				window.location.href = '/auth/login';
-			}
-		});
-	});
 </script>
 
 <div class="flex min-h-screen flex-col bg-canvas text-primary antialiased">

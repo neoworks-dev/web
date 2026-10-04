@@ -1,7 +1,6 @@
 <script lang="ts">
 	import {
 		House,
-		HardDrive,
 		PlugsConnected,
 		SlidersHorizontal,
 		ShieldCheck,
@@ -31,7 +30,6 @@
 			label: null,
 			items: [
 				{ href: '/dashboard', label: 'Home', Icon: House },
-				{ href: '/dashboard/storage', label: 'Storage', Icon: HardDrive },
 			],
 		},
 		{
