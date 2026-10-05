@@ -13,7 +13,7 @@ const AUTH_CONFIG = {
   clientId: "neoworks.dev",
   authServerUrl: urls.oauth,
   redirectUri: `${urls.web}/auth/callback`,
-  scopes: ["tokens:read", "openid", "email", "profile"] as string[],
+  scopes: ["openid", "email", "profile"] as string[],
 };
 
 export const PKCE_VERIFIER_COOKIE = "nw_pkce_verifier";

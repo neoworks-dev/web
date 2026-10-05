@@ -13,7 +13,7 @@ export const sdk = createSdk({
   url: urls.oauth,
   apiUrl: urls.api,
   assetsUrl: urls.assets,
-  scopes: ["tokens:read", "storage:read", "openid", "email", "profile"],
+  scopes: ["openid", "email", "profile"],
   storage: new CookieTokenStorage(),
   // The refresh token is an HttpOnly cookie this code can't read; the server
   // endpoint rotates it and returns a fresh access token.

@@ -1,4 +1,4 @@
-import { redirect } from "@sveltejs/kit";
+import { error, redirect } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import {
   createServerAuth,
@@ -19,8 +19,13 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
   cookies.delete(PKCE_VERIFIER_COOKIE, { path: "/" });
   cookies.delete(PKCE_STATE_COOKIE, { path: "/" });
 
-  if (authError || !code || !verifier || !state || state !== storedState) {
-    throw redirect(302, "/auth/login");
+  // Redirecting back to /auth/login on failure would loop when the auth server
+  // keeps refusing the request, so failures end here.
+  if (authError) {
+    throw error(400, describeAuthError(authError, url.searchParams.get("error_description")));
+  }
+  if (!code || !verifier || !state || state !== storedState) {
+    throw error(400, "The sign-in attempt expired or did not match. Start it again.");
   }
 
   const auth = createServerAuth(cookies);
@@ -28,3 +33,10 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 
   throw redirect(302, "/dashboard");
 };
+
+function describeAuthError(authError: string, description: string | null): string {
+  if (description) {
+    return description;
+  }
+  return authError;
+}
