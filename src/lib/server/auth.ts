@@ -7,6 +7,7 @@ import { CookiesTokenStorage } from "$lib/server/tokenStorage";
 const urls = neoworksUrls({
   baseDomain: process.env.BASE_DOMAIN,
   scheme: process.env.BASE_SCHEME,
+  port: process.env.BASE_PORT,
 });
 
 const AUTH_CONFIG = {

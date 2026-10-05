@@ -13,12 +13,17 @@ const BASE_SCHEME =
   import.meta.env.VITE_BASE_SCHEME ||
   "https"
 
-export const urls = neoworksUrls({ baseDomain: BASE_DOMAIN, scheme: BASE_SCHEME })
+const BASE_PORT =
+  (typeof process !== "undefined" && process.env?.BASE_PORT) ||
+  import.meta.env.VITE_BASE_PORT ||
+  ""
+
+export const urls = neoworksUrls({ baseDomain: BASE_DOMAIN, scheme: BASE_SCHEME, port: BASE_PORT })
 
 /** The main site at the base domain, for links out of a product subdomain. */
-export const siteUrl = `${BASE_SCHEME}://${BASE_DOMAIN}`
+export const siteUrl = urls.web
 
 /** URL of a sibling app served at `<subdomain>.<base>` (e.g. muse, calendar). */
 export function appUrl(subdomain: string): string {
-  return `${BASE_SCHEME}://${subdomain}.${BASE_DOMAIN}`
+  return urls.app(subdomain)
 }

@@ -5,6 +5,7 @@ import createSdk, { CookieTokenStorage, neoworksUrls } from "@neoworks-dev/sdk"
 const urls = neoworksUrls({
   baseDomain: import.meta.env.VITE_BASE_DOMAIN,
   scheme: import.meta.env.VITE_BASE_SCHEME,
+  port: import.meta.env.VITE_BASE_PORT,
 })
 
 export const sdk = createSdk({
