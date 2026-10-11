@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import type { Grant } from '@neoworks-dev/sdk';
+import type { Grant } from '@neoworks-dev/platform';
 import { attempt, createDeveloperSdk, formText, orFail } from '$lib/server/developerSdk';
 import { holdsPermission } from '$lib/developer/permissions';
 

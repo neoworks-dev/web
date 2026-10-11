@@ -1,4 +1,4 @@
-import type { DeveloperApp, OwnerDomain } from '@neoworks-dev/sdk'
+import type { DeveloperApp, OwnerDomain } from '@neoworks-dev/platform'
 import { redirectUrisOffVerifiedDomains } from './appFields'
 
 export interface RejectedPublish {

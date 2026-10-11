@@ -1,4 +1,5 @@
-import createSdk, { CookieTokenStorage, neoworksUrls } from "@neoworks-dev/sdk"
+import { createPlatform } from "@neoworks-dev/platform"
+import { CookieTokenStorage, neoworksUrls } from "@neoworks-dev/sdk"
 
 // All service URLs derive from one base domain (dev: neoworks.localhost,
 // prod: neoworks.dev). Per-service VITE_*_URL overrides still win when set.
@@ -8,7 +9,7 @@ const urls = neoworksUrls({
   port: import.meta.env.VITE_BASE_PORT,
 })
 
-export const sdk = createSdk({
+export const sdk = createPlatform({
   clientId: "neoworks.dev",
   redirectUri: `${urls.web}/auth/callback`,
   url: urls.oauth,

@@ -1,4 +1,4 @@
-import type { AppFields, RequestedScope } from '@neoworks-dev/sdk'
+import type { AppFields, RequestedScope } from '@neoworks-dev/platform'
 import { parseLineList } from '$lib/developer/appFields'
 import { formText } from './developerSdk'
 

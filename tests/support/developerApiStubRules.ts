@@ -1,4 +1,4 @@
-import type { AppFields, Grant, Permission, RequestedScope } from '@neoworks-dev/sdk'
+import type { AppFields, Grant, Permission, RequestedScope } from '@neoworks-dev/platform'
 import {
   ALL_PERMISSIONS,
   APP_PERMISSIONS,

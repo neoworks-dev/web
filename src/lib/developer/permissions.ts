@@ -1,4 +1,4 @@
-import type { Grant, Permission } from '@neoworks-dev/sdk'
+import type { Grant, Permission } from '@neoworks-dev/platform'
 
 export const ORGANIZATION_WIDE_PERMISSIONS: Permission[] = [
 	'organization.manage',

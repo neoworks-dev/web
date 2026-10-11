@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import type { DeveloperApp, OwnerDomain } from '@neoworks-dev/sdk';
+import type { DeveloperApp, OwnerDomain } from '@neoworks-dev/platform';
 import { formatBytes, parseLineList, redirectUrisOffVerifiedDomains } from '../src/lib/developer/appFields';
 import { fieldError, generalError } from '../src/lib/developer/formErrors';
 import { reviewLabel, reviewTone } from '../src/lib/developer/status';

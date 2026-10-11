@@ -1,4 +1,4 @@
-import type { Owner, Permission, ReviewDecision, ReviewStatus } from '@neoworks-dev/sdk'
+import type { Owner, Permission, ReviewDecision, ReviewStatus } from '@neoworks-dev/platform'
 import type { Handler, Reply, RequestContext, Route } from './developerApiStub.ts'
 import { daysFromNow, type StubApp, type StubConnection, type World } from './developerApiStubWorld.ts'
 import { fail, invalid, isRecord } from './developerApiStubRules.ts'

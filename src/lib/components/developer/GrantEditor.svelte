@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Grant, Permission } from '@neoworks-dev/sdk';
+	import type { Grant, Permission } from '@neoworks-dev/platform';
 	import { Button, Checkbox } from '@neoworks-dev/ui';
 	import {
 		GRANT_PRESETS,

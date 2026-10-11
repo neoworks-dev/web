@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { Button, StatusBadge } from '@neoworks-dev/ui';
-	import type { ConnectedApp } from '@neoworks-dev/sdk';
+	import type { ConnectedApp } from '@neoworks-dev/platform';
 	import PageHeader from '$lib/components/dashboard/PageHeader.svelte';
 	import WidgetCard from '$lib/components/dashboard/WidgetCard.svelte';
 	import FormMessage from '$lib/components/developer/FormMessage.svelte';

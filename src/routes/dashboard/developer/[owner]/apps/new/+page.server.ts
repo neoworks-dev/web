@@ -1,4 +1,4 @@
-import type { AppType } from '@neoworks-dev/sdk';
+import type { AppType } from '@neoworks-dev/platform';
 import type { Actions, PageServerLoad } from './$types';
 import { attempt, createDeveloperSdk, formText, orFail } from '$lib/server/developerSdk';
 import { appFieldsFromForm } from '$lib/server/appFormData';
