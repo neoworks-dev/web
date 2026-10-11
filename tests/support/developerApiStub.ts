@@ -316,7 +316,7 @@ function createOrganization(context: RequestContext): Reply {
     audit: [],
   }
   world.organizations.push(organization)
-  recordAudit(context, handle, 'organization.create', { kind: 'organization', id: handle, label: displayName })
+  recordAudit(context, handle, 'organization.created', { kind: 'organization', id: handle, label: displayName })
   return created(organizationView(organization, organizationWide(ALL_PERMISSIONS)))
 }
 
@@ -338,7 +338,7 @@ function writableOrganization(context: RequestContext, permission: Permission): 
 function patchOrganization(context: RequestContext): Reply {
   const { organization, grants } = writableOrganization(context, 'organization.manage')
   organization.displayName = parseDisplayName(jsonBody(context).displayName)
-  recordAudit(context, organization.handle, 'organization.update', {
+  recordAudit(context, organization.handle, 'organization.renamed', {
     kind: 'organization',
     id: organization.handle,
     label: organization.displayName,
@@ -352,7 +352,7 @@ function archiveOrganization(context: RequestContext): Reply {
     return fail(409, 'owns_apps', 'the organization still owns apps')
   }
   organization.archivedAt = new Date().toISOString()
-  recordAudit(context, organization.handle, 'organization.archive', {
+  recordAudit(context, organization.handle, 'organization.archived', {
     kind: 'organization',
     id: organization.handle,
     label: organization.handle,
@@ -381,9 +381,9 @@ function setMemberGrants(context: RequestContext): Reply {
   const requested = parseGrants(jsonBody(context).grants)
   requireNoEscalation(callerGrants, member.grants, requested)
   requireMembersManagerRemains(organization, member.userId, requested)
-  requireKnownApps(world, requested)
+  requireKnownApps(world, organization.handle, requested)
   member.grants = requested
-  recordAudit(context, organization.handle, 'member.grants.update', memberTarget(member.userId), {
+  recordAudit(context, organization.handle, 'member.grants_changed', memberTarget(member.userId), {
     grants: requested,
   })
   return ok(memberView(organization, member.userId))
@@ -407,7 +407,7 @@ function removeMember(context: RequestContext): Reply {
   requireNoEscalation(callerGrants, member.grants, [])
   requireMembersManagerRemains(organization, userId, null)
   organization.members = organization.members.filter((candidate) => candidate.userId !== userId)
-  recordAudit(context, organization.handle, 'member.remove', memberTarget(userId))
+  recordAudit(context, organization.handle, 'member.removed', memberTarget(userId))
   return noContent()
 }
 
@@ -416,7 +416,7 @@ function leaveOrganization(context: RequestContext): Reply {
   const organization = requireOrganizationMember(world, context.user, context.params.handle)
   requireMembersManagerRemains(organization, context.user.id, null)
   organization.members = organization.members.filter((candidate) => candidate.userId !== context.user.id)
-  recordAudit(context, organization.handle, 'member.leave', memberTarget(context.user.id))
+  recordAudit(context, organization.handle, 'member.left', memberTarget(context.user.id))
   return noContent()
 }
 
@@ -460,7 +460,7 @@ function createInvitation(context: RequestContext): Reply {
   const body = jsonBody(context)
   const invitee = parseInvitee(body)
   const grants = parseGrants(body.grants)
-  requireKnownApps(world, grants)
+  requireKnownApps(world, organization.handle, grants)
   requireNoEscalation(callerGrants, [], grants)
   const invitation: StubInvitation = {
     id: newId('inv'),
@@ -471,7 +471,7 @@ function createInvitation(context: RequestContext): Reply {
     expiresAt: daysFromNow(14),
   }
   organization.invitations.push(invitation)
-  recordAudit(context, organization.handle, 'invitation.create', {
+  recordAudit(context, organization.handle, 'invitation.created', {
     kind: 'invitation',
     id: invitation.id,
     label: String(invitee.email || invitee.contactCode),
@@ -486,7 +486,7 @@ function revokeInvitation(context: RequestContext): Reply {
     return fail(404, 'not_found', 'no such invitation')
   }
   organization.invitations = organization.invitations.filter((invitation) => invitation.id !== invitationId)
-  recordAudit(context, organization.handle, 'invitation.revoke', { kind: 'invitation', id: invitationId, label: invitationId })
+  recordAudit(context, organization.handle, 'invitation.revoked', { kind: 'invitation', id: invitationId, label: invitationId })
   return noContent()
 }
 
@@ -538,14 +538,14 @@ function acceptInvitation(context: RequestContext): Reply {
   }
   organization.members.push({ userId: context.user.id, joinedAt: new Date().toISOString(), grants: invitation.grants })
   organization.invitations = organization.invitations.filter((candidate) => candidate.id !== invitation.id)
-  recordAudit(context, organization.handle, 'invitation.accept', memberTarget(context.user.id))
+  recordAudit(context, organization.handle, 'invitation.accepted', memberTarget(context.user.id))
   return noContent()
 }
 
 function declineInvitation(context: RequestContext): Reply {
   const { organization, invitation } = findMyInvitation(context)
   organization.invitations = organization.invitations.filter((candidate) => candidate.id !== invitation.id)
-  recordAudit(context, organization.handle, 'invitation.decline', memberTarget(context.user.id))
+  recordAudit(context, organization.handle, 'invitation.declined', memberTarget(context.user.id))
   return noContent()
 }
 
@@ -635,7 +635,7 @@ function createApp(context: RequestContext): Reply {
   }
   world.apps.push(app)
   grantCreatorOnApp(ownerHandle, context.user.id, app.id)
-  recordAudit(context, ownerHandle, 'app.create', { kind: 'app', id: app.id, label: app.name })
+  recordAudit(context, ownerHandle, 'app.created', { kind: 'app', id: app.id, label: app.name })
   const appGrants = requireVisibleOwner(world, context.user, ownerHandle)
   const result: { app: unknown; clientSecret?: string } = { app: appView(app, appGrants, context.origin) }
   if (type === 'confidential') {
@@ -657,10 +657,16 @@ function patchApp(context: RequestContext): Reply {
     return invalid('type', 'the type of an app cannot change')
   }
   const fields = parseAppFields(world, body, false)
+  const before = { redirectUris: app.redirectUris, scopes: app.scopes.map((entry) => entry.scope) }
   Object.assign(app, fields, { updatedAt: new Date().toISOString() })
-  recordAudit(context, app.ownerHandle, 'app.update', { kind: 'app', id: app.id, label: app.name }, {
-    changed: Object.keys(fields),
-  })
+  const after = { redirectUris: app.redirectUris, scopes: app.scopes.map((entry) => entry.scope) }
+  const target = { kind: 'app', id: app.id, label: app.name }
+  if (JSON.stringify(before.redirectUris) !== JSON.stringify(after.redirectUris)) {
+    recordAudit(context, app.ownerHandle, 'app.redirect_uris_changed', target, { before: before.redirectUris, after: after.redirectUris })
+  }
+  if (JSON.stringify(before.scopes) !== JSON.stringify(after.scopes)) {
+    recordAudit(context, app.ownerHandle, 'app.scopes_changed', target, { before: before.scopes, after: after.scopes })
+  }
   return ok(appView(app, grants, context.origin))
 }
 
@@ -670,7 +676,7 @@ function rotateSecret(context: RequestContext): Reply {
   if (app.type !== 'confidential') {
     return invalid('type', 'public apps have no client secret')
   }
-  recordAudit(context, app.ownerHandle, 'app.secret.rotate', { kind: 'app', id: app.id, label: app.name })
+  recordAudit(context, app.ownerHandle, 'app.secret_rotated', { kind: 'app', id: app.id, label: app.name })
   return ok({ clientSecret: generateSecret() })
 }
 
@@ -690,7 +696,7 @@ function deleteApp(context: RequestContext): Reply {
   requirePermission(grants, 'apps.delete', app.id)
   world.apps = world.apps.filter((candidate) => candidate.id !== app.id)
   removeGrantsForApp(app.id)
-  recordAudit(context, app.ownerHandle, 'app.delete', { kind: 'app', id: app.id, label: app.name })
+  recordAudit(context, app.ownerHandle, 'app.deleted', { kind: 'app', id: app.id, label: app.name })
   return noContent()
 }
 
@@ -795,12 +801,22 @@ function listSchemas(context: RequestContext): Reply {
   return ok({ schemas })
 }
 
+/** What the user may do for the owner of a scope; nothing when they cannot act for it. */
+function grantsOrNone(user: StubUser, scope: string): Grant[] {
+  const grants = grantsFor(world, user, scope)
+  if (grants === null) {
+    return []
+  }
+  return grants
+}
+
 function listPublishes(context: RequestContext): Reply {
   const { scope, name } = context.params
   const known = world.schemas.some((schema) => schema.scope === scope && schema.name === name)
   if (!known) {
     return fail(404, 'not_found', `no schema @${scope}/${name}`)
   }
+  requirePermission(grantsOrNone(context.user, scope), 'schemas.publish')
   const publishes = world.publishes.get(`${scope}/${name}`)
   if (publishes === undefined) {
     return ok({ publishes: [] })
@@ -932,7 +948,7 @@ const routes: Route[] = [
   route('DELETE', '/api/v1/apps/:clientId/logo', deleteLogo),
   route('GET', '/api/v1/apps/:clientId/usage', getUsage),
   route('GET', '/api/v1/schemas', listSchemas, true),
-  route('GET', '/api/v1/schemas/:scope/:name/publishes', listPublishes, true),
+  route('GET', '/api/v1/schemas/:scope/:name/publishes', listPublishes),
   route('GET', `${OWNER}/domains`, listDomains),
   route('POST', `${OWNER}/domains`, addDomain),
   route('POST', `${OWNER}/domains/:domain/verify`, verifyDomain),

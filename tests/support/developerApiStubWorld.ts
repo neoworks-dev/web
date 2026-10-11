@@ -120,8 +120,8 @@ function seededAudit(): AuditEntry[] {
   const actor: Owner = { handle: 'moritz', kind: 'user', displayName: 'Moritz Utcke', verified: false }
   return [
     { id: 'seed-3', at: daysFromNow(-20), actor, action: 'domain.verify', target: { kind: 'domain', id: 'acme.example', label: 'acme.example' }, details: {} },
-    { id: 'seed-2', at: daysFromNow(-40), actor, action: 'app.create', target: { kind: 'app', id: 'app_acme_recipes', label: 'Recipes' }, details: {} },
-    { id: 'seed-1', at: daysFromNow(-150), actor, action: 'organization.create', target: { kind: 'organization', id: 'acme', label: 'Acme Inc' }, details: {} },
+    { id: 'seed-2', at: daysFromNow(-40), actor, action: 'app.created', target: { kind: 'app', id: 'app_acme_recipes', label: 'Recipes' }, details: {} },
+    { id: 'seed-1', at: daysFromNow(-150), actor, action: 'organization.created', target: { kind: 'organization', id: 'acme', label: 'Acme Inc' }, details: {} },
   ]
 }
 

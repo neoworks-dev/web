@@ -224,11 +224,12 @@ export function parseGrants(value: unknown): Grant[] {
   return normalizeGrants(value.map(parseGrant))
 }
 
-/** Per-app grants must name an app that exists. */
-export function requireKnownApps(world: World, grants: Grant[]): void {
-  const unknown = grants.find((grant) => grant.appId !== null && !world.apps.some((app) => app.id === grant.appId))
+/** Per-app grants must name an app the organization owns. */
+export function requireKnownApps(world: World, organizationHandle: string, grants: Grant[]): void {
+  const owned = (appId: string) => world.apps.some((app) => app.id === appId && app.ownerHandle === organizationHandle)
+  const unknown = grants.find((grant) => grant.appId !== null && !owned(grant.appId))
   if (unknown !== undefined) {
-    invalid('grants', `no app ${unknown.appId}`, 'unknown_app')
+    invalid('grants', `no app ${unknown.appId} in this organization`, 'unknown_app')
   }
 }
 
@@ -274,8 +275,9 @@ export function requireMembersManagerRemains(organization: StubOrganization, use
 // ---------------------------------------------------------------- app fields
 
 const CUSTOM_SCHEME_PATTERN = /^[a-z][a-z0-9-]*(\.[a-z0-9-]+)+:\/\/\S*$/
-const LOOPBACK_PATTERN = /^http:\/\/(127\.0\.0\.1|localhost):\d{1,5}(\/\S*)?$/
-const COLLECTION_SCOPE_PATTERN = /^@([a-z0-9][a-z0-9-]*)\/([a-z0-9][a-z0-9-_]*):(read|write|share)$/
+const LOOPBACK_PATTERN = /^http:\/\/(127\.0\.0\.1|localhost):(\d{1,5})(\/\S*)?$/
+const MAX_PORT = 65535
+const COLLECTION_SCOPE_PATTERN = /^@([a-z0-9][a-z0-9._-]{0,63})\/([a-z0-9][a-z0-9._-]{0,63}):(read|write|share)$/
 const IDENTITY_SCOPES = ['openid', 'profile', 'email']
 
 export function isHttpsUrl(value: string): boolean {
@@ -289,8 +291,17 @@ export function isHttpsUrl(value: string): boolean {
   }
 }
 
+function isLoopbackUri(uri: string): boolean {
+  const match = LOOPBACK_PATTERN.exec(uri)
+  if (match === null) {
+    return false
+  }
+  const port = Number(match[2])
+  return port >= 1 && port <= MAX_PORT
+}
+
 export function isValidRedirectUri(uri: string): boolean {
-  return isHttpsUrl(uri) || LOOPBACK_PATTERN.test(uri) || CUSTOM_SCHEME_PATTERN.test(uri)
+  return isHttpsUrl(uri) || isLoopbackUri(uri) || CUSTOM_SCHEME_PATTERN.test(uri)
 }
 
 function lengthRange(minimum: number, maximum: number): string {
@@ -352,7 +363,7 @@ function parseScope(world: World, value: unknown): RequestedScope {
   }
   const published = world.schemas.some((schema) => schema.scope === match[1] && schema.name === match[2])
   if (!published) {
-    return invalid('scopes', `unknown_collection: @${match[1]}/${match[2]} is not published in the registry`)
+    return invalid('scopes', `@${match[1]}/${match[2]} is not published in the registry`, 'unknown_collection')
   }
   return { scope, reason }
 }

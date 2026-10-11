@@ -1,11 +1,30 @@
-import { NeoworksApiError, type DeveloperApp, type Grant, type OwnerDomain, type RegistrySchema, type Sdk } from '@neoworks-dev/sdk'
+import { NeoworksApiError, type DeveloperApp, type Grant, type OwnerDomain, type PublishAttempt, type RegistrySchema, type Sdk } from '@neoworks-dev/sdk'
 import { holdsPermission } from '$lib/developer/permissions'
 import type { RejectedPublish } from '$lib/developer/todos'
 
+export interface SchemaHistory {
+	schema: RegistrySchema
+	publishes: PublishAttempt[]
+}
+
+/** A schema's publish attempts; empty for members without schemas.publish, who may not read them. */
+async function loadPublishes(sdk: Sdk, schema: RegistrySchema): Promise<PublishAttempt[]> {
+	try {
+		return await sdk.schemas.publishes(schema.scope, schema.name)
+	} catch (caught) {
+		if (caught instanceof NeoworksApiError && caught.code === 'missing_permission') {
+			return []
+		}
+		throw caught
+	}
+}
+
+export function loadSchemaHistories(sdk: Sdk, schemas: RegistrySchema[]): Promise<SchemaHistory[]> {
+	return Promise.all(schemas.map(async (schema) => ({ schema, publishes: await loadPublishes(sdk, schema) })))
+}
+
 export async function loadRejectedPublishes(sdk: Sdk, schemas: RegistrySchema[]): Promise<RejectedPublish[]> {
-	const histories = await Promise.all(
-		schemas.map(async (schema) => ({ schema, publishes: await sdk.schemas.publishes(schema.scope, schema.name) })),
-	)
+	const histories = await loadSchemaHistories(sdk, schemas)
 	const rejected: RejectedPublish[] = []
 	for (const { schema, publishes } of histories) {
 		for (const publish of publishes.filter((attempt) => !attempt.accepted)) {

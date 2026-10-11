@@ -37,15 +37,15 @@ test("the personal overview has one member and its own apps", async ({ page, sig
 test("the audit log lists organization activity and records new actions", async ({ page, signInAsMoritz }) => {
   await signInAsMoritz();
   await page.goto("/dashboard/developer/acme/audit");
-  await expect(page.getByTestId("audit-entries")).toContainText("organization.create");
+  await expect(page.getByTestId("audit-entries")).toContainText("organization.created");
 
   await page.goto("/dashboard/developer/acme/apps/app_acme_planner");
-  await page.getByLabel("Name", { exact: true }).fill("Planner Pro");
+  await page.getByLabel("Redirect URIs").fill("https://planner.acme.example/callback");
   await page.getByRole("button", { name: "Save settings" }).click();
   await expect(page.getByText("Settings saved.")).toBeVisible();
 
   await page.goto("/dashboard/developer/acme/audit");
-  await expect(page.getByTestId("audit-entries").getByRole("listitem").first()).toContainText("app.update");
+  await expect(page.getByTestId("audit-entries").getByRole("listitem").first()).toContainText("app.redirect_uris_changed");
 });
 
 test("the audit log needs audit.view", async ({ page, signInAsMoritz }) => {
