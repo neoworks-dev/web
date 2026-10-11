@@ -28,7 +28,7 @@
     ></button>
   {/if}
 
-  <Sidebar bind:collapsed bind:mobileOpen={mobileNavOpen} user={data.user} />
+  <Sidebar bind:collapsed bind:mobileOpen={mobileNavOpen} user={data.user} developer={data.developer} />
 
   <main class="flex-1 min-h-0 overflow-hidden" tabindex="-1">
     {@render children()}

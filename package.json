@@ -10,7 +10,10 @@
     "prepare": "svelte-kit sync || echo ''",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:stub": "playwright test -c playwright.stub.config.ts",
+    "stub:developer-api": "bun tests/support/developerApiStub.ts",
+    "dev:stub": "API_URL=http://127.0.0.1:4310 OAUTH_URL=http://127.0.0.1:4310 vite dev --host 127.0.0.1 --port 4311"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

@@ -1,6 +1,8 @@
 import { error } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import { urls } from '$lib/urls';
+import { createDeveloperSdk } from '$lib/server/developerSdk';
+import { loadDeveloperContext } from '$lib/server/developerContext';
 
 export const load: LayoutServerLoad = async ({ cookies }) => {
 	const token = cookies.get('nw_access_token');
@@ -14,6 +16,7 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
   }
 
 	const user = await response.json();
+	const developer = await loadDeveloperContext(createDeveloperSdk(cookies));
 
-	return { user };
+	return { user, developer };
 };

@@ -18,7 +18,25 @@ const BASE_PORT =
   import.meta.env.VITE_BASE_PORT ||
   ""
 
-export const urls = neoworksUrls({ baseDomain: BASE_DOMAIN, scheme: BASE_SCHEME, port: BASE_PORT })
+const derivedUrls = neoworksUrls({ baseDomain: BASE_DOMAIN, scheme: BASE_SCHEME, port: BASE_PORT })
+
+// Point the dashboard at another API or OAuth server (for example the developer
+// API stub) without changing the base domain. Unset or empty keeps the derived URL.
+const API_URL_OVERRIDE = (typeof process !== "undefined" && process.env?.API_URL) || ""
+const OAUTH_URL_OVERRIDE = (typeof process !== "undefined" && process.env?.OAUTH_URL) || ""
+
+function overrideOrDerived(override: string, derived: string): string {
+  if (override === "") {
+    return derived
+  }
+  return override
+}
+
+export const urls = {
+  ...derivedUrls,
+  api: overrideOrDerived(API_URL_OVERRIDE, derivedUrls.api),
+  oauth: overrideOrDerived(OAUTH_URL_OVERRIDE, derivedUrls.oauth),
+}
 
 /** The main site at the base domain, for links out of a product subdomain. */
 export const siteUrl = urls.web
