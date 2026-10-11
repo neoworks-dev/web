@@ -1,4 +1,4 @@
-import type { DeveloperApp, Grant, OwnerDomain, RegistrySchema, Sdk } from '@neoworks-dev/sdk'
+import { NeoworksApiError, type DeveloperApp, type Grant, type OwnerDomain, type RegistrySchema, type Sdk } from '@neoworks-dev/sdk'
 import { holdsPermission } from '$lib/developer/permissions'
 import type { RejectedPublish } from '$lib/developer/todos'
 
@@ -39,8 +39,20 @@ export async function loadOwnerOverview(sdk: Sdk, ownerHandle: string): Promise<
 	const [summaries, schemas, domains] = await Promise.all([
 		sdk.apps.listForOwner(ownerHandle),
 		sdk.schemas.list({ scope: ownerHandle }),
-		sdk.domains.list(ownerHandle),
+		listDomainsIfServed(sdk, ownerHandle),
 	])
 	const apps = await Promise.all(summaries.map((summary) => sdk.apps.get(summary.id)))
 	return { apps, schemas, domains }
+}
+
+/** The owner's domains; none while the API does not serve the domain routes yet. */
+async function listDomainsIfServed(sdk: Sdk, ownerHandle: string): Promise<OwnerDomain[]> {
+	try {
+		return await sdk.domains.list(ownerHandle)
+	} catch (caught) {
+		if (caught instanceof NeoworksApiError && caught.status === 404) {
+			return []
+		}
+		throw caught
+	}
 }
