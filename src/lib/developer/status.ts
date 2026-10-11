@@ -1,4 +1,4 @@
-import type { ReviewStatus } from '@neoworks-dev/sdk'
+import type { ReviewStatus } from '@neoworks-dev/platform'
 
 export type StatusTone = 'green' | 'red' | 'amber' | 'blue' | 'violet' | 'neutral'
 

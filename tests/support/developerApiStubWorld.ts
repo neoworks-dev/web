@@ -10,7 +10,7 @@ import type {
   RegistrySchema,
   RequestedScope,
   ReviewStatus,
-} from '@neoworks-dev/sdk'
+} from '@neoworks-dev/platform'
 
 // In-memory data behind the developer API stub, plus the seeded fixtures the
 // dashboard e2e tests and local UI work rely on.

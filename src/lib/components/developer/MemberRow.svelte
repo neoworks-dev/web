@@ -2,7 +2,7 @@
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import type { Grant, Member } from '@neoworks-dev/sdk';
+	import type { Grant, Member } from '@neoworks-dev/platform';
 	import { Button, StatusBadge } from '@neoworks-dev/ui';
 	import { describeGrant } from '$lib/developer/permissions';
 	import type { FormFailureData } from '$lib/developer/formErrors';

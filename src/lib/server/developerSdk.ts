@@ -1,5 +1,6 @@
 import { error, fail, type Cookies } from '@sveltejs/kit'
-import createSdk, { NeoworksApiError, type Sdk, type TokenSet, type TokenStorage } from '@neoworks-dev/sdk'
+import { createPlatform, type Platform } from '@neoworks-dev/platform'
+import { ApiError, type TokenSet, type TokenStorage } from '@neoworks-dev/sdk'
 import { urls } from '$lib/urls'
 
 const ACCESS_TOKEN_COOKIE = 'nw_access_token'
@@ -22,8 +23,8 @@ class AccessTokenCookieStorage implements TokenStorage {
 }
 
 /** The SDK for one request, authenticated with the `nw_access_token` cookie. */
-export function createDeveloperSdk(cookies: Cookies): Sdk {
-	return createSdk({
+export function createDeveloperSdk(cookies: Cookies): Platform {
+	return createPlatform({
 		clientId: 'neoworks.dev',
 		redirectUri: `${urls.web}/auth/callback`,
 		url: urls.oauth,
@@ -37,7 +38,7 @@ export async function orFail<Result>(call: Promise<Result>): Promise<Result> {
 	try {
 		return await call
 	} catch (caught) {
-		if (caught instanceof NeoworksApiError) {
+		if (caught instanceof ApiError) {
 			return error(caught.status, caught.message)
 		}
 		throw caught
@@ -57,7 +58,7 @@ export async function attempt<Result>(formName: string, call: () => Promise<Resu
 	try {
 		return { result: await call(), failure: null }
 	} catch (caught) {
-		if (!(caught instanceof NeoworksApiError)) {
+		if (!(caught instanceof ApiError)) {
 			throw caught
 		}
 		const failure: FormFailure = { formName, code: caught.code, message: caught.message, field: caught.field, permission: caught.permission }

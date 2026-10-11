@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { Permission } from '@neoworks-dev/sdk';
+	import type { Permission } from '@neoworks-dev/platform';
 	import { Button, Tooltip } from '@neoworks-dev/ui';
 	import { missingPermissionText } from '$lib/developer/permissions';
 

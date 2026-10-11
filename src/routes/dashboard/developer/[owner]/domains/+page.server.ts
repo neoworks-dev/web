@@ -1,5 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
-import type { VerificationMethod } from '@neoworks-dev/sdk';
+import type { VerificationMethod } from '@neoworks-dev/platform';
 import { attempt, createDeveloperSdk, formText, orFail } from '$lib/server/developerSdk';
 
 export const load: PageServerLoad = async ({ cookies, params }) => {

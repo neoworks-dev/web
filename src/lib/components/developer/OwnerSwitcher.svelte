@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import type { OwnerWithGrants } from '@neoworks-dev/sdk';
+	import type { OwnerWithGrants } from '@neoworks-dev/platform';
 	import { Select } from '@neoworks-dev/ui';
 
 	let {

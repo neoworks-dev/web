@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { RegistrySchema, RequestedScope } from '@neoworks-dev/sdk';
+	import type { RegistrySchema, RequestedScope } from '@neoworks-dev/platform';
 	import { Checkbox } from '@neoworks-dev/ui';
 
 	let {

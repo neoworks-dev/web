@@ -39,10 +39,10 @@ export function createServerAuth(cookies: Cookies): NeoworksAuth {
 }
 
 /**
- * Begin the PKCE login flow: stash the verifier + state in HttpOnly cookies and
+ * Begin the PKCE sign-in flow: stash the verifier + state in HttpOnly cookies and
  * return the authorization URL to redirect the browser to.
  */
-export async function startLogin(cookies: Cookies): Promise<string> {
+export async function startSignin(cookies: Cookies): Promise<string> {
   const auth = createServerAuth(cookies);
   const { url, verifier, state } = await auth.getAuthorizationUrl();
   cookies.set(PKCE_VERIFIER_COOKIE, verifier, PKCE_COOKIE_OPTS);

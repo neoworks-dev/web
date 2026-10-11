@@ -1,4 +1,12 @@
-import { NeoworksApiError, type DeveloperApp, type Grant, type OwnerDomain, type PublishAttempt, type RegistrySchema, type Sdk } from '@neoworks-dev/sdk'
+import {
+  type DeveloperApp,
+  type Grant,
+  type OwnerDomain,
+  type PublishAttempt,
+  type RegistrySchema,
+  type Platform,
+} from '@neoworks-dev/platform'
+import { ApiError } from '@neoworks-dev/sdk'
 import { holdsPermission } from '$lib/developer/permissions'
 import type { RejectedPublish } from '$lib/developer/todos'
 
@@ -8,22 +16,22 @@ export interface SchemaHistory {
 }
 
 /** A schema's publish attempts; empty for members without schemas.publish, who may not read them. */
-async function loadPublishes(sdk: Sdk, schema: RegistrySchema): Promise<PublishAttempt[]> {
+async function loadPublishes(sdk: Platform, schema: RegistrySchema): Promise<PublishAttempt[]> {
 	try {
 		return await sdk.schemas.publishes(schema.scope, schema.name)
 	} catch (caught) {
-		if (caught instanceof NeoworksApiError && caught.code === 'missing_permission') {
+		if (caught instanceof ApiError && caught.code === 'missing_permission') {
 			return []
 		}
 		throw caught
 	}
 }
 
-export function loadSchemaHistories(sdk: Sdk, schemas: RegistrySchema[]): Promise<SchemaHistory[]> {
+export function loadSchemaHistories(sdk: Platform, schemas: RegistrySchema[]): Promise<SchemaHistory[]> {
 	return Promise.all(schemas.map(async (schema) => ({ schema, publishes: await loadPublishes(sdk, schema) })))
 }
 
-export async function loadRejectedPublishes(sdk: Sdk, schemas: RegistrySchema[]): Promise<RejectedPublish[]> {
+export async function loadRejectedPublishes(sdk: Platform, schemas: RegistrySchema[]): Promise<RejectedPublish[]> {
 	const histories = await loadSchemaHistories(sdk, schemas)
 	const rejected: RejectedPublish[] = []
 	for (const { schema, publishes } of histories) {
@@ -34,14 +42,14 @@ export async function loadRejectedPublishes(sdk: Sdk, schemas: RegistrySchema[])
 	return rejected
 }
 
-export async function countSentInvitations(sdk: Sdk, ownerHandle: string, isOrganization: boolean, grants: Grant[]): Promise<number> {
+export async function countSentInvitations(sdk: Platform, ownerHandle: string, isOrganization: boolean, grants: Grant[]): Promise<number> {
 	if (!isOrganization || !holdsPermission(grants, 'members.manage')) {
 		return 0
 	}
 	return (await sdk.organizations.invitations(ownerHandle)).length
 }
 
-export async function countMembers(sdk: Sdk, ownerHandle: string, isOrganization: boolean): Promise<number> {
+export async function countMembers(sdk: Platform, ownerHandle: string, isOrganization: boolean): Promise<number> {
 	if (!isOrganization) {
 		return 1
 	}
@@ -54,7 +62,7 @@ export interface OwnerOverview {
 	domains: OwnerDomain[]
 }
 
-export async function loadOwnerOverview(sdk: Sdk, ownerHandle: string): Promise<OwnerOverview> {
+export async function loadOwnerOverview(sdk: Platform, ownerHandle: string): Promise<OwnerOverview> {
 	const [summaries, schemas, domains] = await Promise.all([
 		sdk.apps.listForOwner(ownerHandle),
 		sdk.schemas.list({ scope: ownerHandle }),
@@ -65,11 +73,11 @@ export async function loadOwnerOverview(sdk: Sdk, ownerHandle: string): Promise<
 }
 
 /** The owner's domains; none while the API does not serve the domain routes yet. */
-async function listDomainsIfServed(sdk: Sdk, ownerHandle: string): Promise<OwnerDomain[]> {
+async function listDomainsIfServed(sdk: Platform, ownerHandle: string): Promise<OwnerDomain[]> {
 	try {
 		return await sdk.domains.list(ownerHandle)
 	} catch (caught) {
-		if (caught instanceof NeoworksApiError && caught.status === 404) {
+		if (caught instanceof ApiError && caught.status === 404) {
 			return []
 		}
 		throw caught

@@ -1,6 +1,6 @@
 import { createServer } from 'node:http'
 import { randomBytes } from 'node:crypto'
-import type { AuditEntry, Grant, Owner, OwnerDomain, Permission, UsagePoint } from '@neoworks-dev/sdk'
+import type { AuditEntry, Grant, Owner, OwnerDomain, Permission, UsagePoint } from '@neoworks-dev/platform'
 import {
   APP_PERMISSIONS,
   ALL_PERMISSIONS,

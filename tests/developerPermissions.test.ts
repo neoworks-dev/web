@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import type { Grant } from '@neoworks-dev/sdk';
+import type { Grant } from '@neoworks-dev/platform';
 import {
 	ALL_PERMISSIONS,
 	describeGrant,

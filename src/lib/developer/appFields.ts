@@ -1,4 +1,4 @@
-import type { OwnerDomain } from '@neoworks-dev/sdk'
+import type { OwnerDomain } from '@neoworks-dev/platform'
 
 /** One value per non-empty line. */
 export function parseLineList(text: string): string[] {

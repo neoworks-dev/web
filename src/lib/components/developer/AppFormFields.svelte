@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import type { DeveloperApp, RegistrySchema, RequestedScope } from '@neoworks-dev/sdk';
+	import type { DeveloperApp, RegistrySchema, RequestedScope } from '@neoworks-dev/platform';
 	import { fieldError, type FormFailureData } from '$lib/developer/formErrors';
 	import TextField from './TextField.svelte';
 	import ScopePicker from './ScopePicker.svelte';

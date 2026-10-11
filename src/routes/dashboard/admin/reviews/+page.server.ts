@@ -1,4 +1,4 @@
-import type { ReviewDecision, ReviewStatus } from '@neoworks-dev/sdk';
+import type { ReviewDecision, ReviewStatus } from '@neoworks-dev/platform';
 import type { Actions, PageServerLoad } from './$types';
 import { attempt, createDeveloperSdk, formText, orFail } from '$lib/server/developerSdk';
 

@@ -1,5 +1,5 @@
 import type { Handle } from "@sveltejs/kit";
-import { NeoworksAuthError } from "@neoworks-dev/sdk";
+import { AuthError } from "@neoworks-dev/sdk";
 import { createServerAuth } from "$lib/server/auth";
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -8,7 +8,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   try {
     event.locals.access_token = (await auth.getAccessToken()) ?? undefined;
   } catch (e) {
-    if (!(e instanceof NeoworksAuthError)) throw e;
+    if (!(e instanceof AuthError)) throw e;
   }
 
   return resolve(event);
