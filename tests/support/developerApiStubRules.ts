@@ -412,7 +412,7 @@ const DOMAIN_PATTERN = /^(?=.{4,253}$)([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,
 export function parseDomain(value: unknown): string {
   const domain = parseText(value, 'domain', 1, 253).toLowerCase()
   if (!DOMAIN_PATTERN.test(domain)) {
-    return invalid('domain', `${domain} is not a valid domain name`)
+    return invalid('domain', 'enter a domain such as example.com, without scheme, port or path')
   }
   return domain
 }

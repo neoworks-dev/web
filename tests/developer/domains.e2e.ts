@@ -39,7 +39,7 @@ test("an invalid or repeated domain is refused", async ({ page, signInAsMoritz }
 
   await page.getByPlaceholder("example.com").fill("not a domain");
   await page.getByRole("button", { name: "Add domain" }).click();
-  await expect(page.getByRole("alert")).toContainText("is not a valid domain name");
+  await expect(page.getByRole("alert")).toContainText("enter a domain such as example.com");
 
   await page.getByPlaceholder("example.com").fill("acme.example");
   await page.getByRole("button", { name: "Add domain" }).click();

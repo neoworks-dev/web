@@ -17,6 +17,11 @@
 	<div class="flex max-w-2xl flex-col gap-4 p-4">
 		{#if data.app.logoUrl !== null}
 			<img src={data.app.logoUrl} alt="{data.app.name} logo" class="size-20 rounded-xl border border-line bg-raised object-contain" />
+			{#if data.app.logoHeld}
+				<p class="rounded-lg bg-raised px-3 py-2 text-sm text-muted" data-testid="logo-held">
+					This logo resembles the logo of another app. Users see your app's initials until Neoworks approves the app.
+				</p>
+			{/if}
 		{:else}
 			<p class="text-sm text-dim">No logo uploaded.</p>
 		{/if}

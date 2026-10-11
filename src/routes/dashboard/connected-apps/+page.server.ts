@@ -1,44 +1,50 @@
-import { error, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { urls } from '$lib/urls';
+import { attempt, createDeveloperSdk, formText, orFail } from '$lib/server/developerSdk';
 
-export interface ConnectedInstall {
-	id: string;
-	clientId: string;
-	name: string | null;
-	createdAt: string;
-	revokedAt: string | null;
-}
-
-function authorizationHeaders(accessToken: string | undefined): HeadersInit {
-	return { Authorization: `Bearer ${accessToken}` };
-}
+const BYTES_PER_MEGABYTE = 1024 * 1024;
 
 export const load: PageServerLoad = async ({ cookies }) => {
-	const response = await fetch(`${urls.api}/api/v1/installs`, {
-		headers: authorizationHeaders(cookies.get('nw_access_token')),
-	});
-	if (!response.ok) {
-		return error(response.status, 'Could not load connected apps');
-	}
-	const body = (await response.json()) as { installs: ConnectedInstall[] };
-	return { installs: body.installs };
+	const sdk = createDeveloperSdk(cookies);
+	const [apps, storage] = await Promise.all([orFail(sdk.connectedApps.list()), orFail(sdk.storage.usage())]);
+	return { apps, storage };
 };
+
+/** The cap field is in megabytes; empty removes the cap. */
+function capBytesOf(text: string): number | null | undefined {
+	if (text === '') {
+		return null;
+	}
+	const megabytes = Number(text);
+	if (!Number.isFinite(megabytes) || megabytes < 0) {
+		return undefined;
+	}
+	return Math.round(megabytes * BYTES_PER_MEGABYTE);
+}
 
 export const actions: Actions = {
 	revoke: async ({ cookies, request }) => {
-		const form = await request.formData();
-		const installId = form.get('installId');
-		if (typeof installId !== 'string' || installId === '') {
-			return fail(400, { message: 'Missing app' });
+		const installId = formText(await request.formData(), 'installId');
+		if (installId === '') {
+			return fail(400, { formName: 'revoke', code: 'invalid_request', message: 'Missing app' });
 		}
-		const response = await fetch(`${urls.api}/api/v1/installs/${encodeURIComponent(installId)}`, {
-			method: 'DELETE',
-			headers: authorizationHeaders(cookies.get('nw_access_token')),
-		});
-		if (!response.ok) {
-			return fail(response.status, { message: 'Could not revoke this app' });
+		const outcome = await attempt('revoke', () => createDeveloperSdk(cookies).installs.revoke(installId));
+		if (outcome.failure) {
+			return outcome.failure;
 		}
 		return { revoked: installId };
+	},
+	cap: async ({ cookies, request }) => {
+		const form = await request.formData();
+		const clientId = formText(form, 'clientId');
+		const capBytes = capBytesOf(formText(form, 'capMegabytes'));
+		if (capBytes === undefined) {
+			return fail(400, { formName: `cap-${clientId}`, code: 'invalid_request', message: 'Enter a number of megabytes, or leave it empty for no cap', field: 'capMegabytes' });
+		}
+		const outcome = await attempt(`cap-${clientId}`, () => createDeveloperSdk(cookies).storage.setAppCap(clientId, capBytes));
+		if (outcome.failure) {
+			return outcome.failure;
+		}
+		return { capped: clientId };
 	},
 };

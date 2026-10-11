@@ -25,6 +25,7 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
 	'apps.delete': 'Delete an app and revoke its tokens',
 	'apps.review': 'Submit an app for review',
 	'usage.view': 'See aggregate usage',
+	'platform.admin': 'Review apps and verify organizations for the whole platform',
 }
 
 export type GrantPresetKey = 'owner' | 'maintainer' | 'viewer'

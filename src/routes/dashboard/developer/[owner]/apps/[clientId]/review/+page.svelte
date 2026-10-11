@@ -6,7 +6,7 @@
 	import PermissionButton from '$lib/components/developer/PermissionButton.svelte';
 	import TextField from '$lib/components/developer/TextField.svelte';
 	import { fieldError, type FormFailureData } from '$lib/developer/formErrors';
-	import { reviewLabel, reviewTone } from '$lib/developer/status';
+	import { canSubmitForReview, reviewLabel, reviewNote, reviewTone } from '$lib/developer/status';
 	import SealCheckIcon from 'phosphor-svelte/lib/SealCheckIcon';
 	import type { ActionData, PageData } from './$types';
 
@@ -36,7 +36,7 @@
 			{/if}
 			{#if !data.app.verified}
 				<p class="text-sm text-dim">
-					An app is verified when its https redirect URIs are on a verified domain.
+					An app is verified when its https redirect URIs and its homepage are on a verified domain of its owner.
 					<a class="text-blue hover:underline" href="/dashboard/developer/{data.owner.handle}/domains">Manage domains</a>
 				</p>
 			{/if}
@@ -44,6 +44,9 @@
 	</WidgetCard>
 
 	<WidgetCard title="Submit for review" icon={SealCheckIcon}>
+		{#if !canSubmitForReview(data.app.review.status)}
+			<p class="p-4 text-sm text-dim" data-testid="review-note">{reviewNote(data.app.review.status)}</p>
+		{:else}
 		<form method="POST" action="?/submit" use:enhance class="flex max-w-2xl flex-col gap-4 p-4">
 			<TextField
 				label="Privacy policy URL"
@@ -67,5 +70,6 @@
 				<PermissionButton allowed={canReview} permission="apps.review" variant="primary">Submit for review</PermissionButton>
 			</div>
 		</form>
+		{/if}
 	</WidgetCard>
 </div>

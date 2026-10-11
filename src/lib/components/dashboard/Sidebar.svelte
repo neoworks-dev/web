@@ -5,6 +5,7 @@
 		Database,
 		EnvelopeSimple,
 		Gear,
+		SealCheck,
 		Globe,
 		House,
 		ListChecks,
@@ -86,6 +87,13 @@
 		return personalItems(base);
 	}
 
+	function platformItems(): NavItem[] {
+		if (developer === null || !developer.admin) {
+			return [];
+		}
+		return [{ href: '/dashboard/admin/reviews', label: 'App reviews', Icon: SealCheck }];
+	}
+
 	const groups: NavGroup[] = $derived([
 		{
 			label: null,
@@ -94,6 +102,7 @@
 			],
 		},
 		{ label: 'Developer', items: developerItems() },
+		{ label: 'Platform', items: platformItems() },
 		{
 			label: 'Access',
 			items: [

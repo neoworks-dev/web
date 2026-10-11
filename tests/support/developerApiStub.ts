@@ -13,6 +13,7 @@ import {
   type StubUser,
   type World,
 } from './developerApiStubWorld.ts'
+import { platformRoutes } from './developerApiStubPlatform.ts'
 import {
   StubError,
   appPermissionsFor,
@@ -54,7 +55,7 @@ import {
 
 let world: World = seedWorld()
 
-interface RequestContext {
+export interface RequestContext {
   world: World
   user: StubUser
   params: Record<string, string>
@@ -64,15 +65,15 @@ interface RequestContext {
   origin: string
 }
 
-interface Reply {
+export interface Reply {
   status: number
   body?: unknown
   binary?: { bytes: Buffer; contentType: string }
 }
 
-type Handler = (context: RequestContext) => Reply
+export type Handler = (context: RequestContext) => Reply
 
-interface Route {
+export interface Route {
   method: string
   pattern: RegExp
   parameterNames: string[]
@@ -121,17 +122,17 @@ function ownerDomains(handle: string): OwnerDomain[] {
   return domains
 }
 
+/** Organizations are verified when a Neoworks administrator reviewed them; people never are. */
 function ownerView(handle: string): Owner {
-  const verified = ownerDomains(handle).some((domain) => domain.verified)
   const organization = world.organizations.find((candidate) => candidate.handle === handle)
   if (organization !== undefined) {
-    return { handle, kind: 'organization', displayName: organization.displayName, verified }
+    return { handle, kind: 'organization', displayName: organization.displayName, verified: organization.neoworksVerified }
   }
   const user = world.users.find((candidate) => candidate.handle === handle)
   if (user === undefined) {
     return fail(404, 'not_found', `no owner named ${handle}`)
   }
-  return { handle, kind: 'user', displayName: user.displayName, verified }
+  return { handle, kind: 'user', displayName: user.displayName, verified: false }
 }
 
 function userAsOwner(user: StubUser): Owner {
@@ -160,7 +161,11 @@ function appIsVerified(app: StubApp): boolean {
   if (secureUris.length === 0) {
     return false
   }
-  return secureUris.every((uri) => hostIsOnVerifiedDomain(new URL(uri).hostname, domains))
+  const urls = [...secureUris]
+  if (app.homepage.startsWith('https://')) {
+    urls.push(app.homepage)
+  }
+  return urls.every((url) => hostIsOnVerifiedDomain(new URL(url).hostname, domains))
 }
 
 function appSummaryView(app: StubApp) {
@@ -187,6 +192,7 @@ function appView(app: StubApp, grants: Grant[], origin: string) {
     redirectUris: app.redirectUris,
     scopes: app.scopes,
     logoUrl,
+    logoHeld: app.logoHeld,
     review: app.review,
     updatedAt: app.updatedAt,
     myPermissions: appPermissionsFor(grants, app.id),
@@ -311,6 +317,7 @@ function createOrganization(context: RequestContext): Reply {
     displayName,
     createdAt: now,
     archivedAt: null,
+    neoworksVerified: false,
     members: [{ userId: user.id, joinedAt: now, grants: organizationWide(ALL_PERMISSIONS) }],
     invitations: [],
     audit: [],
@@ -708,7 +715,12 @@ function submitReview(context: RequestContext): Reply {
   if (!isHttpsUrl(privacyPolicyUrl)) {
     return invalid('privacyPolicyUrl', 'the privacy policy must be an https:// URL')
   }
-  parseText(body.supportContact, 'supportContact', 1, 200)
+  const supportContact = parseText(body.supportContact, 'supportContact', 1, 200)
+  if (app.review.status !== 'none' && app.review.status !== 'rejected') {
+    return fail(409, 'review_state', 'the app is already in review, approved or suspended')
+  }
+  app.privacyPolicyUrl = privacyPolicyUrl
+  app.supportContact = supportContact
   app.review = { status: 'pending', reason: null, updatedAt: new Date().toISOString() }
   recordAudit(context, app.ownerHandle, 'app.review.submit', { kind: 'app', id: app.id, label: app.name })
   return ok(app.review)
@@ -729,7 +741,7 @@ function putLogo(context: RequestContext): Reply {
   }
   app.logo = { bytes: context.rawBody, contentType }
   app.updatedAt = new Date().toISOString()
-  return ok({ logoUrl: appView(app, grants, context.origin).logoUrl })
+  return ok({ logoUrl: appView(app, grants, context.origin).logoUrl, held: app.logoHeld })
 }
 
 function deleteLogo(context: RequestContext): Reply {
@@ -851,7 +863,7 @@ function addDomain(context: RequestContext): Reply {
   const domain = parseDomain(body.domain)
   const method = parseVerificationMethod(body.method)
   if (ownerDomains(handle).some((entry) => entry.domain === domain)) {
-    return invalid('domain', `${domain} was already added`)
+    return fail(409, 'domain_exists', `${domain} was already added`, 'domain')
   }
   const entry: OwnerDomain = {
     domain,
@@ -955,6 +967,7 @@ const routes: Route[] = [
   route('DELETE', `${OWNER}/domains/:domain`, removeDomain),
   route('GET', '/oauth/userinfo', userinfo),
   route('GET', '/api/v1/installs', listInstalls),
+  ...platformRoutes(route),
   route('GET', '/logos/:clientId', serveLogo, true),
   route('POST', '/__reset', resetWorld, true),
 ]

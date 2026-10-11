@@ -9,6 +9,7 @@ import type {
   PublishAttempt,
   RegistrySchema,
   RequestedScope,
+  ReviewStatus,
 } from '@neoworks-dev/sdk'
 
 // In-memory data behind the developer API stub, plus the seeded fixtures the
@@ -56,6 +57,8 @@ export interface StubOrganization {
   displayName: string
   createdAt: string
   archivedAt: string | null
+  /** Marked as reviewed and verified by a Neoworks administrator. */
+  neoworksVerified: boolean
   members: StubMember[]
   invitations: StubInvitation[]
   audit: AuditEntry[]
@@ -76,13 +79,39 @@ export interface StubApp {
   redirectUris: string[]
   scopes: RequestedScope[]
   logo: StubLogo | null
+  logoHeld: boolean
   review: AppReview
+  rateLimitMultiplier: number | null
+  privacyPolicyUrl: string
+  supportContact: string
   createdAt: string
   updatedAt: string
 }
 
+/** An app the signed-in user authorized, as the connected-apps page lists it. */
+export interface StubConnection {
+  clientId: string
+  name: string
+  description: string
+  ownerHandle: string | null
+  verified: boolean
+  firstParty: boolean
+  reviewStatus: ReviewStatus
+  reviewReason: string | null
+  logoUrl: string | null
+  scopes: string[]
+  authorizedAt: string
+  installs: { id: string; name: string; createdAt: string; revokedAt: string | null }[]
+  usedBytes: number
+  capBytes: number | null
+}
+
 export interface World {
   users: StubUser[]
+  /** Users who may use the admin routes. */
+  administratorIds: string[]
+  connections: StubConnection[]
+  storageQuotaBytes: number
   organizations: StubOrganization[]
   apps: StubApp[]
   domains: Map<string, OwnerDomain[]>
@@ -93,6 +122,7 @@ export interface World {
 
 export const SIGNED_IN_TOKEN = 'stub-token-moritz'
 export const NEWCOMER_TOKEN = 'stub-token-newcomer'
+export const REVIEWER_TOKEN = 'stub-token-reviewer'
 
 const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000
 
@@ -113,6 +143,7 @@ function seedUsers(): StubUser[] {
     { id: 'user-bob', token: 'stub-token-bob', handle: 'bob', displayName: 'Bob Builder', email: 'bob@acme.example', contactCode: 'BOB-1004', createdAt },
     { id: 'user-carol', token: 'stub-token-carol', handle: 'carol', displayName: 'Carol Ledger', email: 'carol@globex.example', contactCode: 'CAR-1005', createdAt },
     { id: 'user-dana', token: 'stub-token-dana', handle: 'dana', displayName: 'Dana Initech', email: 'dana@initech.example', contactCode: 'DAN-1006', createdAt },
+    { id: 'user-reviewer', token: REVIEWER_TOKEN, handle: 'reviewer', displayName: 'Rita Reviewer', email: 'rita@neoworks.example', contactCode: 'RIT-1007', createdAt },
   ]
 }
 
@@ -133,6 +164,7 @@ function seedOrganizations(): StubOrganization[] {
     displayName: 'Acme Inc',
     createdAt: daysFromNow(-150),
     archivedAt: null,
+    neoworksVerified: false,
     members: [
       { userId: 'user-moritz', joinedAt, grants: organizationWide(ALL_PERMISSIONS) },
       { userId: 'user-alice', joinedAt, grants: maintainer },
@@ -146,6 +178,7 @@ function seedOrganizations(): StubOrganization[] {
     displayName: 'Globex Corporation',
     createdAt: daysFromNow(-90),
     archivedAt: null,
+    neoworksVerified: false,
     members: [
       {
         userId: 'user-moritz',
@@ -166,6 +199,7 @@ function seedOrganizations(): StubOrganization[] {
     displayName: 'Initech',
     createdAt: daysFromNow(-60),
     archivedAt: null,
+    neoworksVerified: false,
     members: [{ userId: 'user-dana', joinedAt, grants: organizationWide(ALL_PERMISSIONS) }],
     invitations: [
       {
@@ -189,7 +223,11 @@ function seedApp(fields: Partial<StubApp> & Pick<StubApp, 'id' | 'ownerHandle' |
     redirectUris: [],
     scopes: [],
     logo: null,
+    logoHeld: false,
     review: { status: 'none', reason: null, updatedAt: null },
+    rateLimitMultiplier: null,
+    privacyPolicyUrl: '',
+    supportContact: '',
     createdAt: daysFromNow(-40),
     updatedAt: daysFromNow(-10),
     ...fields,
@@ -327,9 +365,37 @@ function seedPublishes(): Map<string, PublishAttempt[]> {
   return publishes
 }
 
+const GIGABYTE = 1024 * 1024 * 1024
+
+function seedConnections(): StubConnection[] {
+  return [
+    {
+      clientId: 'neoworks-calendar', name: 'Neoworks Calendar', description: 'Your calendar.', ownerHandle: 'neoworks', verified: true,
+      firstParty: true, reviewStatus: 'none', reviewReason: null, logoUrl: null, scopes: ['openid', '@neoworks/calendar:write'],
+      authorizedAt: daysFromNow(-90), installs: [{ id: 'install-cal', name: 'Laptop', createdAt: daysFromNow(-90), revokedAt: null }],
+      usedBytes: 40 * 1024 * 1024, capBytes: null,
+    },
+    {
+      clientId: 'app_acme_recipes', name: 'Recipes', description: 'Recipe collections for families.', ownerHandle: 'acme', verified: true,
+      firstParty: false, reviewStatus: 'approved', reviewReason: null, logoUrl: null, scopes: ['openid', '@acme/recipes:read'],
+      authorizedAt: daysFromNow(-30), installs: [{ id: 'install-recipes', name: 'Phone', createdAt: daysFromNow(-30), revokedAt: null }],
+      usedBytes: 300 * 1024 * 1024, capBytes: GIGABYTE,
+    },
+    {
+      clientId: 'app_acme_planner', name: 'Planner', description: 'Weekly meal planner.', ownerHandle: 'acme', verified: false,
+      firstParty: false, reviewStatus: 'suspended', reviewReason: 'Reports of unwanted data collection.', logoUrl: null, scopes: ['profile'],
+      authorizedAt: daysFromNow(-10), installs: [{ id: 'install-planner', name: 'Tablet', createdAt: daysFromNow(-10), revokedAt: null }],
+      usedBytes: 2 * 1024 * 1024, capBytes: null,
+    },
+  ]
+}
+
 export function seedWorld(): World {
   const world: World = {
     users: seedUsers(),
+    administratorIds: ['user-reviewer'],
+    connections: seedConnections(),
+    storageQuotaBytes: 5 * GIGABYTE,
     organizations: seedOrganizations(),
     apps: seedApps(),
     domains: seedDomains(),

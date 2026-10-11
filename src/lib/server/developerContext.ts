@@ -5,14 +5,25 @@ export interface DeveloperContext {
 	handle: string | null
 	/** Personal owner first, then every organization the user belongs to. */
 	owners: OwnerWithGrants[]
+	/** Whether the user administers the platform: reviews apps, verifies organizations. */
+	admin: boolean
 }
 
 /** The owners the sidebar switcher offers; null when the developer API cannot be reached. */
 export async function loadDeveloperContext(sdk: Sdk): Promise<DeveloperContext | null> {
 	try {
-		const [handle, owners] = await Promise.all([sdk.handles.mine(), sdk.handles.owners()])
-		return { handle, owners }
+		const [handle, owners, admin] = await Promise.all([sdk.handles.mine(), sdk.handles.owners(), isAdministrator(sdk)])
+		return { handle, owners, admin }
 	} catch {
 		return null
+	}
+}
+
+/** The admin check never fails the page: anyone it cannot confirm is not an administrator. */
+async function isAdministrator(sdk: Sdk): Promise<boolean> {
+	try {
+		return await sdk.admin.isAdmin()
+	} catch {
+		return false
 	}
 }
