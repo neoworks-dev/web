@@ -1,0 +1,152 @@
+---
+title: Collections
+description: Creating, reading, updating and deleting the encrypted containers, items and assets of a schema, and sharing them.
+glance:
+  - label: "Package"
+    value: "@neoworks-dev/sdk"
+  - label: "One resource per"
+    value: "Model, in the plural"
+  - label: "Runs on"
+    value: "The device, on decrypted data"
+related:
+  - label: "Lists and filters"
+    href: "/docs/sdk/lists"
+    description: "Query the items you stored."
+  - label: "Changes and sync"
+    href: "/docs/sdk/sync"
+    description: "How data reaches other devices."
+  - label: "Errors"
+    href: "/docs/sdk/errors"
+    description: "What a failed write throws."
+---
+
+<script>
+  import CodeAside from '$lib/components/docs/CodeAside.svelte'
+  const createItemExample = { language: 'ts', code: `const standup = await events.create({
+  calendar: work.id,
+  uid: crypto.randomUUID(),
+  title: 'Standup',
+  start: new Date('2026-10-14T09:00:00Z'),
+  end: new Date('2026-10-14T09:15:00Z'),
+  showWithoutTime: false,
+  sequence: 0,
+  deleted: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+})` }
+</script>
+
+A collection is a schema of encrypted data in an account, such as `@neoworks/calendar`. The SDK turns a generated schema module into typed resources, with one resource for each model. Every read and write runs on the device, against the decrypted content.
+
+```ts
+import calendarSchema from '@neoworks-dev/schemas/calendar'
+
+const { calendars, events } = neoworks.collection(calendarSchema)
+```
+
+The resource names are the model names in lower camel case, in the plural. A container model `Calendar` gives `calendars`, and an item model `Event` gives `events`. Calling `neoworks.collection` again returns new resources for the same schema.
+
+## Containers
+
+A container holds items and is the unit that is shared. `create` puts the container under the root of the signed-in user, and it fails with a `PermissionDeniedError` when the app has no root in the collection.
+
+```ts
+import { CategoryColor } from '@neoworks-dev/schemas/calendar'
+
+const work = await calendars.create({ name: 'Work', color: CategoryColor.blue, isDefault: false })
+
+const renamed = await calendars.update(work.id, { name: 'Work and travel' })
+```
+
+`update` changes the fields that are given, and `null` clears a field. It returns the stored container.
+
+`delete` removes the container and every item inside it. Only the owner of a container can delete it.
+
+```ts
+await calendars.delete(work.id)
+```
+
+`get(id)` returns one container, and `list()` returns every container this holder can see. A container that the holder cannot open is still listed, without its fields.
+
+<CodeAside {...createItemExample}>
+
+## Items
+
+An item belongs to a container, and the container is named in the input under the key of the container model. `create` fails with an `InvalidContentError` when that key is missing.
+
+Passing `atRoot: true` keeps an item directly under the root of the account instead of a container. Its `_meta` then names the root as its parent.
+
+`get(id)` returns one item with its fields and `_meta`. `update(id, changes)` works like the container update, with the same `null` rule. `delete(id)` removes the item. A field such as `deleted` in the schema is ordinary data, so setting it does not remove the item.
+
+`versions(id)` returns the earlier versions of an item, oldest first. The versions the device holds no key for are left out.
+
+</CodeAside>
+
+## Assets
+
+An asset is an item that carries one encrypted file, with optional named variants such as a thumbnail. An item refers to an asset by its id, so the reference stays valid when the file is replaced. The `@neoworks/photos` schema shows the pattern: an album holds photos, and each photo refers to a `PhotoFile` asset that holds the original and a thumbnail.
+
+```ts
+import photosSchema from '@neoworks-dev/schemas/photos'
+
+const { photos, photoFiles } = neoworks.collection(photosSchema)
+
+const file = await photoFiles.create(
+  { album: album.id, filename: 'harbour.jpg' },
+  { file: originalBytes, variants: { thumbnail: thumbnailBytes } },
+)
+
+const photo = await photos.create({
+  album: album.id,
+  filename: 'harbour.jpg',
+  mimeType: 'image/jpeg',
+  size: BigInt(originalBytes.length),
+  favorite: false,
+  file: file.id,
+})
+
+const thumbnail = await photoFiles.download(file.id, 'thumbnail')
+```
+
+`create` resolves once the file is uploaded. `download` without a variant name returns the original, and with a name it returns that variant. It throws a `NotFoundError` for a variant the asset does not have.
+
+`update` replaces the file and the variants when a `file` is given, and keeps the id. If the new file cannot be uploaded, the asset is deleted. `delete` removes the asset. Items that refer to it keep the reference, but downloading the asset then fails with a `NotFoundError`.
+
+The `_meta` of an asset also holds `blob`, which describes the size of the file and the names of its variants.
+
+## Metadata
+
+Every read returns the fields of the schema at the top level and the metadata under `_meta`:
+
+- `owned` tells whether the signed-in account owns the node.
+- `writable` tells whether this holder may change the node.
+- `created` and `updated` are dates of the node.
+- `pending` is `true` while the device holds an edit the server has not accepted yet.
+- The key of the container model, such as `calendar`, holds the id of the container.
+
+## Sharing
+
+A container shares everything inside it, and an item can be shared on its own. Only the owner of a node can share it, and only when the consent of the app included the `:share` scope of the collection, as in `@neoworks/calendar:share`.
+
+```ts
+await calendars.share(work.id, { email: 'ada@example.com', role: 'write' })
+await calendars.share(work.id, { userId: 'a1b2c3', role: 'read' })
+await calendars.share(work.id, { contactCode: 'ABCD-EFGH', role: 'read' })
+```
+
+A target is exactly one of an email address, a user id or a contact code. The role is `read` or `write`. Sharing throws a `ShareRefusedError` when it is refused before anything is written, and a `LookupFailedError` when the person cannot be found.
+
+`members(id)` lists the people the node is shared with, each with a `safetyCode` to compare with the person and a `verified` flag. `unshare(id, userId)` removes a person and rotates the keys, so what they already downloaded stays with them. `mayShare(id)` tells whether the app may share the node at all.
+
+Before a person is shared with, the SDK checks the key they present against the key it pinned earlier. A changed key refuses the share with an `identity_changed` reason, and the user must confirm it first.
+
+```ts
+const match = await neoworks.people.find({ email: 'ada@example.com' })
+if (match.pinState === 'changed') await neoworks.people.acceptChange(match.identity)
+```
+
+Once the user has compared the safety codes with the person, `neoworks.people.verify(userId)` marks the key as verified. `neoworks.people.contactCode()` returns the code of the signed-in user, which others can add them with.
+
+## Shortcuts
+
+A shortcut places a link to an item in a container without moving the item. `addShortcut(containerId, itemId, role)` creates one, and `shortcuts(containerId)` lists the shortcuts in a container. `removeShortcut(shortcutId)` removes the shortcut and leaves the item where it is. The role defaults to `read`.

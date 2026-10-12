@@ -1,0 +1,100 @@
+---
+title: Configuration
+description: Every option of the Neoworks client, with its default.
+glance:
+  - label: "Required"
+    value: "client, name, scopes"
+  - label: "Default domain"
+    value: "neoworks.dev"
+  - label: "Default storage"
+    value: "localStorage"
+  - label: "Retries"
+    value: "3, for status 429"
+related:
+  - label: "Sign-in"
+    href: "/docs/sdk/signin"
+    description: "Where the redirect URI is used."
+  - label: "Errors"
+    href: "/docs/sdk/errors"
+    description: "What the client throws."
+---
+
+<script>
+  import CodeAside from '$lib/components/docs/CodeAside.svelte'
+  import Callout from '$lib/components/docs/Callout.svelte'
+  const serviceUrlExample = { language: 'ts', code: `const neoworks = new Neoworks({
+  client: 'my-calendar-app',
+  name: 'My Calendar',
+  scopes: ['openid', 'profile', 'email'],
+  urls: { api: 'http://192.168.1.20:8080' },
+})` }
+</script>
+
+The client is created with one options object. Only `client`, `name` and `scopes` are required. Everything else has a default that works for an app on `neoworks.dev`.
+
+```ts
+import Neoworks from '@neoworks-dev/sdk'
+
+const neoworks = new Neoworks({
+  client: 'my-calendar-app',
+  name: 'My Calendar',
+  scopes: ['openid', 'profile', 'email', '@neoworks/calendar:read', '@neoworks/calendar:write'],
+  domain: 'neoworks.localhost',
+  redirect: 'https://calendar.localhost/callback',
+  retry: { maxRetries: 3, maxDelayMs: 60_000 },
+})
+```
+
+## Required options
+
+`client` is the OAuth client id of the app. `name` is shown on the consent screen and in the list of connected apps of the account.
+
+`scopes` is the list of scopes the app asks for. A scope that names a collection has the form `@owner/collection:action`, for example `@neoworks/calendar:read`. The SDK uses such a scope to decide that the app works with encrypted collections. Only then does it register the install keys of the app with the sign-in, accept the grant that comes back and start sync. A client with no collection scope can still call `neoworks.collection`, but it never syncs.
+
+Scopes of the form `@owner/collection:share` let the user share containers from the app. Without it, sharing is refused.
+
+<CodeAside {...serviceUrlExample}>
+
+## Service URLs
+
+`domain` is the base domain every service URL derives from. It defaults to `neoworks.dev`. For development, pass `neoworks.localhost`, or a full origin with a port such as `https://neoworks.localhost:8443`.
+
+`urls` replaces single service URLs. It accepts `oauth`, `api` and `assets`, and each one replaces the URL derived from `domain`:
+
+Use this to reach a development server from a phone on the local network.
+
+</CodeAside>
+
+## Sign-in and storage
+
+`redirect` is the OAuth redirect URI. In a browser it defaults to `<origin>/callback`, the callback route of the page the client runs on. A native app passes its custom-scheme URI, such as `dev.neoworks.calendar://callback`. Outside a browser the constructor throws an `AuthError` with the code `redirect_required` unless `redirect` is given.
+
+`storage` is where the client keeps the tokens, the sign-in in progress and the user. It takes any object with `get`, `set` and `remove`, which may return promises:
+
+```ts
+interface KeyValueStorage {
+  get(key: string): string | null | Promise<string | null>
+  set(key: string, value: string): void | Promise<void>
+  remove(key: string): void | Promise<void>
+}
+```
+
+In a browser the default is `localStorage`, and outside a browser it is memory. A native app passes an adapter for its keystore.
+
+<Callout kind="warning" title="Tokens in localStorage">
+
+With the default storage, the access and refresh tokens are readable by any script that runs on the page. Keep the page free of third-party scripts, or pass a storage that keeps the tokens somewhere else.
+
+</Callout>
+
+## Encrypted data
+
+`wasmUrl` is the URL the SDK loads `neoworks.wasm` from. Pass it when the bundler serves the file under a URL that the SDK cannot derive by itself.
+
+`database` is the name of the encrypted local database. It defaults to `neoworks-` followed by the client id. The install keys live in a second database named after this one with `-install` added.
+
+## Retries
+
+`retry` controls how a request that the server rate-limits (status 429) is sent again. `maxRetries` defaults to 3, and `maxDelayMs` defaults to 60000. A request is sent again after the wait the server asks for, and a wait longer than `maxDelayMs` is not taken; the 429 is returned as an `ApiError` instead.
+
+The option covers REST requests and the requests to the token endpoint. Requests made by sync use the defaults.

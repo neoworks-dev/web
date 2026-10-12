@@ -11,7 +11,6 @@
 	import ProfileMenu from './ProfileMenu.svelte';
 	import { paperSwing } from '$lib/transitions';
 	import { isAlwaysLight } from '$lib/theme';
-	import DocsHeader from './docs/DocsHeader.svelte';
 	import LatentSubnav from './latent/LatentSubnav.svelte';
 	import VitalsSubnav from './vitals/VitalsSubnav.svelte';
 	import {
@@ -22,9 +21,6 @@
 		type NavFeature,
 		type NavProject
 	} from '$lib/data/projects';
-
-	// On docs pages the header grows a second row of product tabs, TensorFlow-style.
-	const isDocs = $derived($page.url.pathname.startsWith('/docs'));
 
 	// The Latent site reuses this header with its own second row. Matched on the
 	// route rather than the path, because on latent.<base-domain> the URL is `/`.
@@ -119,7 +115,7 @@
 				>
 					<span
 						aria-hidden="true"
-						class="absolute -top-3 left-1/2 h-6 w-24 -translate-x-1/2 rotate-2 animate-tape-on bg-white/55 shadow-sm [animation-delay:120ms] motion-reduce:animate-none"
+						class="absolute -top-3 left-1/2 h-6 w-24 -translate-x-1/2 rotate-2 animate-tape-on bg-tape shadow-sm [animation-delay:120ms] motion-reduce:animate-none"
 					></span>
 					<NavMegaPanel {projects} {feature} onNavigate={closeAll} />
 				</div>
@@ -136,11 +132,11 @@
 		>
 			<span
 				aria-hidden="true"
-				class="absolute -top-2.5 -left-3 z-10 h-6 w-16 -rotate-[24deg] animate-tape-on bg-white/55 shadow-sm [animation-delay:550ms] motion-reduce:animate-none"
+				class="absolute -top-2.5 -left-3 z-10 h-6 w-16 -rotate-[24deg] animate-tape-on bg-tape shadow-sm [animation-delay:550ms] motion-reduce:animate-none"
 			></span>
 			<span
 				aria-hidden="true"
-				class="absolute -top-2.5 -right-3 z-10 h-6 w-16 rotate-[24deg] animate-tape-on bg-white/55 shadow-sm [animation-delay:700ms] motion-reduce:animate-none"
+				class="absolute -top-2.5 -right-3 z-10 h-6 w-16 rotate-[24deg] animate-tape-on bg-tape shadow-sm [animation-delay:700ms] motion-reduce:animate-none"
 			></span>
 		<nav class="flex h-[52px] items-center gap-1 px-4">
 			<!-- Wordmark -->
@@ -214,11 +210,7 @@
 			</nav>
 
 			<!-- Attached sub-nav (desktop) -->
-			{#if isDocs}
-				<div class="hidden border-t border-line-faint md:block">
-					<DocsHeader />
-				</div>
-			{:else if isLatent}
+			{#if isLatent}
 				<div class="hidden border-t border-line-faint md:block">
 					<LatentSubnav />
 				</div>

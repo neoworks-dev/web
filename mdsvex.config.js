@@ -14,6 +14,19 @@ const config = {
 	layout: {
 		_: docArticle
 	},
+	// Fenced code stays plain here; `enhanceCode` turns each block into a CodeBlock in the browser.
+	highlight: {
+		highlighter(code, language) {
+			const escaped = code
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/[{}`\\$]/g, (character) => `&#${character.charCodeAt(0)};`);
+			let languageName = '';
+			if (language) languageName = language;
+			return `<pre data-language="${languageName}"><code>${escaped}</code></pre>`;
+		}
+	},
 	rehypePlugins: [rehypeSlug]
 };
 

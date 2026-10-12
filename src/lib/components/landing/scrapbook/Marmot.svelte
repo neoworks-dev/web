@@ -11,9 +11,12 @@
 		| 'filing'
 		| 'guard'
 		| 'hiker'
+		| 'photographer'
 		| 'polaroid'
+		| 'reader'
 		| 'sentinel'
-		| 'sleeping';
+		| 'sleeping'
+		| `callouts/${'note' | 'tip' | 'warning' | 'danger'}-${1 | 2 | 3 | 4 | 5 | 6}`;
 
 	let { pose, class: className = '' }: { pose: Pose; class?: ClassValue } = $props();
 </script>

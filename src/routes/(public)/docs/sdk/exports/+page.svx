@@ -1,0 +1,84 @@
+---
+title: Other exports
+description: The resources on the client that are not covered elsewhere, and the named exports of the package for types, storage and servers.
+glance:
+  - label: "Default export"
+    value: "Neoworks"
+  - label: "Named exports"
+    value: "Types, storage, server blocks"
+related:
+  - label: "Configuration"
+    href: "/docs/sdk/configuration"
+    description: "Options of the client."
+  - label: "Collections"
+    href: "/docs/sdk/collections"
+    description: "The main resources."
+---
+
+The package has one default export, the `Neoworks` client. The named exports are the types and the building blocks behind it. The sections below cover the resources of the client that the other pages do not describe, and then the named exports.
+
+## Resources on the client
+
+Apart from collections, the client has REST resources. Each one is a property of the client, and each call needs a signed-in user.
+
+Notifications are delivered to the authenticator devices of a user. `list()` returns them newest first, and `update` can only mark one as read.
+
+```ts
+const notifications = await neoworks.notifications.list().all()
+await neoworks.notifications.update(notifications[0].id, { read: true })
+```
+
+`create({ title, body, url? })` sends one to the signed-in user. The field `userId` sends it to another user, which needs the `notification:write` scope.
+
+Settings are values that follow the user across clients. A client id narrows a read to the settings of one client.
+
+```ts
+await neoworks.settings.update('theme', 'dark')
+const theme = await neoworks.settings.get<string>('theme')
+await neoworks.settings.delete('theme')
+```
+
+`storage.get()` reports what the app stores in the account, with its own usage, its cap if the user set one, and the usage and quota of the whole account.
+
+```ts
+const usage = await neoworks.storage.get()
+console.log(usage.usedBytes, usage.capBytes)
+```
+
+`relay` is realtime publish and subscribe on topics. `connect()` resolves once the connection is open. The connection subscribes to a topic with a listener and publishes a string to a topic, and its `close()` ends it:
+
+```ts
+const connection = await neoworks.relay.connect()
+await connection.subscribe('calendar-updates', (data) => console.log(data))
+connection.publish('calendar-updates', 'refresh')
+```
+
+`changes` is the server's change feed. It reports the sequence of a change in a collection and nothing more. Most apps listen with `on('change')` instead, as the [sync](/docs/sdk/sync) page describes.
+
+`dragDrop` relays drag-and-drop across frames. The embedding page calls `host()`, and each embedded app calls `bridge()`.
+
+## Running collections over another client
+
+`createCollections(schema, host)` builds the typed resources of a schema over any host. `neoworks.collection` calls it with the client's own vault. A host needs `client()`, `userId()`, `performer()` and `changed()`, and it may add the optional members that sharing, versions and files need. Use it when a tool runs the collections over a core client of its own.
+
+## Types
+
+The types of the collections are exported so an app can type its own code against them. The calendar app, for example, types its repository with `CollectionResources<typeof calendarSchema>`.
+
+The package exports the types `NeoworksOptions`, `User` and `SigninOptions`, the collection types such as `CollectionResources`, `NodeItem`, `NodeContainer`, `ListOptions` and `Where`, the event types `NeoworksEvents`, `NodeChange` and `ChangeAction`, and the `People` class with its types `PersonMatch` and `KnownPerson`.
+
+`ListResult` is the class that every `list()` returns. Its types `Page` and `PageFetcher` describe the batches it loads.
+
+## Storage
+
+`KeyValueStorage` is the interface the client's `storage` option takes. The package exports two implementations of it, `LocalStorage` for `localStorage` and `MemoryStorage`, which keeps the values in memory until the page reloads.
+
+## Building blocks for servers
+
+A server that runs its own sign-in can use the parts the client is made of. `NeoworksAuth` runs the PKCE flow and token refresh. It takes a `clientSecret` for a confidential client, or a `refreshHandler` when the refresh token is in a cookie that scripts cannot read. `MemoryTokenStorage` and `CookieTokenStorage` implement its token storage, and the `TokenSet` and `TokenStorage` types describe them.
+
+`ApiClient` makes JSON requests to the REST API with the access token of a `NeoworksAuth`. Its `request`, `get` and `upload` methods take a path relative to `/api/v1`. `fetchWithRetry` sends a request again when the server rate-limits it, and `retryAfterSeconds` reads the wait a response asks for.
+
+## Service URLs
+
+`neoworksUrls` derives the service URLs for a base domain, and `resolveUrls` does the same for the `domain` and `urls` options of the client. The package also exports the production URLs as constants: `NEOWORKS_WEB_URL`, `NEOWORKS_OAUTH_URL`, `NEOWORKS_API_URL`, `NEOWORKS_ASSETS_URL`, `NEOWORKS_TILES_URL`, `NEOWORKS_MAPS_URL`, and the base domain `NEOWORKS_BASE_DOMAIN`. An app that uses the client does not need them.

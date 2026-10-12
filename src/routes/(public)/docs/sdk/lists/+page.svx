@@ -1,0 +1,136 @@
+---
+title: Lists and filters
+description: Listing, filtering, ordering and counting the items and containers of a collection.
+glance:
+  - label: "Runs on"
+    value: "The device"
+  - label: "Works offline"
+    value: "Yes"
+  - label: "Options"
+    value: "where, orderBy, take"
+related:
+  - label: "Collections"
+    href: "/docs/sdk/collections"
+    description: "Create the items you list."
+  - label: "Changes and sync"
+    href: "/docs/sdk/sync"
+    description: "Keep a list up to date."
+---
+
+<script>
+  import MarginNote from '$lib/components/docs/MarginNote.svelte'
+  import CodeAside from '$lib/components/docs/CodeAside.svelte'
+  const searchExample = { language: 'ts', code: `const found = await events.search('standup').all()` }
+</script>
+
+A list runs on the device. The SDK matches the conditions against the local index of the decrypted content, so a list works offline. Each `list()` takes the same options: `where` to filter, `orderBy` to sort, and `take` to cap the number of results.
+
+## Listing
+
+`list()` does not return an array. It returns a list that you iterate with `for await`, or collect with `.all()`. The list loads the items in batches as the loop reaches them.
+
+```ts
+for await (const event of events.list({ where: { calendar: work.id } })) {
+  console.log(event.title)
+}
+
+const all = await events.list({ where: { calendar: work.id } }).all()
+```
+
+A list is not a promise, so `await events.list()` does not compile. Call `.all()` or loop over the list.
+
+Stopping a `for await` loop stops loading further batches.
+
+`containers.list()` works the same way for containers, and `notifications.list()` for the REST resources.
+
+## Filtering
+
+A `where` object names fields of the item, and the container under the key of the container model. A plain value matches equal values, and an operator object compares the field in a richer way.
+
+```ts
+const weekEvents = await events
+  .list({
+    where: {
+      calendar: work.id,
+      start: { gte: new Date('2026-10-12T00:00:00Z'), lt: new Date('2026-10-19T00:00:00Z') },
+    },
+  })
+  .all()
+```
+
+Each field type takes its own operators:
+
+- Every field takes `equals`, `not`, `in` and `notIn`, and `null` matches a missing value.
+- Numbers and dates take `lt`, `lte`, `gt` and `gte` as well.
+- Text takes `contains`, `startsWith` and `endsWith`. Add `mode: 'insensitive'` to ignore case.
+
+`AND`, `OR` and `NOT` combine conditions. Each takes one condition or an array of them:
+
+```ts
+const matching = await events
+  .list({
+    where: {
+      OR: [
+        { title: { contains: 'standup', mode: 'insensitive' } },
+        { description: { contains: 'standup', mode: 'insensitive' } },
+      ],
+      deleted: false,
+    },
+  })
+  .all()
+```
+
+The container can be filtered by its own fields with `is`. This finds the events of every calendar with the color blue:
+
+```ts
+const blueEvents = await events
+  .list({ where: { calendar: { is: { color: CategoryColor.blue } } } })
+  .all()
+```
+
+The compiler rejects a field the schema does not have, and an operator that does not fit the type of a field. A query that the device still refuses throws an `InvalidQueryError`.
+
+## Ordering
+
+`orderBy` sorts by one or more fields of the schema, each `asc` or `desc`. Give an array to sort by several fields in turn:
+
+```ts
+const sorted = await events
+  .list({
+    where: { calendar: work.id },
+    orderBy: [{ start: 'asc' }, { title: 'asc' }],
+  })
+  .all()
+```
+
+To sort by when a node was created or last changed, order by `_meta`. A `_meta` order must stand alone, with exactly one of `created` or `updated`:
+
+```ts
+const newest = await events.list({ orderBy: { _meta: { created: 'desc' } }, take: 10 }).all()
+```
+
+## Limiting, paging and counting
+
+<MarginNote>Paging is handled by the list. The SDK does not expose cursors.</MarginNote>
+
+`take` caps the number of results. With a `_meta` order, the sort runs first and `take` keeps the first results of it.
+
+`count` returns how many nodes match a `where`, from the index, without decrypting the content:
+
+```ts
+const total = await events.count({ where: { calendar: work.id } })
+```
+
+<CodeAside {...searchExample}>
+
+## Search
+
+Items have a `search` method that matches the fields the schema marks as searchable, case-insensitively. In the calendar schema these are the title, the description and the keywords of an event.
+
+</CodeAside>
+
+## What a list leaves out
+
+A list skips shortcuts and deleted nodes. It also skips an item whose content cannot be read, and it reports no error for it. `get(id)` throws for the same item, so use it when a failure must be seen.
+
+A container that cannot be read is still listed, with only its `id` and `_meta`, so it still shows up in the list.

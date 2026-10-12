@@ -17,6 +17,8 @@ export type DocSection = {
 // tab per product, and the sidebar renders the active product's `sections`.
 export type DocProduct = {
 	id: string;
+	/** Who the docs are for, shown on the docs overview. */
+	audience: string;
 	label: string;
 	tagline: string;
 	href: string;
@@ -29,6 +31,7 @@ export type DocProduct = {
 export const docProducts: DocProduct[] = [
 	{
 		id: 'neoworks',
+		audience: 'Using and hosting NeoWorks',
 		label: 'NeoWorks',
 		tagline: 'Platform & API',
 		href: '/docs/neoworks',
@@ -56,6 +59,7 @@ export const docProducts: DocProduct[] = [
 	},
 	{
 		id: 'latent',
+		audience: 'Editing photos',
 		label: 'Latent',
 		tagline: 'RAW photo editor',
 		href: '/docs/latent',
@@ -84,6 +88,42 @@ export const docProducts: DocProduct[] = [
 				links: [{ label: 'Files & sidecars', href: '/docs/latent/files' }]
 			}
 		]
+	},
+	{
+		id: 'sdk',
+		audience: 'Building apps on NeoWorks',
+		label: 'SDK',
+		tagline: 'TypeScript client',
+		href: '/docs/sdk',
+		basePath: '/docs/sdk',
+		accent: '#a78bfa',
+		icon: CodeIcon,
+		sections: [
+			{
+				title: 'Getting started',
+				links: [
+					{ label: 'Introduction', href: '/docs/sdk' },
+					{ label: 'Quickstart', href: '/docs/sdk/quickstart' },
+					{ label: 'Configuration', href: '/docs/sdk/configuration' }
+				]
+			},
+			{
+				title: 'Guides',
+				links: [
+					{ label: 'Sign-in', href: '/docs/sdk/signin' },
+					{ label: 'Collections', href: '/docs/sdk/collections' },
+					{ label: 'Lists and filters', href: '/docs/sdk/lists' },
+					{ label: 'Changes and sync', href: '/docs/sdk/sync' }
+				]
+			},
+			{
+				title: 'Reference',
+				links: [
+					{ label: 'Errors', href: '/docs/sdk/errors' },
+					{ label: 'Other exports', href: '/docs/sdk/exports' }
+				]
+			}
+		]
 	}
 ];
 
@@ -93,4 +133,21 @@ export function productForPath(pathname: string): DocProduct {
 		.sort((a, b) => b.basePath.length - a.basePath.length)
 		.find((product) => pathname === product.basePath || pathname.startsWith(product.basePath + '/'));
 	return match ?? docProducts[0];
+}
+
+export type DocNeighbours = { previous?: DocLink; next?: DocLink };
+
+/** The pages before and after `pathname`, in the order the sidebar lists them. */
+export function neighboursOfPath(pathname: string): DocNeighbours {
+	const product = productForPath(pathname);
+	const pages = product.sections.flatMap((section) => section.links);
+	const index = pages.findIndex((page) => page.href === pathname);
+	if (index === -1) return {};
+	return { previous: pages[index - 1], next: pages[index + 1] };
+}
+
+/** Where a docs page's markdown lives in the web repository, for the "Edit on GitHub" link. */
+export function editUrlForPath(pathname: string): string {
+	const file = `src/routes/(public)${pathname}/+page.svx`;
+	return `https://github.com/neoworks-dev/web/edit/main/${file}`;
 }

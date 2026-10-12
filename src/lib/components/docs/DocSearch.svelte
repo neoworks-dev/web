@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { fly, fade } from 'svelte/transition';
+	import { portal } from '$lib/actions/portal';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import FileTextIcon from 'phosphor-svelte/lib/FileTextIcon';
 	import HashIcon from 'phosphor-svelte/lib/HashIcon';
@@ -117,11 +118,12 @@
 </button>
 
 {#if open}
-	<!-- Overlay -->
+	<!-- Overlay: moved to the end of <body> at the header's z-index, so it covers the header too. -->
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
-		class="fixed inset-0 z-modal flex items-start justify-center px-4 pt-[12vh]"
+		use:portal
+		class="fixed inset-0 z-nav flex items-start justify-center px-4 pt-[12vh]"
 		transition:fade={{ duration: 120 }}
 		onclick={closeSearch}
 	>

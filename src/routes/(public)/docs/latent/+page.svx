@@ -1,5 +1,6 @@
 ---
 title: Latent
+marmot: photographer
 description: Latent is a non-destructive RAW photo editor for the desktop — cull a shoot, develop the keepers, and mask locally, with the original files left untouched.
 ---
 
