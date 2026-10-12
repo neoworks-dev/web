@@ -71,6 +71,7 @@
 
   --font-family-sans:    var(--font-sans);
   --font-family-mono:    var(--font-mono);
+  --font-hand:           'Caveat', 'Segoe Print', cursive;
 
   /* ─────────────────────────────────────────────────────────
    * MOTION — maps design tokens onto Tailwind duration scale
@@ -176,6 +177,38 @@
   --breakpoint-3xl: 1680px;
   --breakpoint-4xl: 1920px;
 
+  /* ─────────────────────────────────────────────────────────
+   * ENTRANCE ANIMATIONS
+   * ───────────────────────────────────────────────────────── */
+
+  --animate-rise:   rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-pop-in: pop-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(24px); }
+  }
+
+  --animate-drop-in: drop-in 0.7s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+
+  @keyframes drop-in {
+    from { opacity: 0; transform: translateY(-40px) scale(1.12); }
+  }
+
+  --animate-settle-down: settle-down 0.7s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+  --animate-tape-on:     tape-on 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes settle-down {
+    from { opacity: 0; transform: translateY(-28px) rotate(-2deg); }
+  }
+
+  @keyframes tape-on {
+    from { opacity: 0; transform: scale(1.5); }
+  }
+
+  @keyframes pop-in {
+    from { opacity: 0; transform: translateY(-12px) scale(0.96); }
+  }
+
 }
 
 /* ── Tailwind color utilities — theme-aware via CSS vars ── */
@@ -215,6 +248,28 @@
   --color-red-soft:    var(--ctx-red-soft);
   --color-amber-soft:  var(--ctx-amber-soft);
   --color-blue-soft:   var(--ctx-blue-soft);
+
+  /* Brand — decorative emphasis, unlike the context colours above */
+  --color-brand:       var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-fg:    var(--brand-fg);
+  --color-brand-soft:  var(--brand-soft);
+
+  /* Scrapbook — warm paper and sticky-note fills for the landing page */
+  --color-paper:       var(--paper);
+  --color-note:        var(--note);
+  --color-sky:         var(--sky);
+  --color-sun:         var(--sun);
+  --color-stain:       var(--stain);
+  --color-ridge-far:      var(--ridge-far);
+  --color-ridge-mid-far:  var(--ridge-mid-far);
+  --color-ridge-mid:      var(--ridge-mid);
+  --color-ridge-near:     var(--ridge-near);
+  --color-ridge-front:    var(--ridge-front);
+  --color-ink:            var(--ink);
+  --color-meadow:         var(--meadow);
+  --color-lake:           var(--lake);
+  --color-field:          var(--field);
 }
 
 
@@ -261,10 +316,48 @@
   --ctx-pink-soft:  rgba(219, 39,  119, 0.10);
 }
 
+/* ── Brand accent — one colour, used sparingly for emphasis ────
+ * Forest on light, lifted to a lighter green on dark so it keeps
+ * contrast. Fills carry white text on light (7.6:1) and dark text on
+ * dark (7.3:1). */
+:root,
+[data-theme="dark"] {
+  --brand:       #4caf7f;
+  --brand-hover: #5cbf8c;
+  --brand-fg:    #0b0b0d;
+  --brand-soft:  rgba(76, 175, 127, 0.14);
+  --paper:       #1f1c18;
+  --note:        #4a4024;
+}
+[data-theme="light"] {
+  --brand:       #1f5f3f;
+  --brand-hover: #184b32;
+  --brand-fg:    #ffffff;
+  --brand-soft:  rgba(31, 95, 63, 0.10);
+  --paper:       #f5efe4;
+  --note:        #fbe7a1;
+}
+
+/* ── Landscape — the landing hero's mountains, pale with distance ── */
+:root {
+  --sky:            #f4ead6;
+  --sun:            #f7d488;
+  --stain:          rgba(122, 74, 34, 0.22);
+  --ridge-far:      #bcd2c6;
+  --ridge-mid-far:  #92b6a4;
+  --ridge-mid:      #64937b;
+  --ridge-near:     #3c7258;
+  --ridge-front:    #1f5f3f;
+  --ink:            #4a1f1a;   /* outline colour shared with the marmot illustrations */
+  --meadow:         #e3ebdc;
+  --lake:           #d3e2e2;
+  --field:          #efe5c6;
+}
+
 /* ── Typography ─────────────────────────────────────────────── */
 :root {
-  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Roboto Mono', monospace;
+  --font-sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SF Mono', 'Roboto Mono', monospace;
 
   --text-2xs:     11px;
   --text-xs:      12px;
@@ -361,14 +454,14 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --bg:            #000000;
-  --bg-elevated:   #0b0b0d;
-  --surface:       #141416;
+  --bg:            #141416;
+  --bg-elevated:   #262628;
+  --surface:       #1c1c1e;
   --surface-raised:#1c1c1f;
   --surface-hover: #1f1f23;
   --surface-input: #0e0e10;
 
-  --border:        #262626;
+  --border:        #29292b;
   --border-strong: #3f3f46;
   --border-faint:  rgba(255,255,255,0.06);
 
@@ -593,6 +686,25 @@
 
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+ * SCROLL-DRIVEN — no-op where animation-timeline is unsupported
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Tilted back while entering the viewport, flat by the time it is half scrolled through. */
+@utility scroll-settle {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: settle linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 50%;
+    }
+  }
+}
+
+@keyframes settle {
+  from { transform: perspective(1600px) rotateX(14deg) scale(0.94); }
+}
 
 /* ═══════════════════════════════════════════════════════════════
  * GRID UTILITIES — cols-N and rows-N map to fluid grid units

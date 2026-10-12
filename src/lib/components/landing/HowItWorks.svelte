@@ -1,53 +1,50 @@
 <script lang="ts">
 	import SectionHeading from './SectionHeading.svelte';
-	import UserCirclePlusIcon from 'phosphor-svelte/lib/UserCirclePlusIcon';
-	import SquaresFourIcon from 'phosphor-svelte/lib/SquaresFourIcon';
-	import KeyIcon from 'phosphor-svelte/lib/KeyIcon';
+	import PaperCard from './scrapbook/PaperCard.svelte';
+	import Marmot from './scrapbook/Marmot.svelte';
 
 	const steps = [
 		{
-			n: '01',
+			n: '1',
 			title: 'Create your account',
-			body: 'Sign up once. This becomes your encrypted home for everything — your identity and your data in one place that belongs to you.',
-			Icon: UserCirclePlusIcon
+			body: 'Your encryption keys are made on your device when you sign up. They never reach our servers in a form we could use.',
+			rotate: -1.5
 		},
 		{
-			n: '02',
-			title: 'Use any app in the ecosystem',
-			body: 'Apps ask for permission, then read and write to your encrypted space. Your data follows you between apps instead of being trapped inside each one.',
-			Icon: SquaresFourIcon
+			n: '2',
+			title: 'Bring your things over',
+			body: 'Connect the account they live in today, like Google, and your photos, calendar and contacts move across. Each item is encrypted before it leaves your device.',
+			rotate: 1
 		},
 		{
-			n: '03',
-			title: 'Hold the keys, stay in control',
-			body: 'Everything is encrypted with keys only you hold. Revoke any app anytime, export all your data, or self-host the whole thing.',
-			Icon: KeyIcon
+			n: '3',
+			title: 'Open them anywhere',
+			body: 'Your phone and your laptop see the same things. Anywhere else, including our servers, they are unreadable.',
+			rotate: -0.8
 		}
 	];
 </script>
 
-<section class="border-t border-line-faint px-6 py-24 max-md:py-16">
+<!-- The forest: the hero's front ridge carries on into this section. -->
+<!-- Overlaps the hero by a few pixels so no anti-aliased seam shows between them. -->
+<section data-theme="dark" class="relative -mt-1 bg-ridge-front px-6 pb-40 pt-[calc(4rem+0.25rem)] max-md:pb-32">
 	<div class="mx-auto max-w-[1120px]">
-		<SectionHeading
-			eyebrow="How it works"
-			title="One account. Every app. Full control."
-			subtitle="No new login for every service, no data scattered across a dozen companies. One encrypted account that every app plugs into."
-		/>
+		<div class="flex items-end justify-between gap-8">
+			<SectionHeading
+				eyebrow="Moving over"
+				title="Moving in takes an afternoon."
+				subtitle="No exporting archives by hand, no sorting through folders afterwards. Your things arrive the way you left them."
+			/>
+			<Marmot pose="hiker" class="w-[170px] shrink-0 max-md:hidden" />
+		</div>
 
-		<div class="mt-12 grid grid-cols-3 gap-4 max-md:grid-cols-1">
-			{#each steps as { n, title, body, Icon }}
-				<div class="rounded-2xl border border-line-faint bg-elevated/50 p-6">
-					<div class="flex items-center justify-between">
-						<span
-							class="flex size-10 items-center justify-center rounded-xl border border-line-faint bg-raised text-muted"
-						>
-							<Icon size={20} weight="duotone" />
-						</span>
-						<span class="font-mono text-xs text-faint">{n}</span>
-					</div>
-					<h3 class="mt-5 text-base font-semibold tracking-tight text-default">{title}</h3>
+		<div class="mt-12 grid grid-cols-3 gap-6 max-md:grid-cols-1">
+			{#each steps as { n, title, body, rotate }, index (n)}
+				<PaperCard {rotate} revealDelay={index * 100}>
+					<span class="font-hand text-5xl leading-none text-brand">{n}.</span>
+					<h3 class="mt-3 text-base font-semibold tracking-tight text-default">{title}</h3>
 					<p class="mt-2 text-sm leading-relaxed text-muted">{body}</p>
-				</div>
+				</PaperCard>
 			{/each}
 		</div>
 	</div>

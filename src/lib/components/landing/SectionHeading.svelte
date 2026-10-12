@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { reveal } from '$lib/actions/reveal';
 	let {
 		eyebrow,
 		title,
@@ -12,8 +13,8 @@
 	} = $props();
 </script>
 
-<div class={align === 'center' ? 'mx-auto max-w-[640px] text-center' : 'max-w-[640px]'}>
-	<span class="font-mono text-[11px] uppercase tracking-[0.14em] text-dim">{eyebrow}</span>
+<div use:reveal class={align === 'center' ? 'mx-auto max-w-[640px] text-center' : 'max-w-[640px]'}>
+	<span class="inline-block -rotate-2 font-hand text-2xl leading-none text-brand">{eyebrow}</span>
 	<h2 class="mt-3 text-[clamp(28px,3.5vw,40px)] font-semibold leading-[1.05] tracking-tight text-default">
 		{title}
 	</h2>

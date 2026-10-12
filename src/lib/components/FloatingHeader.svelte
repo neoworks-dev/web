@@ -5,13 +5,23 @@
 	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
 	import ListIcon from 'phosphor-svelte/lib/ListIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
-	import MegaMenu from './MegaMenu.svelte';
+	import NavProjectList from './NavProjectList.svelte';
+	import NavMegaPanel from './NavMegaPanel.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 	import ProfileMenu from './ProfileMenu.svelte';
+	import { paperSwing } from '$lib/transitions';
+	import { isAlwaysLight } from '$lib/theme';
 	import DocsHeader from './docs/DocsHeader.svelte';
 	import LatentSubnav from './latent/LatentSubnav.svelte';
 	import VitalsSubnav from './vitals/VitalsSubnav.svelte';
-	import { flagships, projectQuickLinks } from '$lib/data/projects';
+	import {
+		everydayApps,
+		everydayAppsFeature,
+		developerTools,
+		developerToolsFeature,
+		type NavFeature,
+		type NavProject
+	} from '$lib/data/projects';
 
 	// On docs pages the header grows a second row of product tabs, TensorFlow-style.
 	const isDocs = $derived($page.url.pathname.startsWith('/docs'));
@@ -23,7 +33,8 @@
 	// Same arrangement for the Vitals site on vitals.<base-domain>.
 	const isVitals = $derived(Boolean($page.route.id?.startsWith('/dev/vitals')));
 
-	const hasSubnav = $derived(isDocs || isLatent || isVitals);
+	// Always-light pages ignore the theme, so the toggle would do nothing there.
+	const showsThemeToggle = $derived(!isAlwaysLight($page.url.pathname));
 
 	interface User {
 		email?: string;
@@ -34,21 +45,30 @@
 	let { user = null }: { user?: User | null } = $props();
 
 	const navLinks = [
-		{ label: 'Docs', href: '/docs' },
+		{ label: 'Security', href: '/#security' },
 		{ label: 'Pricing', href: '/pricing' }
 	];
 
-	let projectsOpen = $state(false);
+	type MenuName = 'apps' | 'developers';
+
+	let openMenu = $state<MenuName | null>(null);
 	let mobileOpen = $state(false);
 
-	function openProjects() {
-		projectsOpen = true;
+	function openMenuFor(menuName: MenuName) {
+		openMenu = menuName;
 	}
-	function closeMega() {
-		projectsOpen = false;
+	function closeMenus() {
+		openMenu = null;
+	}
+	function toggleMenu(menuName: MenuName) {
+		if (openMenu === menuName) {
+			closeMenus();
+			return;
+		}
+		openMenuFor(menuName);
 	}
 	function closeAll() {
-		closeMega();
+		closeMenus();
 		mobileOpen = false;
 	}
 
@@ -59,16 +79,69 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<header class="pointer-events-none fixed inset-x-0 top-2 z-nav flex justify-center">
-	<!-- Dock: groups the bar and the mega panel so hover-intent spans both. -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="pointer-events-none flex flex-col items-center px-6 max-md:px-0 w-[min(1320px,calc(100vw-2rem))] " onmouseleave={closeMega}>
-		<!-- Header card: the pill, plus an attached sub-nav row on docs pages. -->
-		<div
-			class="pointer-events-auto border w-full border-line bg-elevated/80 shadow-lg backdrop-blur-xl backdrop-saturate-150 {hasSubnav
-				? 'rounded-[26px]'
-				: 'rounded-full'}"
+{#snippet mobileGroup(label: string, projects: NavProject[])}
+	<div class="mt-4 border-t border-line-faint pt-3">
+		<h3
+			class="mb-2 ml-1 text-2xs font-medium uppercase tracking-[0.12em] text-faint [font-family:var(--font-mono)]"
 		>
+			{label}
+		</h3>
+		<NavProjectList {projects} onNavigate={closeAll} />
+	</div>
+{/snippet}
+
+{#snippet navMenu(menuName: MenuName, label: string, projects: NavProject[], feature: NavFeature)}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div class="relative" onmouseenter={() => openMenuFor(menuName)} onmouseleave={closeMenus}>
+		<button
+			type="button"
+			aria-expanded={openMenu === menuName}
+			aria-haspopup="true"
+			onclick={() => toggleMenu(menuName)}
+			class="flex items-center gap-1 px-3 py-2 text-base font-medium text-muted underline decoration-transparent decoration-wavy decoration-[1.5px] underline-offset-[6px] transition-[color,text-decoration-color] duration-200 hover:text-default hover:decoration-brand"
+			class:text-default={openMenu === menuName}
+			class:decoration-brand={openMenu === menuName}
+		>
+			{label}
+			<CaretDownIcon
+				size={12}
+				weight="bold"
+				class={['transition-transform duration-200', openMenu === menuName && 'rotate-180']}
+			/>
+		</button>
+		{#if openMenu === menuName}
+			<!-- Top padding bridges the gap to the button so hover is not lost on the way down. -->
+			<div class="absolute left-0 top-full pt-3">
+				<div
+					role="menu"
+					transition:paperSwing
+					class="relative -rotate-[0.6deg] rounded-[4px] bg-surface p-2 shadow-[0_10px_30px_rgba(0,0,0,0.14)]"
+				>
+					<span
+						aria-hidden="true"
+						class="absolute -top-3 left-1/2 h-6 w-24 -translate-x-1/2 rotate-2 animate-tape-on bg-white/55 shadow-sm [animation-delay:120ms] motion-reduce:animate-none"
+					></span>
+					<NavMegaPanel {projects} {feature} onNavigate={closeAll} />
+				</div>
+			</div>
+		{/if}
+	</div>
+{/snippet}
+
+<header class="pointer-events-none fixed inset-x-0 top-2 z-nav flex justify-center">
+		<div class="pointer-events-none flex flex-col items-center px-6 max-md:px-0 w-[min(1320px,calc(100vw-2rem))] ">
+		<!-- Header card: a taped-down paper strip, plus an attached sub-nav row on docs pages. -->
+		<div
+			class="pointer-events-auto relative w-full -rotate-[0.4deg] animate-settle-down rounded-[4px] bg-surface shadow-[0_6px_20px_rgba(0,0,0,0.10)] motion-reduce:animate-none"
+		>
+			<span
+				aria-hidden="true"
+				class="absolute -top-2.5 -left-3 z-10 h-6 w-16 -rotate-[24deg] animate-tape-on bg-white/55 shadow-sm [animation-delay:550ms] motion-reduce:animate-none"
+			></span>
+			<span
+				aria-hidden="true"
+				class="absolute -top-2.5 -right-3 z-10 h-6 w-16 rotate-[24deg] animate-tape-on bg-white/55 shadow-sm [animation-delay:700ms] motion-reduce:animate-none"
+			></span>
 		<nav class="flex h-[52px] items-center gap-1 px-4">
 			<!-- Wordmark -->
 			<a href="/" class="mr-1 flex shrink-0 items-center gap-2.5 text-default" onclick={closeAll}>
@@ -86,28 +159,12 @@
 
 			<!-- Center nav (desktop) -->
 			<div class="hidden items-center gap-0.5 md:flex">
-				<button
-					type="button"
-					aria-expanded={projectsOpen}
-					aria-haspopup="true"
-					onmouseenter={openProjects}
-					onclick={() => (projectsOpen ? closeMega() : openProjects())}
-					class="flex items-center gap-1 rounded-full px-3.5 py-2 text-base font-medium text-muted transition-colors hover:bg-hover hover:text-default"
-					class:text-default={projectsOpen}
-					class:bg-hover={projectsOpen}
-				>
-					Projects
-					<CaretDownIcon
-						size={12}
-						weight="bold"
-						class="transition-transform duration-200 {projectsOpen ? 'rotate-180' : ''}"
-					/>
-				</button>
+				{@render navMenu('apps', 'Apps', everydayApps, everydayAppsFeature)}
+				{@render navMenu('developers', 'Developers', developerTools, developerToolsFeature)}
 				{#each navLinks as link}
 					<a
 						href={link.href}
-						onmouseenter={closeMega}
-						class="rounded-full px-3.5 py-2 text-base font-medium text-muted transition-colors hover:bg-hover hover:text-default"
+						class="px-3 py-2 text-base font-medium text-muted underline decoration-transparent decoration-wavy decoration-[1.5px] underline-offset-[6px] transition-[color,text-decoration-color] duration-200 hover:text-default hover:decoration-brand"
 					>
 						{link.label}
 					</a>
@@ -116,19 +173,21 @@
 
 			<!-- Actions (desktop) -->
 			<div class="ml-auto hidden items-center gap-1.5 md:flex">
-				<ThemeToggle class="h-9 w-9" />
+				{#if showsThemeToggle}
+					<ThemeToggle class="h-9 w-9" />
+				{/if}
 				{#if user}
 					<ProfileMenu {user} />
 				{:else}
 					<a
 						href={resolve('/auth/login')}
-						class="rounded-full px-3.5 py-2 text-base font-medium text-muted transition-colors hover:text-default"
+						class="px-3 py-2 text-base font-medium text-muted underline decoration-transparent decoration-wavy decoration-[1.5px] underline-offset-[6px] transition-[color,text-decoration-color] duration-200 hover:text-default hover:decoration-brand"
 					>
 						Sign in
 					</a>
 					<a
 						href={resolve('/auth/signup')}
-						class="rounded-full bg-action px-4 py-2 text-sm font-semibold text-action-fg transition-opacity hover:opacity-90 active:scale-[0.98]"
+						class="rotate-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-brand-fg shadow-[0_3px_8px_rgba(0,0,0,0.18)] transition-[rotate,scale,background-color] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-105 hover:rotate-0 hover:bg-brand-hover active:scale-[0.98]"
 					>
 						Get started
 					</a>
@@ -136,7 +195,9 @@
 			</div>
 
 			<!-- Mobile actions -->
-			<ThemeToggle class="ml-auto md:hidden" />
+			{#if showsThemeToggle}
+				<ThemeToggle class="ml-auto md:hidden" />
+			{/if}
 			<button
 				type="button"
 				aria-label="Toggle menu"
@@ -168,18 +229,11 @@
 			{/if}
 		</div>
 
-		<!-- Mega menus (desktop) — full width, span the header dock -->
-		{#if projectsOpen}
-			<div class="pointer-events-auto hidden w-full pt-2 md:block">
-				<MegaMenu onNavigate={closeAll} />
-			</div>
-		{/if}
-
 		<!-- Mobile menu -->
 		{#if mobileOpen}
 			<div
 				transition:fly={{ y: -6, duration: 180 }}
-				class="pointer-events-auto mt-2 max-h-[70vh] w-[min(92vw,420px)] overflow-y-auto rounded-2xl border border-line bg-elevated/95 p-4 shadow-[var(--shadow-overlay)] backdrop-blur-xl md:hidden"
+				class="pointer-events-auto mt-3 max-h-[70vh] w-[min(92vw,420px)] overflow-y-auto rounded-[4px] bg-surface p-4 shadow-[0_10px_30px_rgba(0,0,0,0.14)] md:hidden"
 			>
 				<div class="flex flex-col gap-1">
 					{#each navLinks as link}
@@ -193,64 +247,22 @@
 					{/each}
 				</div>
 
-				<!-- Projects flagships -->
-				<div class="mt-4 border-t border-line-faint pt-3">
-					<h3
-						class="mb-2 ml-1 text-2xs font-medium uppercase tracking-[0.12em] text-faint [font-family:var(--font-mono)]"
-					>
-						Projects
-					</h3>
-					<div class="grid grid-cols-2 gap-0.5">
-						{#each flagships as flagship}
-							{@const Icon = flagship.icon}
-							<a
-								href={flagship.href}
-								target={flagship.external ? '_blank' : undefined}
-								rel={flagship.external ? 'noopener noreferrer' : undefined}
-								onclick={closeAll}
-								class="flex items-center gap-2.5 rounded-lg p-2 transition-colors hover:bg-hover"
-							>
-								<span
-									class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border"
-									style="background: color-mix(in oklab, {flagship.accent} 14%, transparent); border-color: color-mix(in oklab, {flagship.accent} 28%, transparent);"
-								>
-									<Icon size={15} weight="duotone" color={flagship.accent} />
-								</span>
-								<span class="truncate text-sm font-medium text-default">{flagship.name}</span>
-							</a>
-						{/each}
-						{#each projectQuickLinks as link}
-							{@const Icon = link.icon}
-							<a
-								href={link.href}
-								onclick={closeAll}
-								class="flex items-center gap-2.5 rounded-lg p-2 transition-colors hover:bg-hover"
-							>
-								<span
-									class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border"
-									style="background: color-mix(in oklab, {link.accent} 14%, transparent); border-color: color-mix(in oklab, {link.accent} 28%, transparent);"
-								>
-									<Icon size={15} weight="duotone" color={link.accent} />
-								</span>
-								<span class="truncate text-sm font-medium text-default">{link.name}</span>
-							</a>
-						{/each}
-					</div>
-				</div>
+				{@render mobileGroup('Apps', everydayApps)}
+				{@render mobileGroup('Developers', developerTools)}
 
 				<div class="mt-4 flex flex-col gap-2 border-t border-line-faint pt-4">
 					{#if user}
 						<a
 							href="/dashboard"
 							onclick={closeAll}
-							class="rounded-full border border-line px-4 py-2.5 text-center text-base font-medium text-muted transition-colors hover:text-default"
+							class="rounded-md border border-line px-4 py-2.5 text-center text-base font-medium text-muted transition-colors hover:text-default"
 						>
 							Dashboard
 						</a>
 						<form method="POST" action="/auth/logout">
 							<button
 								type="submit"
-								class="w-full rounded-full bg-action px-4 py-2.5 text-center text-sm font-semibold text-action-fg transition-opacity hover:opacity-90"
+								class="w-full rounded-md bg-action px-4 py-2.5 text-center text-sm font-semibold text-action-fg transition-opacity hover:opacity-90"
 							>
 								Log out
 							</button>
@@ -259,14 +271,14 @@
 						<a
 							href={resolve('/auth/login')}
 							onclick={closeAll}
-							class="rounded-full border border-line px-4 py-2.5 text-center text-base font-medium text-muted transition-colors hover:text-default"
+							class="rounded-md border border-line px-4 py-2.5 text-center text-base font-medium text-muted transition-colors hover:text-default"
 						>
 							Sign in
 						</a>
 						<a
 							href={resolve('/auth/signup')}
 							onclick={closeAll}
-							class="rounded-full bg-action px-4 py-2.5 text-center text-sm font-semibold text-action-fg transition-opacity hover:opacity-90"
+							class="rounded-md bg-brand px-4 py-2.5 text-center text-sm font-semibold text-brand-fg transition-colors hover:bg-brand-hover"
 						>
 							Get started
 						</a>

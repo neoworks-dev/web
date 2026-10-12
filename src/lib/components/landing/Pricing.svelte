@@ -1,18 +1,19 @@
 <script lang="ts">
+	import { reveal } from '$lib/actions/reveal';
 	import SectionHeading from './SectionHeading.svelte';
 	import PricingTiers from './PricingTiers.svelte';
 </script>
 
-<section class="border-t border-line-faint px-6 py-24 max-md:py-16">
+<section class="bg-field px-6 pb-32 pt-12 max-md:pb-24">
 	<div class="mx-auto max-w-[1120px]">
 		<SectionHeading
 			eyebrow="Pricing"
-			title="Pay for what you use. Nothing more."
-			subtitle="No ads, no data sales, no margin baked into your storage. Beyond what’s included, you pay exactly what storage and compute cost us."
+			title="Fair pricing, no surprises."
+			subtitle="Start free, then pay as you go with storage billed at cost, or pick a plan with one fixed price. No ads and no data sales, whichever you choose."
 			align="center"
 		/>
 
-		<div class="mt-12">
+		<div use:reveal={{ delay: 100 }} class="mt-12">
 			<PricingTiers />
 		</div>
 
