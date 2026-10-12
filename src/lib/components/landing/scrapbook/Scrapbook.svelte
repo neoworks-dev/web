@@ -103,9 +103,3 @@
 <ScrapItem left="74%" top="74%" rotate={18} delay={1250} tape="none" class="max-md:hidden">
 	<FlowerTulipIcon size={64} weight="fill" class="text-brand opacity-80" />
 </ScrapItem>
-
-<!-- Coffee ring: drawn on the table, so it does not drop in or drag. -->
-<span
-	aria-hidden="true"
-	class="pointer-events-none absolute left-[27%] top-[80%] size-[120px] rounded-full border-[7px] border-stain blur-[0.5px] max-md:hidden"
-></span>

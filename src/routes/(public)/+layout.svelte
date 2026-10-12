@@ -16,6 +16,7 @@
 </script>
 
 <div
+	data-scene-root
 	data-theme={themeForPath(page.url.pathname)}
 	class="flex min-h-screen flex-col bg-canvas text-primary antialiased"
 >

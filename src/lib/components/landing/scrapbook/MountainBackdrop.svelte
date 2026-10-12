@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { mountainRidges } from './mountainRidges';
+	import SkyProps from './SkyProps.svelte';
 
 	let {
 		parallax = true,
@@ -26,7 +27,7 @@
 	}
 
 	function parallaxClass(): string {
-		if (parallax) return 'ridge';
+		if (parallax) return 'scroll-sink';
 		return '';
 	}
 </script>
@@ -50,15 +51,10 @@
 	</svg>
 {/snippet}
 
-<div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
+<div data-sky-stage aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
 	<div class="absolute inset-0 bg-linear-to-b from-sky to-paper"></div>
-	<div
-		class={[
-			'absolute left-[64%] top-[40%] size-[150px] rounded-full border-[2.5px] border-ink bg-sun shadow-[0_0_120px_60px_var(--sun)]',
-			parallaxClass()
-		]}
-		style="--scroll-shift: 200px"
-	></div>
+	<div class="stars absolute inset-x-0 top-0 h-2/3"></div>
+	<SkyProps sunClass={parallaxClass()} />
 
 	{#each layers.slice(0, -1) as layer (layer.path)}
 		{@render ridge(layer)}
@@ -74,19 +70,24 @@
 </div>
 
 <style>
-	@media (prefers-reduced-motion: no-preference) {
-		@supports (animation-timeline: scroll()) {
-			.ridge {
-				animation: ridge-sink linear both;
-				animation-timeline: scroll(root);
-				animation-range: 0 100vh;
-			}
-		}
-	}
-
-	@keyframes ridge-sink {
-		to {
-			transform: translateY(var(--scroll-shift));
-		}
+	/* Invisible by day: --star is transparent until the night scene sets it. */
+	.stars {
+		background-image:
+			radial-gradient(1.5px 1.5px at 8% 22%, var(--star) 50%, transparent 51%),
+			radial-gradient(1px 1px at 15% 48%, var(--star) 50%, transparent 51%),
+			radial-gradient(2px 2px at 22% 12%, var(--star) 50%, transparent 51%),
+			radial-gradient(1px 1px at 29% 35%, var(--star) 50%, transparent 51%),
+			radial-gradient(1.5px 1.5px at 36% 8%, var(--star) 50%, transparent 51%),
+			radial-gradient(1px 1px at 41% 58%, var(--star) 50%, transparent 51%),
+			radial-gradient(1.5px 1.5px at 47% 26%, var(--star) 50%, transparent 51%),
+			radial-gradient(1px 1px at 53% 14%, var(--star) 50%, transparent 51%),
+			radial-gradient(2px 2px at 58% 44%, var(--star) 50%, transparent 51%),
+			radial-gradient(1px 1px at 72% 18%, var(--star) 50%, transparent 51%),
+			radial-gradient(1.5px 1.5px at 79% 52%, var(--star) 50%, transparent 51%),
+			radial-gradient(1px 1px at 84% 9%, var(--star) 50%, transparent 51%),
+			radial-gradient(2px 2px at 90% 33%, var(--star) 50%, transparent 51%),
+			radial-gradient(1px 1px at 95% 61%, var(--star) 50%, transparent 51%),
+			radial-gradient(1px 1px at 4% 64%, var(--star) 50%, transparent 51%),
+			radial-gradient(1.5px 1.5px at 66% 6%, var(--star) 50%, transparent 51%);
 	}
 </style>

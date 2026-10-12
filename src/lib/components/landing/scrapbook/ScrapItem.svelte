@@ -35,11 +35,11 @@
 >
 	{#if tape === 'top'}
 		<span
-			class="absolute -top-3 left-1/2 z-10 h-6 w-20 -translate-x-1/2 -rotate-3 bg-white/55 shadow-sm"
+			class="absolute -top-3 left-1/2 z-10 h-6 w-20 -translate-x-1/2 -rotate-3 bg-tape shadow-sm"
 		></span>
 	{:else if tape === 'corners'}
-		<span class="absolute -top-2 -left-4 z-10 h-5 w-14 -rotate-[38deg] bg-white/55 shadow-sm"></span>
-		<span class="absolute -top-2 -right-4 z-10 h-5 w-14 rotate-[38deg] bg-white/55 shadow-sm"></span>
+		<span class="absolute -top-2 -left-4 z-10 h-5 w-14 -rotate-[38deg] bg-tape shadow-sm"></span>
+		<span class="absolute -top-2 -right-4 z-10 h-5 w-14 rotate-[38deg] bg-tape shadow-sm"></span>
 	{/if}
 	{@render children()}
 </div>

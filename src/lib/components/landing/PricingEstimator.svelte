@@ -39,7 +39,7 @@
 >
 	<span
 		aria-hidden="true"
-		class="absolute -top-3 left-1/2 h-6 w-20 -translate-x-1/2 -rotate-2 bg-white/60 shadow-sm"
+		class="absolute -top-3 left-1/2 h-6 w-20 -translate-x-1/2 -rotate-2 bg-tape shadow-sm"
 	></span>
 	<div class="grid grid-cols-2 gap-8 max-md:grid-cols-1 max-md:gap-6">
 		<!-- Controls -->
