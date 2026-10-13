@@ -1,6 +1,22 @@
 ---
 title: OAuth
 description: How apps are authorized on NeoWorks. PKCE, scopes, consent and the account vault.
+glance:
+  - label: Flow
+    value: Authorization code with PKCE
+  - label: Code challenge
+    value: S256 only
+  - label: Access tokens
+    value: Short-lived signed JWTs
+  - label: Refresh tokens
+    value: Rotate on every use
+related:
+  - label: Encryption model
+    href: /docs/neoworks/encryption
+    description: What the account vault protects.
+  - label: Devices
+    href: /docs/neoworks/devices
+    description: Handing a session to another device.
 ---
 
 NeoWorks uses standard OAuth 2.0 with PKCE. Apps use the authorization code flow, and S256
@@ -17,9 +33,9 @@ as that app, limited to what you granted, and a session in the vault as you.
 
 ## Scopes
 
-Scopes name a collection and an action: `calendar:read`, `calendar:write`, `contacts:read`,
-`contacts:write`, `photos:read`, `photos:write`, `files:read` and `files:write`, plus
-`openid`, `profile` and `email`. A scope never gives more than the grants you approved.
+Scopes name a collection and an action, written as `@neoworks/calendar:read` or
+`@neoworks/contacts:write`. The standard `openid`, `profile` and `email` scopes work alongside
+them. A scope never gives more than the grants you approved.
 
 ## Tokens
 

@@ -1,0 +1,42 @@
+---
+title: Introduction
+description: What the Neoworks SDK does, who it is for, and where to start.
+marmot: reader
+glance:
+  - label: "Package"
+    value: "@neoworks-dev/sdk"
+  - label: "Language"
+    value: "TypeScript"
+  - label: "Runs on"
+    value: "Browsers and native apps"
+related:
+  - label: "Quickstart"
+    href: "/docs/sdk/quickstart"
+    description: "Sign in and store a first item."
+  - label: "Configuration"
+    href: "/docs/sdk/configuration"
+    description: "Every option of the client."
+---
+
+The Neoworks SDK is a TypeScript client for apps that run on a Neoworks account. It signs the user in, calls the REST API of the account, and reads and writes encrypted collections such as calendars and their events. The data is encrypted before it leaves the device, and the SDK decrypts it on the device.
+
+The package is `@neoworks-dev/sdk`. It is for developers who build a web or native app that users sign in to with their Neoworks account. All of it goes through one `Neoworks` client, which the app creates once.
+
+```ts
+import Neoworks from '@neoworks-dev/sdk'
+
+const neoworks = new Neoworks({
+  client: 'my-app',
+  name: 'My App',
+  scopes: ['openid', 'profile', 'email'],
+})
+
+const user = await neoworks.ready()
+if (user === null) await neoworks.signin()
+```
+
+The client restores an earlier session with `ready()`, and starts a sign-in when there is none. The rest of the documentation covers each part of the client.
+
+## Where to go next
+
+Start with the [quickstart](/docs/sdk/quickstart), which signs in and stores a first item in about five minutes. The [configuration](/docs/sdk/configuration) page lists every option of the client. The [sign-in](/docs/sdk/signin) and [collections](/docs/sdk/collections) pages cover the two main jobs of an app, and [errors](/docs/sdk/errors) explains what the SDK throws.

@@ -1,0 +1,87 @@
+---
+title: Errors
+description: The error classes the SDK throws, the fields each one carries, and where they come from.
+glance:
+  - label: "Base class"
+    value: "NeoworksError"
+  - label: "Check with"
+    value: "instanceof"
+  - label: "Also exposed as"
+    value: "Neoworks.errors"
+related:
+  - label: "Sign-in"
+    href: "/docs/sdk/signin"
+    description: "Where sign-in errors come from."
+  - label: "Collections"
+    href: "/docs/sdk/collections"
+    description: "Where collection errors come from."
+---
+
+Every error the SDK throws extends `NeoworksError`, which has a `code` string. Each subclass adds the fields that describe its own failure. Check for a subclass with `instanceof` before checking for `NeoworksError`, which matches all of them:
+
+```ts
+import { NeoworksError, ShareRefusedError } from '@neoworks-dev/sdk'
+
+async function shareWith(email: string): Promise<string | null> {
+  try {
+    await calendars.share(work.id, { email, role: 'read' })
+    return null
+  } catch (error) {
+    if (error instanceof ShareRefusedError && error.reason === 'identity_changed') {
+      return 'Confirm the changed key first.'
+    }
+    if (error instanceof NeoworksError) return error.message
+    throw error
+  }
+}
+```
+
+The same classes are available as `Neoworks.errors`, for example `Neoworks.errors.NotFoundError`.
+
+A failure from the wasm core that matches no class is thrown as a plain `NeoworksError`, with the core's status as its `code`.
+
+## Sign-in errors
+
+`AuthError` is thrown when sign-in, the token exchange or a token refresh fails. Its `code` names the cause. The codes the SDK sets are `redirect_required`, `login_cancelled`, `state_mismatch`, `missing_code`, `missing_verifier`, `not_authenticated`, `refresh_failed`, `refresh_unavailable` and `userinfo_failed`. An error the authorization server returns keeps its own code, such as `access_denied`.
+
+A `refresh_failed` clears the stored session, so the user has to sign in again. A `refresh_unavailable` means the server could not be reached, and the session is kept.
+
+## REST errors
+
+The REST resources, such as notifications, settings and storage, throw an `ApiError` when the API answers with an error status. It has the fields `status`, `code` and `message`, and it may have `field`, which names the request field a validation error refers to, and `permission`, which names the permission the caller lacks.
+
+A rate limit that outlasts the retries throws an `ApiError` with `status` 429 and `retryAfterSeconds`, the wait the server asked for.
+
+Three subclasses describe specific statuses:
+
+- `PermissionDeniedError` is thrown for status 403.
+- `NotFoundError` is thrown for status 404.
+- `QuotaExceededError` is thrown for a write that would take the account, or the app, over its storage limit. Its `usedBytes` and `limitBytes` give the figures, and `isAppCap` is `true` when the limit is the cap the user set on the app.
+
+`IncompatibleSchemaError` carries the `violations` of a schema version that breaks the versions published before it. Apps that only use collections do not normally see it.
+
+## Collection errors
+
+The collection resources throw these:
+
+- `NotFoundError` when the id is unknown or deleted, or names a node of the other kind, such as an item where an asset is expected. Downloading a variant the asset does not have also throws it.
+- `PermissionDeniedError` when the app has no root in the collection, for example when creating a container. A refusal of the core is also thrown as a `PermissionDeniedError`.
+- `InvalidContentError` when the schema rejects the content, when the key of the container is missing from an item, or when an asset is created without a file. It carries `path`, the field that was rejected, and `reason`.
+- `InvalidQueryError` when a `where`, `orderBy` or `take` is not allowed. It carries the same `path` and `reason`.
+
+When a sync runs into the storage limit, the SDK records the error on `neoworks.quotaError`, as the [sync](/docs/sdk/sync) page describes.
+
+## Sharing and people errors
+
+`ShareRefusedError` is thrown before anything is written, and its `reason` says why:
+
+- `not_owner` means only the owner of the node may share it.
+- `scope_not_granted` means the consent of the app does not include the `:share` scope of the collection.
+- `identity_changed` means the key of the person changed. The `identity` field holds the new key, which `neoworks.people.acceptChange` accepts once the user confirmed it.
+- `asset_not_shareable` means an asset the node references may not be shared by this app. The `assetId` field names it.
+
+`LookupFailedError` is thrown when a person cannot be found from an email, a user id or a contact code. Its `reason` is `invalid_code`, `not_found`, `rate_limited` or `failed`.
+
+## Relay errors
+
+`RelayError` is thrown for an `error` frame from the relay. Its `code` and `message` come from the frame, and `topic` names the topic the failed frame was about, when it had one. For a `rate_limited` error, `retryAfterSeconds` holds the wait the relay asked for.

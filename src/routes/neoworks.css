@@ -17,52 +17,6 @@
 
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
-@plugin "daisyui" {
-  themes: neoworks --default;
-}
-
-/* ── NeoWorks DaisyUI Theme ────────────────────────────────────── */
-@plugin "daisyui/theme" {
-  name: "neoworks";
-  default: true;
-  color-scheme: dark;
-
-  --color-base-100:         #000000;   /* canvas                  */
-  --color-base-200:         #0b0b0d;   /* elevated (sidebar, nav) */
-  --color-base-300:         #141416;   /* surface (cards)         */
-  --color-base-content:     #fafafa;
-
-  --color-primary:          #fafafa;   /* white CTA               */
-  --color-primary-content:  #0b0b0d;
-
-  --color-secondary:        #1c1c1f;
-  --color-secondary-content:#a1a1aa;
-
-  --color-accent:           #a78bfa;   /* ctx-violet              */
-  --color-accent-content:   #000000;
-
-  --color-neutral:          #1c1c1f;
-  --color-neutral-content:  #71717a;
-
-  --color-info:             #60a5fa;   /* ctx-blue                */
-  --color-info-content:     #000000;
-  --color-success:          #4ade80;   /* ctx-green               */
-  --color-success-content:  #000000;
-  --color-warning:          #fbbf24;   /* ctx-amber               */
-  --color-warning-content:  #000000;
-  --color-error:            #f87171;   /* ctx-red                 */
-  --color-error-content:    #000000;
-
-  --radius-selector: 0.375rem;
-  --radius-field:    0.375rem;
-  --radius-box:      0.5rem;
-  --size-selector:   0.875rem;
-  --size-field:      0.875rem;
-  --border:          1px;
-  --depth:           1;
-  --noise:           0;
-}
-
 @theme {
 
   /* ─────────────────────────────────────────────────────────
@@ -71,6 +25,7 @@
 
   --font-family-sans:    var(--font-sans);
   --font-family-mono:    var(--font-mono);
+  --font-hand:           'Caveat', 'Segoe Print', cursive;
 
   /* ─────────────────────────────────────────────────────────
    * MOTION — maps design tokens onto Tailwind duration scale
@@ -176,6 +131,38 @@
   --breakpoint-3xl: 1680px;
   --breakpoint-4xl: 1920px;
 
+  /* ─────────────────────────────────────────────────────────
+   * ENTRANCE ANIMATIONS
+   * ───────────────────────────────────────────────────────── */
+
+  --animate-rise:   rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-pop-in: pop-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(24px); }
+  }
+
+  --animate-drop-in: drop-in 0.7s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+
+  @keyframes drop-in {
+    from { opacity: 0; transform: translateY(-40px) scale(1.12); }
+  }
+
+  --animate-settle-down: settle-down 0.7s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+  --animate-tape-on:     tape-on 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes settle-down {
+    from { opacity: 0; transform: translateY(-28px) rotate(-2deg); }
+  }
+
+  @keyframes tape-on {
+    from { opacity: 0; transform: scale(1.5); }
+  }
+
+  @keyframes pop-in {
+    from { opacity: 0; transform: translateY(-12px) scale(0.96); }
+  }
+
 }
 
 /* ── Tailwind color utilities — theme-aware via CSS vars ── */
@@ -215,6 +202,28 @@
   --color-red-soft:    var(--ctx-red-soft);
   --color-amber-soft:  var(--ctx-amber-soft);
   --color-blue-soft:   var(--ctx-blue-soft);
+
+  /* Brand — decorative emphasis, unlike the context colours above */
+  --color-brand:       var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-fg:    var(--brand-fg);
+  --color-brand-soft:  var(--brand-soft);
+
+  /* Scrapbook — warm paper and sticky-note fills for the landing page */
+  --color-paper:       var(--paper);
+  --color-note:        var(--note);
+  --color-sky:         var(--sky);
+  --color-sun:         var(--sun);
+  --color-ridge-far:      var(--ridge-far);
+  --color-ridge-mid-far:  var(--ridge-mid-far);
+  --color-ridge-mid:      var(--ridge-mid);
+  --color-ridge-near:     var(--ridge-near);
+  --color-ridge-front:    var(--ridge-front);
+  --color-tape:        var(--tape);
+  --color-ink:            var(--ink);
+  --color-meadow:         var(--meadow);
+  --color-lake:           var(--lake);
+  --color-field:          var(--field);
 }
 
 
@@ -261,10 +270,97 @@
   --ctx-pink-soft:  rgba(219, 39,  119, 0.10);
 }
 
+/* ── Brand accent — one colour, used sparingly for emphasis ────
+ * Forest on light, lifted to a lighter green on dark so it keeps
+ * contrast. Fills carry white text on light (7.6:1) and dark text on
+ * dark (7.3:1). */
+:root,
+[data-theme="dark"] {
+  --brand:       #4caf7f;
+  --brand-hover: #5cbf8c;
+  --brand-fg:    #0b0b0d;
+  --brand-soft:  rgba(76, 175, 127, 0.14);
+  --paper:       #1f1c18;
+  --note:        #4a4024;
+}
+[data-theme="light"] {
+  --brand:       #1f5f3f;
+  --brand-hover: #184b32;
+  --brand-fg:    #ffffff;
+  --brand-soft:  rgba(31, 95, 63, 0.10);
+  --paper:       #f5efe4;
+  --note:        #fbe7a1;
+}
+
+/* ── Landscape — the landing hero's mountains, pale with distance ── */
+:root {
+  --sky:            #f4ead6;
+  --sun:            #f7d488;
+  --ridge-far:      #bcd2c6;
+  --ridge-mid-far:  #92b6a4;
+  --ridge-mid:      #64937b;
+  --ridge-near:     #3c7258;
+  --ridge-front:    #1f5f3f;
+  --ink:            #4a1f1a;   /* outline colour shared with the marmot illustrations */
+  --meadow:         #e3ebdc;
+  --lake:           #d3e2e2;
+  --field:          #efe5c6;
+  --star:           transparent;
+  --tape:           rgba(255, 255, 255, 0.55);
+}
+
+/* Night: the same landscape after dark. Keyed on <html> rather than on any
+   [data-theme], because forest sections set data-theme="dark" in daylight too. */
+:root:not([data-theme="light"]) [data-scene-root]:not([data-theme="light"]) {
+  --sky:            #1d1e21;
+  --star:           rgba(250, 244, 220, 0.85);
+  --tape:           rgba(255, 255, 255, 0.12);
+  --ridge-far:      #3a3e41;
+  --ridge-mid-far:  #33393a;
+  --ridge-mid:      #2c3332;
+  --ridge-near:     #252c2a;
+  --ridge-front:    #1d2522;
+  --ink:            #0b1317;
+  --meadow:         #202321;
+  --lake:           #1d2123;
+  --field:          #232220;
+}
+
+/* Night neutrals: warm charcoal instead of the dark theme's cold zinc greys. Also set
+   inside every themed element, so paper cards and forest sections go dark together. */
+:root:not([data-theme="light"]) [data-scene-root]:not([data-theme="light"]),
+:root:not([data-theme="light"]) [data-scene-root]:not([data-theme="light"]) [data-theme] {
+  color-scheme: dark;
+
+  --bg:             #161719;
+  --bg-elevated:    #202124;
+  --surface:        #232427;
+  --surface-raised: #28292c;
+  --surface-hover:  #2f3034;
+  --surface-input:  #18191b;
+
+  --border:         #343539;
+  --border-strong:  #4b4c51;
+  --border-faint:   rgba(255, 255, 255, 0.07);
+
+  --text:           #f3efe4;
+  --text-muted:     #b6b4b0;
+  --text-dim:       #8b8986;
+  --text-faint:     #63625f;
+
+  --paper:          #18191b;
+  --note:           #d9bf62;
+
+  --brand:          #5cbf8c;
+  --brand-hover:    #6fcf9c;
+  --brand-fg:       #0b1317;
+  --brand-soft:     rgba(92, 191, 140, 0.14);
+}
+
 /* ── Typography ─────────────────────────────────────────────── */
 :root {
-  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Roboto Mono', monospace;
+  --font-sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SF Mono', 'Roboto Mono', monospace;
 
   --text-2xs:     11px;
   --text-xs:      12px;
@@ -361,14 +457,14 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --bg:            #000000;
-  --bg-elevated:   #0b0b0d;
-  --surface:       #141416;
+  --bg:            #141416;
+  --bg-elevated:   #262628;
+  --surface:       #1c1c1e;
   --surface-raised:#1c1c1f;
   --surface-hover: #1f1f23;
   --surface-input: #0e0e10;
 
-  --border:        #262626;
+  --border:        #29292b;
   --border-strong: #3f3f46;
   --border-faint:  rgba(255,255,255,0.06);
 
@@ -530,10 +626,6 @@
     font-size: var(--text-sm);
   }
 
-  /* Docs prose colour/size mapping lives unlayered at the end of this file — it must
-     beat daisyUI's `.prose` rules (declared in a layer after utilities), which pin
-     --tw-prose-* to --color-base-content and don't follow our [data-theme] tokens. */
-
   .doc-article :is(h1, h2, h3, h4) {
     scroll-margin-top: 7rem;
     letter-spacing: -0.015em;
@@ -545,11 +637,11 @@
     text-underline-offset: 2px;
   }
 
+  /* Charcoal in both themes, outlined in ink like the illustrations. */
   .doc-article pre {
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--border);
+    border-radius: 6px;
+    border: 2px solid var(--ink);
   }
-  /* Inline-code chip styling is unlayered at the end of this file (must beat daisyUI). */
 
   /* Header block above the rendered markdown. */
   .doc-article__header {
@@ -595,6 +687,25 @@
 
 
 /* ═══════════════════════════════════════════════════════════════
+ * SCROLL-DRIVEN — no-op where animation-timeline is unsupported
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Tilted back while entering the viewport, flat by the time it is half scrolled through. */
+@utility scroll-settle {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: settle linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 50%;
+    }
+  }
+}
+
+@keyframes settle {
+  from { transform: perspective(1600px) rotateX(14deg) scale(0.94); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
  * GRID UTILITIES — cols-N and rows-N map to fluid grid units
  * ═══════════════════════════════════════════════════════════════ */
 
@@ -609,13 +720,10 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * DOCS PROSE — must beat daisyUI
+ * DOCS PROSE
  * ═══════════════════════════════════════════════════════════════
- * daisyUI's `.prose` rules live in a cascade layer declared after `utilities`
- * and pin --tw-prose-* to --color-base-content (which has only the dark theme, so
- * it never flips → white text in light mode). These rules are UNLAYERED, so they
- * outrank every @layer and bind prose to our [data-theme] tokens, which do flip.
- * Larger base size too; prose spacing/headings are em-based so the article scales. */
+ * Binds the typography plugin's --tw-prose-* colours to our [data-theme] tokens.
+ * Unlayered, because the plugin's .prose sits in the utilities layer. */
 .doc-article.prose {
   font-size: 1.1875rem;
   --tw-prose-body: var(--text-muted);
@@ -624,8 +732,8 @@
   --tw-prose-links: var(--text);
   --tw-prose-bold: var(--text);
   --tw-prose-code: var(--text);
-  --tw-prose-pre-code: var(--text);
-  --tw-prose-pre-bg: var(--surface);
+  --tw-prose-pre-code: #ece9e1;
+  --tw-prose-pre-bg: #1e1f22;
   --tw-prose-quotes: var(--text-muted);
   --tw-prose-quote-borders: var(--border);
   --tw-prose-hr: var(--border);
@@ -637,11 +745,9 @@
   color: var(--text-muted);
 }
 
-/* Inline code chip — also unlayered so daisyUI's dark-only code background can't
-   override it (that's what made the chip black in light mode). --surface contrasts
-   against the page's --bg in both themes. */
+/* Inline code chip. The article sits on --surface, so the chip takes the page's paper. */
 .doc-article.prose :not(pre) > code {
-  background: var(--surface);
+  background: var(--paper);
   color: var(--text);
   border: 1px solid var(--border-faint);
   border-radius: var(--radius-sm);
@@ -652,4 +758,44 @@
 .doc-article.prose :not(pre) > code::before,
 .doc-article.prose :not(pre) > code::after {
   content: "";
+}
+
+/* Code panels (fenced blocks, CodeBlock, Terminal, RequestExample): charcoal in both themes. */
+.code-panel {
+  background: #1e1f22;
+  color: #ece9e1;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+}
+.doc-article .code-panel pre {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+}
+.code-panel .token.comment { color: #7d7d83; font-style: italic; }
+.code-panel .token.string { color: #a8d5a2; }
+.code-panel .token.keyword { color: #e8b86a; }
+.code-panel .token.number { color: #e8a37a; }
+.code-panel .token.function { color: #8ec9e6; }
+.code-panel .token.property { color: #8ec9e6; }
+.code-panel .token.flag { color: #e8b86a; }
+.code-panel .token.variable { color: #d6a8e0; }
+
+/* Scroll parallax for the landscape: drifts down by --scroll-shift over the first screen. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    .scroll-sink {
+      animation: scroll-sink linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100vh;
+    }
+  }
+}
+
+@keyframes scroll-sink {
+  to {
+    transform: translateY(var(--scroll-shift));
+  }
 }

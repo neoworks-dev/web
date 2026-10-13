@@ -1,54 +1,97 @@
 <script lang="ts">
 	import SectionHeading from './SectionHeading.svelte';
-	import AppShowcase from './AppShowcase.svelte';
-	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
-	import MapTrifoldIcon from 'phosphor-svelte/lib/MapTrifoldIcon';
-	import PaintBrushIcon from 'phosphor-svelte/lib/PaintBrushIcon';
-	import { appUrl } from '$lib/urls';
+	import PaperCard from './scrapbook/PaperCard.svelte';
+	import Marmot from './scrapbook/Marmot.svelte';
+	import HillEdge from './scrapbook/HillEdge.svelte';
+	import FolderIcon from 'phosphor-svelte/lib/FolderIcon';
+	import CalendarBlankIcon from 'phosphor-svelte/lib/CalendarBlankIcon';
+	import AddressBookIcon from 'phosphor-svelte/lib/AddressBookIcon';
+	import SlidersHorizontalIcon from 'phosphor-svelte/lib/SlidersHorizontalIcon';
+	import CodeIcon from 'phosphor-svelte/lib/CodeIcon';
+	import EnvelopeSimpleIcon from 'phosphor-svelte/lib/EnvelopeSimpleIcon';
 
-	// Featured app screens. Drop the screenshots into `static/screens/` at the paths
-	// below; until then each frame renders a labelled placeholder.
-	const screens = [
+	type AppEntry = { name: string; body: string; Icon: typeof FolderIcon };
+
+	const storedApps: AppEntry[] = [
 		{
-			name: 'Maps',
-			tagline: 'Privacy-first maps, built on your account.',
-			description:
-				'Live navigation, routing and custom overlays — with every trip stored in your encrypted space instead of a tracking silo.',
-			href: appUrl('maps'),
-			accent: '#22d3ee',
-			icon: MapTrifoldIcon,
-			image: '/screens/maps-overlay.png',
-			imageAlt: 'Maps app showing a live navigation overlay',
-			features: ['Turn-by-turn navigation', 'Custom data overlays', 'Trips never leave your account'],
-			external: true
+			name: 'Drive',
+			body: 'Documents, scans and everything that is not a photo, in folders you already know how to use.',
+			Icon: FolderIcon
 		},
 		{
-			name: 'Muse',
-			tagline: 'An infinite canvas for thinking visually.',
-			description:
-				'Sketch, arrange media and collaborate on a boundless board. Sync and collaboration are built in — your boards sync through your own encrypted storage.',
-			href: appUrl('muse'),
-			accent: '#f472b6',
-			icon: PaintBrushIcon,
-			image: '/screens/muse-canvas.png',
-			imageAlt: 'Muse app showing an infinite canvas board',
-			features: ['Infinite pan-and-zoom canvas', 'Media and rich embeds', 'Real-time collaboration'],
-			external: true
+			name: 'Calendar',
+			body: 'Your events and the people in them, on every device you own.',
+			Icon: CalendarBlankIcon
+		},
+		{
+			name: 'Contacts',
+			body: 'Everyone you know, with the numbers, birthdays and addresses you have collected over the years.',
+			Icon: AddressBookIcon
 		}
 	];
+
+	const workingApps: AppEntry[] = [
+		{
+			name: 'Photo editor',
+			body: 'Crop, adjust and retouch your photos where they are, without exporting them to another app first.',
+			Icon: SlidersHorizontalIcon
+		},
+		{
+			name: 'Code editor',
+			body: 'Write code in the browser, with your projects kept in your own encrypted account.',
+			Icon: CodeIcon
+		},
+		{
+			name: 'Mail',
+			body: 'A mail app for the address you already have. You keep your mail provider and use Neoworks as the app.',
+			Icon: EnvelopeSimpleIcon
+		}
+	];
+
+	const cardRotations = [-1.2, 0.8, -0.6];
 </script>
 
-<section id="apps" class="scroll-mt-28 border-t border-line-faint px-6 py-24 max-md:py-16">
-	<div class="mx-auto max-w-[1120px]">
-		<SectionHeading
-			eyebrow="The ecosystem"
-			title="A growing family of apps — all on your account."
-			subtitle="Real apps built on NeoWorks today. Each one stores its data in your encrypted space, not its own silo. Anyone can build the next one."
-		/>
+{#snippet appCard({ name, body, Icon }: AppEntry, index: number)}
+	<PaperCard rotate={cardRotations[index]} revealDelay={index * 100}>
+		<span
+			class="flex size-11 items-center justify-center rounded-full border-2 border-ink bg-note text-ink"
+		>
+			<Icon size={22} weight="bold" />
+		</span>
+		<h3 class="mt-5 text-base font-semibold tracking-tight text-default">{name}</h3>
+		<p class="mt-2 text-sm leading-relaxed text-muted">{body}</p>
+	</PaperCard>
+{/snippet}
 
-		<div class="mt-16 flex flex-col gap-20 max-md:gap-14">
-			{#each screens as screen, index}
-				<AppShowcase {...screen} reverse={index % 2 === 1} />
+<section id="apps" class="relative scroll-mt-28 bg-meadow px-6 pb-24 pt-16 max-md:pb-16">
+	<HillEdge />
+	<div class="mx-auto max-w-[1120px]">
+		<div class="flex items-end justify-between gap-8">
+			<SectionHeading
+				eyebrow="Everything else"
+				title="The rest of your digital life."
+				subtitle="Photos is where most people start. Your files, calendar and contacts come along on the same account, under the same encryption."
+			/>
+			<Marmot pose="archivist" class="w-[160px] shrink-0 max-md:hidden" />
+		</div>
+
+		<div class="mt-12 grid grid-cols-3 gap-6 max-md:grid-cols-1">
+			{#each storedApps as app, index (app.name)}
+				{@render appCard(app, index)}
+			{/each}
+		</div>
+
+		<div class="mt-20 max-md:mt-14">
+			<SectionHeading
+				eyebrow="Apps that work on it"
+				title="Not just a place to put things."
+				subtitle="Neoworks apps open your photos and files directly, so nothing has to be downloaded, uploaded somewhere else and forgotten there."
+			/>
+		</div>
+
+		<div class="mt-12 grid grid-cols-3 gap-6 max-md:grid-cols-1">
+			{#each workingApps as app, index (app.name)}
+				{@render appCard(app, index)}
 			{/each}
 		</div>
 	</div>

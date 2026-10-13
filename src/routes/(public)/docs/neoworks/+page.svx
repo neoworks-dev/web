@@ -1,5 +1,6 @@
 ---
 title: Introduction
+marmot: reader
 description: NeoWorks is a personal cloud built on ownership, not surveillance. One identity, your data, encrypted so only you can read it.
 ---
 

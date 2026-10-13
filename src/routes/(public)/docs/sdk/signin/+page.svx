@@ -1,0 +1,99 @@
+---
+title: Sign-in
+description: Restoring a session, starting and finishing sign-in in a browser or a native app, and signing out.
+glance:
+  - label: "Flow"
+    value: "Authorization code with PKCE"
+  - label: "Client secret"
+    value: "None"
+  - label: "Native apps"
+    value: "Custom scheme redirect"
+related:
+  - label: "Configuration"
+    href: "/docs/sdk/configuration"
+    description: "Redirect URI and token storage."
+  - label: "OAuth"
+    href: "/docs/neoworks/oauth"
+    description: "How the server side works."
+---
+
+<script>
+  import MarginNote from '$lib/components/docs/MarginNote.svelte'
+  import CodeAside from '$lib/components/docs/CodeAside.svelte'
+  import Callout from '$lib/components/docs/Callout.svelte'
+  const popupExample = { language: 'ts', code: `const user = await neoworks.signin({ popup: true })` }
+</script>
+
+Sign-in uses the authorization code flow with PKCE, so the app holds no client secret. The client has four calls for it: `ready()` restores a session, `signin()` starts or finishes a sign-in, `signout()` ends it, and `user` tells the app who is signed in.
+
+## Restoring a session
+
+`ready()` loads the session of an earlier visit from the storage, and resolves to the `User`, or to `null` when nobody is signed in.
+
+```ts
+const user = await neoworks.ready()
+```
+
+<MarginNote>An expired access token is refreshed first. When the refresh cannot reach the server, the session is kept and the user is still returned.</MarginNote>
+
+Call it once when the app starts. When the user is signed in, `ready()` also starts the sync of the encrypted collections.
+
+The user is an object with `id`, `email` and `name`. It is also available later as `neoworks.user`, which is `null` until `ready()` or `signin()` has resolved with a user.
+
+## Signing in in a browser
+
+`signin()` without options navigates the current page to the Neoworks authorization page. The call resolves to `null`, because the page is replaced shortly after it.
+
+```ts
+await neoworks.signin()
+```
+
+<Callout kind="tip">
+
+Code after a redirecting `signin()` may still run for a moment before the browser leaves the page. Do not start work that must not happen at that point.
+
+</Callout>
+
+The redirect URI of the app, `/callback` by default, must call `signin()` as well. The call finds the code and state in the page URL, checks the state, exchanges the code and resolves to the `User`. The SDK then removes the parameters from the page URL.
+
+An error from the authorization server is thrown as an `AuthError` whose `code` is the error the server sent, for example `access_denied`.
+
+<CodeAside {...popupExample}>
+
+## Signing in with a popup
+
+With `popup: true`, the authorization page opens in a popup window, and the page that started the sign-in stays where it is. The call resolves to the `User` once the popup has finished.
+
+The popup lands on the same redirect URI, and the callback route still calls `signin()`. That call hands the code to the opening window and closes the popup. If the user closes the popup first, the call rejects with an `AuthError` whose code is `login_cancelled`. When the browser blocks the popup, the SDK falls back to a redirect.
+
+</CodeAside>
+
+## Native apps
+
+A native app cannot rely on the page URL, because the authorization page opens outside the app. Pass an `open` function that opens the URL in the system browser. The call resolves to `null` once the URL is opened.
+
+```ts
+import { Browser } from '@capacitor/browser'
+
+await neoworks.signin({ open: (url) => Browser.open({ url }) })
+```
+
+The redirect URI of such an app is a custom scheme, passed as `redirect` when the client is created. When the operating system opens the app with that URL, pass the URL to `signin()` as `callbackUrl`:
+
+```ts
+await neoworks.signin({ callbackUrl: deepLinkUrl })
+```
+
+The call reads the code and state from `callbackUrl` and resolves to the `User`. Use the same client for both calls.
+
+## Requesting more scopes
+
+`signin()` always starts a new flow, even when a session exists, unless the current URL is an OAuth callback. The flow asks for the scopes the client was created with. An app that needs more access creates the client with the larger list of scopes and signs in again.
+
+## Signing out
+
+`signout()` removes the tokens and the user from the storage. For an app that works with encrypted collections, it also stops sync and erases the local store on the device. The install keys stay, so the next sign-in reuses them. The SDK does not ask the server to revoke the tokens.
+
+```ts
+await neoworks.signout()
+```

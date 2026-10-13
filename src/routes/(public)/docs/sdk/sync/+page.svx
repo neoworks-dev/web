@@ -1,0 +1,85 @@
+---
+title: Changes and sync
+description: How encrypted collections stay in step with the server and other devices, how the app hears about changes, and how it behaves offline.
+glance:
+  - label: "Starts with"
+    value: "ready() or signin()"
+  - label: "Periodic sync"
+    value: "Every 15 minutes"
+  - label: "Retry delay"
+    value: "2 seconds up to 5 minutes"
+related:
+  - label: "Collections"
+    href: "/docs/sdk/collections"
+    description: "The data that gets synced."
+  - label: "Errors"
+    href: "/docs/sdk/errors"
+    description: "What a failed sync throws."
+---
+
+<script>
+  import MarginNote from '$lib/components/docs/MarginNote.svelte'
+  import CodeAside from '$lib/components/docs/CodeAside.svelte'
+  const forceSyncExample = { language: 'ts', code: `const report = await neoworks.sync()
+console.log(report.pushedNodes, report.pulledNodes)` }
+</script>
+
+Sync moves the encrypted nodes between the device and the server. It pushes the local edits, pulls the changes of other devices and applies them to the local store. The SDK runs sync on its own once the user is signed in, so an app only has to listen for changes and, when it wants, run a sync itself.
+
+## When sync runs
+
+Sync starts with `ready()` or `signin()` for a user who has a collection scope. It runs at once, and then whenever the change feed of the server reports something the session may read. The feed reconnects by itself when the connection drops. When the server reports that changes were missed while it was away, a sync runs at once.
+
+<MarginNote>A sync also runs every 15 minutes, in case a change signal was lost.</MarginNote>
+
+A sync that throws is retried with a doubling delay, starting at two seconds and going up to five minutes, until one succeeds or a new change arrives.
+
+<CodeAside {...forceSyncExample}>
+
+## Forcing a sync
+
+`sync()` runs one sync now and resolves to its report. Calls made while a run is in flight share that run.
+
+`sync()` rejects with an `AuthError` when nobody is signed in. It also rejects when a request to the server fails, which is the case when the device is offline.
+
+</CodeAside>
+
+## Change events
+
+`on('change', listener)` reports every node of an encrypted collection that was created, updated or deleted. It fires as soon as this device writes the node, and after a sync for the changes of other devices. A write made by this device is not reported a second time when the sync pushes it.
+
+```ts
+const stopListening = neoworks.on('change', ({ collection, id, action }) => {
+  console.log(collection, id, action)
+})
+```
+
+The `collection` is the registry path of the collection, such as `@neoworks/calendar`. The `action` is `created`, `updated` or `deleted`. A node that no longer appears after a sync is reported as deleted.
+
+Each event says what changed but not the new content. Read the node with `get` or `list` when the app needs it. `on` returns a function that removes the listener.
+
+## Sync reports
+
+`on('sync', listener)` fires after every run that finishes, and `neoworks.syncReport` holds the report of the latest one. The report counts what the run did, in fields such as `pushedNodes`, `pulledNodes` and `appliedNodes`.
+
+The field `integrityFailures` lists the nodes whose access log failed verification. A fork or a rollback on the server shows up there. The user must see these, so the app should show them.
+
+```ts
+neoworks.on('sync', (report) => {
+  if (report.integrityFailures.length > 0) {
+    console.error('Integrity failures in', report.integrityFailures)
+  }
+})
+```
+
+The field `failure` reads `ok` for a run that completed. A run that did not complete has another value there.
+
+When a write is refused because the account or the app has reached its storage limit, the SDK keeps the error in `neoworks.quotaError`. Each new run clears it. It is `null` when no limit was hit.
+
+## Offline use
+
+The encrypted local store lives in the browser's IndexedDB, or in the database the `database` option names. Reads and writes need no connection. A write is stored locally before its call resolves, so a reload right after it keeps the change.
+
+A local write stays pending until the server accepts it. The field `pending` in `_meta` is `true` while it waits. A local write starts a sync a moment after it is made, and that sync pushes the pending edits.
+
+A new asset cannot be created offline. Its file is uploaded before `create` resolves, and when the upload fails, the asset is deleted again and the call throws.

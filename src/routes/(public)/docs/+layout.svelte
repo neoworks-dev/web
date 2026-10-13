@@ -2,9 +2,12 @@
 	import { onMount, onDestroy, tick } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { productForPath } from '$lib/data/docsNav';
-	import TableOfContents from '$lib/components/docs/TableOfContents.svelte';
+	import { editUrlForPath, neighboursOfPath, productForPath } from '$lib/data/docsNav';
+	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import PageFeedback from '$lib/components/docs/PageFeedback.svelte';
+	import PrevNext from '$lib/components/docs/PrevNext.svelte';
 	import DocSearch from '$lib/components/docs/DocSearch.svelte';
+	import DocsProductSwitcher from '$lib/components/docs/DocsProductSwitcher.svelte';
 
 	let { children } = $props();
 
@@ -54,43 +57,123 @@
 	});
 	onDestroy(() => observer?.disconnect());
 
+	// /docs itself is the overview of every product, without a sidebar or contents.
+	const isDocsHome = $derived($page.url.pathname === '/docs');
+
 	const isActive = (href: string) => $page.url.pathname === href;
+
+	/** The first heading in view: the section being read, marked in the sidebar. */
+	const currentHeadingId = $derived.by(() => {
+		const visibleHeading = headings.find((heading) => activeIds.has(heading.id));
+		if (visibleHeading === undefined) return undefined;
+		return visibleHeading.id;
+	});
+
+	const neighbours = $derived(neighboursOfPath($page.url.pathname));
+	const pageTitle = $derived.by(() => {
+		const links = activeProduct.sections.flatMap((section) => section.links);
+		const link = links.find((candidate) => isActive(candidate.href));
+		if (link === undefined) return '';
+		return link.label;
+	});
+
+	function showsHeadings(href: string): boolean {
+		return isActive(href) && headings.length > 0;
+	}
+
+	function ariaCurrent(href: string): 'page' | undefined {
+		if (isActive(href)) return 'page';
+		return undefined;
+	}
 </script>
 
-<div class="mx-auto w-full max-w-[1320px] px-6 pb-24 pt-36">
-	<div class="grid grid-cols-1 gap-10 lg:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[200px_minmax(0,1fr)_180px]">
-		<!-- Left: section nav (active product) -->
-		<aside class="hidden lg:block">
-			<nav class="sticky top-32 flex flex-col gap-6">
-				<DocSearch />
-				{#each activeProduct.sections as section}
-					<div class="flex flex-col gap-1">
-						<h2 class="mb-1 px-2 text-2xs font-medium uppercase tracking-[0.12em] text-faint [font-family:var(--font-mono)]">
-							{section.title}
-						</h2>
-						{#each section.links as link}
-							<a
-								href={link.href}
-								class="rounded-lg px-2 py-1.5 text-sm transition-colors {isActive(link.href)
-									? 'bg-hover font-medium text-default'
-									: 'text-muted hover:bg-hover hover:text-default'}"
-							>
-								{link.label}
-							</a>
-						{/each}
-					</div>
-				{/each}
-			</nav>
-		</aside>
-
-		<!-- Center: rendered doc -->
-		<div bind:this={contentEl} class="min-w-0 max-w-[760px]">
+<!-- Paper by day, charcoal at night: the same scrapbook as the landing page. -->
+<div class="bg-paper">
+	<div class="mx-auto w-full max-w-[1480px] px-6 pb-24 pt-28">
+		{#if isDocsHome}
 			{@render children()}
-		</div>
+		{:else}
+			<div class="grid grid-cols-1 gap-10 lg:grid-cols-[220px_minmax(0,1fr)]">
+				<!-- Left: section nav (active product) -->
+				<aside class="hidden lg:block">
+					<!-- Raised above the article, so the product picker's list opens over it. -->
+					<nav class="sticky top-28 z-raised flex flex-col gap-6">
+						<div class="flex flex-col gap-2">
+							<DocsProductSwitcher {activeProduct} />
+							<DocSearch />
+						</div>
+						{#each activeProduct.sections as section}
+							<div class="flex flex-col gap-1">
+								<h2 class="mb-1 px-2 font-hand text-xl leading-none text-brand">
+									{section.title}
+								</h2>
+								{#each section.links as link (link.href)}
+									<!-- The current page is marked with a highlighter stroke. -->
+									<a
+										href={link.href}
+										aria-current={ariaCurrent(link.href)}
+										class={[
+											'rounded-[2px] px-2 py-1.5 text-sm transition-colors',
+											{
+												'-rotate-[0.6deg] bg-note font-medium text-ink': isActive(link.href),
+												'text-muted hover:text-default': !isActive(link.href)
+											}
+										]}
+									>
+										{link.label}
+									</a>
+									{#if showsHeadings(link.href)}
+										<!-- The open page's sections, with the one being read marked. -->
+										<ul class="mb-2 ml-3 mt-1 flex flex-col border-l border-line-faint">
+											{#each headings as heading (heading.id)}
+												<li>
+													<a
+														href="#{heading.id}"
+														class={[
+															'-ml-px block border-l-2 py-1 text-[13px] leading-snug transition-colors',
+															{
+																'pl-3': heading.level === 2,
+																'pl-6': heading.level === 3,
+																'border-brand text-default': heading.id === currentHeadingId,
+																'border-transparent text-dim hover:text-default':
+																	heading.id !== currentHeadingId
+															}
+														]}
+													>
+														{heading.text}
+													</a>
+												</li>
+											{/each}
+										</ul>
+									{/if}
+								{/each}
+							</div>
+						{/each}
+					</nav>
+				</aside>
 
-		<!-- Right: on-page TOC -->
-		<aside class="hidden xl:block">
-			<TableOfContents {headings} {activeIds} />
-		</aside>
+				<!-- Center: rendered doc -->
+				<div bind:this={contentEl} class="min-w-0 max-w-[760px] xl:max-w-[700px]">
+					{@render children()}
+
+					<PrevNext previous={neighbours.previous} next={neighbours.next} />
+
+					<footer
+						class="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line-faint pt-6"
+					>
+						<PageFeedback pathname={$page.url.pathname} {pageTitle} />
+						<a
+							href={editUrlForPath($page.url.pathname)}
+							target="_blank"
+							rel="noreferrer"
+							class="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-default"
+						>
+							<PencilSimpleIcon size={14} />
+							Edit this page on GitHub
+						</a>
+					</footer>
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>

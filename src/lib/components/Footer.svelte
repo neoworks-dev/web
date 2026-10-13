@@ -1,67 +1,55 @@
 <script lang="ts">
-	const cols = [
+	import { everydayApps, developerTools, type NavProject } from '$lib/data/projects';
+
+	type FooterLink = { label: string; href?: string; external?: boolean };
+
+	function fromProjects(projects: NavProject[]): FooterLink[] {
+		return projects.map((project) => ({ label: project.name, href: project.href, external: project.external }));
+	}
+
+	const columns: { heading: string; links: FooterLink[] }[] = [
+		{ heading: 'Apps', links: fromProjects(everydayApps) },
+		{ heading: 'Developers', links: fromProjects(developerTools) },
 		{
-			heading: 'Platform',
+			heading: 'Neoworks',
 			links: [
-				{ label: 'UserLayer',     href: '/userlayer'    },
-				{ label: 'Self-hosting',  href: '/self-host'    },
-				{ label: 'OpenSchema',    href: '/openschema'   },
-				{ label: 'Pricing',       href: '/pricing'      },
-				{ label: 'Changelog',     href: '/changelog'    },
-			],
-		},
-		{
-			heading: 'Apps',
-			links: [
-				{ label: 'Grove',  href: '/apps/grove'  },
-				{ label: 'Vine',   href: '/apps/vine'   },
-				{ label: 'Tide',   href: '/apps/tide'   },
-				{ label: 'Twig',   href: '/apps/twig'   },
-				{ label: 'Relay',  href: '/apps/relay'  },
-				{ label: 'Vault',  href: '/apps/vault'  },
-				{ label: 'Trail',  href: '/apps/trail'  },
-			],
-		},
-		{
-			heading: 'Developers',
-			links: [
-				{ label: 'Docs',           href: '/docs'          },
-				{ label: 'OpenSchema',     href: '/openschema'    },
-				{ label: 'OAuth guide',    href: '/docs/neoworks/oauth' },
-				{ label: 'Profit sharing', href: '/docs/revenue'  },
-				{ label: 'GitHub',         href: 'https://github.com/neoworks-io', external: true },
-			],
+				{ label: 'Pricing', href: '/pricing' },
+				{ label: 'Security', href: '/#security' },
+				{ label: 'How encryption works', href: '/docs/neoworks/encryption' }
+			]
 		},
 		{
 			heading: 'Legal',
 			links: [
-				{ label: 'Privacy',  href: '/privacy'  },
-				{ label: 'Terms',    href: '/terms'    },
+				{ label: 'Privacy', href: '/privacy' },
+				{ label: 'Terms', href: '/terms' },
 				{ label: 'Security', href: '/security' },
-				{ label: 'DPA',      href: '/dpa'      },
-			],
-		},
+				{ label: 'DPA', href: '/dpa' }
+			]
+		}
 	];
 
 	const social = [
-		{ label: 'GitHub',  href: 'https://github.com/neoworks-io' },
-		{ label: 'Discord', href: 'https://discord.gg/neoworks'    },
-		{ label: 'X',       href: 'https://x.com/neoworks'         },
+		{ label: 'GitHub', href: 'https://github.com/neoworks-io' },
+		{ label: 'Discord', href: 'https://discord.gg/neoworks' },
+		{ label: 'X', href: 'https://x.com/neoworks' }
 	];
 
 	const year = new Date().getFullYear();
+
+	function linkTargetAttributes(link: FooterLink) {
+		if (!link.external) return {};
+		return { target: '_blank', rel: 'noopener noreferrer' };
+	}
 </script>
 
-<footer class="relative border-t border-line bg-elevated">
-	<!-- Accent glow on the divider -->
-	<div class="pointer-events-none absolute left-[10%] right-[10%] top-[-1px] h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
-
-	<!-- Main grid -->
-	<div class="mx-auto grid max-w-[1120px] grid-cols-[1.8fr_repeat(4,1fr)] gap-8 px-8 pb-8 pt-11
-				max-lg:grid-cols-3 max-md:grid-cols-2 max-md:px-5 max-md:pt-8">
-
-		<!-- Brand column -->
-		<div class="flex flex-col gap-4 max-lg:col-span-3 max-md:col-span-2">
+<!-- The forest floor: carries on from the front ridge of the mountains above it. -->
+<footer data-theme="dark" class="relative -mt-1 overflow-hidden bg-ridge-front">
+	<div
+		class="mx-auto grid max-w-[1120px] grid-cols-[1.6fr_repeat(4,1fr)] gap-8 px-8 pb-16 pt-14
+			max-lg:grid-cols-3 max-md:grid-cols-2 max-md:px-5 max-md:pt-10"
+	>
+		<div class="flex flex-col gap-3 max-lg:col-span-3 max-md:col-span-2">
 			<a href="/" class="inline-flex items-center gap-2.5 text-default" aria-label="NeoWorks">
 				<svg width="22" height="22" viewBox="0 0 100 100" fill="none" aria-hidden="true">
 					<circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="7" />
@@ -75,29 +63,29 @@
 				<span class="text-md font-semibold tracking-tight text-default">NeoWorks</span>
 			</a>
 
-			<p class="max-w-[200px] text-[13px] leading-relaxed text-muted">
-				Your data, your rules.<br/>
-				A personal cloud built on ownership, not surveillance.
+			<p class="-rotate-2 font-hand text-2xl leading-tight text-brand">
+				Your stuff, kept safe.<br />Even from us.
 			</p>
-
-			<span class="font-mono text-[10px] tracking-[0.08em] text-faint">neoworks.dev</span>
 		</div>
 
-		<!-- Link columns -->
-		{#each cols as col}
+		{#each columns as column (column.heading)}
 			<div class="flex flex-col">
-				<h3 class="mb-3.5 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-dim">
-					{col.heading}
-				</h3>
+				<h3 class="mb-3 font-hand text-xl leading-none text-brand">{column.heading}</h3>
 				<ul class="flex flex-col gap-[2px] p-0">
-					{#each col.links as link}
+					{#each column.links as link (link.label)}
 						<li>
-							<a
-								href={link.href}
-								class="inline-block py-[5px] text-[13px] text-muted transition-colors hover:text-default"
-								target={link.external ? '_blank' : undefined}
-								rel={link.external ? 'noopener noreferrer' : undefined}
-							>{link.label}</a>
+							{#if link.href}
+								<a
+									href={link.href}
+									{...linkTargetAttributes(link)}
+									class="inline-block py-[5px] text-[13px] text-default/80 underline decoration-transparent decoration-wavy underline-offset-4 transition-[color,text-decoration-color] hover:text-default hover:decoration-brand"
+									>{link.label}</a
+								>
+							{:else}
+								<span class="inline-block py-[5px] text-[13px] text-default/50">
+									{link.label} <span class="font-hand text-sm">soon</span>
+								</span>
+							{/if}
 						</li>
 					{/each}
 				</ul>
@@ -105,20 +93,26 @@
 		{/each}
 	</div>
 
-	<!-- Bottom bar -->
-	<div class="border-t border-line-faint">
-		<div class="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-3 px-8 py-3 max-md:px-5">
-			<span class="font-mono text-[11px] tracking-[0.02em] text-faint">
-				© {year} NeoWorks, Inc. — Built with care for privacy.
-			</span>
+	<div class="relative border-t border-white/10">
+		<!-- Rides along the bottom edge of the footer. -->
+		<img
+			src="/marmot/cyclist.webp"
+			alt=""
+			draggable="false"
+			class="pointer-events-none absolute bottom-full right-[12%] w-[110px] select-none max-md:right-4 max-md:w-[80px]"
+		/>
+		<div
+			class="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-3 px-8 py-4 max-md:px-5"
+		>
+			<span class="text-[12px] text-default/65">© {year} NeoWorks, Inc. Built with care for privacy.</span>
 			<div class="flex gap-5">
-				{#each social as s}
+				{#each social as socialLink (socialLink.label)}
 					<a
-						href={s.href}
-						class="text-[12px] text-muted transition-colors hover:text-default"
+						href={socialLink.href}
+						class="text-[12px] text-default/80 transition-colors hover:text-default"
 						target="_blank"
-						rel="noopener noreferrer"
-					>{s.label}</a>
+						rel="noopener noreferrer">{socialLink.label}</a
+					>
 				{/each}
 			</div>
 		</div>

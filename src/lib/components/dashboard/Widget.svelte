@@ -68,7 +68,9 @@
 	}
 </script>
 
-<div class="relative flex flex-col w-full h-full rounded-xl border border-line-faint bg-elevated overflow-hidden">
+<div class="relative w-full h-full">
+	<span aria-hidden="true" class="pointer-events-none absolute -top-2.5 left-1/2 z-10 h-5 w-16 -translate-x-1/2 -rotate-2 bg-tape shadow-sm"></span>
+	<div class="flex flex-col w-full h-full rounded-[3px] border border-line-faint bg-surface shadow-[0_8px_24px_rgba(0,0,0,0.10)] overflow-hidden">
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="px-3 py-2.5 flex items-start gap-2 border-b border-line-faint select-none shrink-0"
@@ -88,7 +90,7 @@
 					{@const Icon = icon}
 					<Icon size={13} class="text-dim shrink-0" />
 				{/if}
-				<span class="text-[13px] font-medium text-default truncate">{title}</span>
+				<span class="font-hand text-xl leading-none text-brand truncate">{title}</span>
 			</div>
 			{#if subtitle}
 				<p class="text-[11px] text-dim truncate">{subtitle}</p>
@@ -112,6 +114,7 @@
 			</svg>
 		</div>
 	{/if}
+	</div>
 </div>
 
 {#if menuOpen}

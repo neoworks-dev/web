@@ -1,0 +1,113 @@
+---
+title: Quickstart
+description: Install the SDK, sign in, and store and read a first item in an encrypted collection.
+glance:
+  - label: "Time"
+    value: "About five minutes"
+  - label: "Package"
+    value: "@neoworks-dev/sdk"
+  - label: "You need"
+    value: "An OAuth client id"
+related:
+  - label: "Sign-in"
+    href: "/docs/sdk/signin"
+    description: "Popups, native apps and sign-out."
+  - label: "Collections"
+    href: "/docs/sdk/collections"
+    description: "Updates, deletes and sharing."
+  - label: "Configuration"
+    href: "/docs/sdk/configuration"
+    description: "All client options."
+---
+
+<script>
+  import MarginNote from '$lib/components/docs/MarginNote.svelte'
+  import CodeAside from '$lib/components/docs/CodeAside.svelte'
+  import PackageInstall from '$lib/components/docs/PackageInstall.svelte'
+  const signInExample = { language: 'ts', code: `const user = await neoworks.ready()
+if (user === null) await neoworks.signin()` }
+</script>
+
+## Install
+
+Add the package to your project.
+
+<PackageInstall name="@neoworks-dev/sdk" />
+
+## Create the client
+
+The client takes the OAuth client id of your app and the scopes it asks for. The scopes that name a collection, such as `@neoworks/calendar:read`, tell the SDK to keep an encrypted local store and sync it. The examples on this page use the calendar collection, so they ask for its read and write scopes.
+
+```ts
+import Neoworks from '@neoworks-dev/sdk'
+
+export const neoworks = new Neoworks({
+  client: 'my-calendar-app',
+  name: 'My Calendar',
+  scopes: [
+    'openid',
+    'profile',
+    'email',
+    '@neoworks/calendar:read',
+    '@neoworks/calendar:write',
+  ],
+})
+```
+
+The `client` value is the id your app is registered with on the Neoworks auth server. `name` is the name the user sees on the consent screen.
+
+<CodeAside {...signInExample}>
+
+## Sign in
+
+Restore the session of an earlier visit, and start the sign-in if there is none.
+
+`signin()` sends the browser to the Neoworks authorization page. After the user approves, Neoworks sends the browser back to `/callback` on the origin of your app. That page only needs to finish the sign-in:
+
+```ts
+await neoworks.signin()
+```
+
+The call exchanges the code for tokens, accepts the grant for the collections and starts the first sync. It resolves to the signed-in `User`.
+
+</CodeAside>
+
+## Create and read an item
+
+<MarginNote>The first write is slower than the ones after it: it loads the encrypted local store and the wasm core.</MarginNote>
+
+The calendar schema is generated as the module `@neoworks-dev/schemas/calendar`. It exports one resource per model, named in the plural, and the enum `CategoryColor`. A calendar is a container, and an event is an item under a calendar.
+
+```ts
+import calendarSchema, { CategoryColor } from '@neoworks-dev/schemas/calendar'
+
+const { calendars, events } = neoworks.collection(calendarSchema)
+
+const work = await calendars.create({
+  name: 'Work',
+  color: CategoryColor.blue,
+  isDefault: false,
+})
+
+const standup = await events.create({
+  calendar: work.id,
+  uid: crypto.randomUUID(),
+  title: 'Standup',
+  start: new Date('2026-10-14T09:00:00Z'),
+  end: new Date('2026-10-14T09:15:00Z'),
+  showWithoutTime: false,
+  sequence: 0,
+  deleted: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+})
+
+const stored = await events.get(standup.id)
+console.log(stored.title, stored._meta.calendar)
+```
+
+The item carries the parent container as `calendar`, the same name the schema gives the container model. Fields of the schema sit at the top level of the object, and the SDK adds `_meta` with the container id and the state of the node.
+
+## Next steps
+
+The [sign-in](/docs/sdk/signin) page covers popups, native apps and sign-out. The [collections](/docs/sdk/collections) page covers updates, deletes and sharing, and the [lists](/docs/sdk/lists) page covers filters and ordering.

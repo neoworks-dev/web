@@ -118,6 +118,11 @@
 		},
 	].filter((group) => group.items.length > 0));
 
+	function ariaCurrent(active: boolean): 'page' | undefined {
+		if (active) return 'page';
+		return undefined;
+	}
+
 	function isActive(href: string): boolean {
 		if (href === '/dashboard') return $page.url.pathname === '/dashboard';
 		if (/^\/dashboard\/developer\/[^/]+$/.test(href)) return $page.url.pathname === href;
@@ -136,8 +141,8 @@
 
 			{#each groups as group, gi}
 				{#if group.label && !collapsed}
-					<div class="flex items-center h-7 px-2 mt-2 mb-px">
-						<span class="font-mono text-[11px] text-dim uppercase tracking-caps whitespace-nowrap">
+					<div class="flex items-center h-8 px-2 mt-2 mb-px">
+						<span class="font-hand text-xl leading-none text-brand whitespace-nowrap">
 							{group.label}
 						</span>
 					</div>
@@ -149,9 +154,15 @@
 						{href}
 						title={collapsed ? label : undefined}
 						onclick={() => (mobileOpen = false)}
-						class="flex items-center gap-2 h-9 px-2 rounded-md text-[13px] font-medium transition-colors duration-fast
-								{active ? 'bg-raised text-default' : 'text-muted hover:bg-hover hover:text-default'}"
-						class:justify-center={collapsed}
+						aria-current={ariaCurrent(active)}
+						class={[
+							'flex items-center gap-2 h-9 px-2 rounded-[2px] text-[13px] font-medium transition-colors duration-fast',
+							{
+								'-rotate-[0.6deg] bg-note text-default': active,
+								'text-muted hover:bg-hover hover:text-default': !active,
+								'justify-center': collapsed
+							}
+						]}
 					>
 						<span class="flex shrink-0 w-5 h-5 items-center justify-center">
 							<Icon size={17} weight={active ? 'fill' : 'regular'} />

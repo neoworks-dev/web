@@ -3,7 +3,7 @@ title: Self-hosting
 description: Run the full NeoWorks stack on your own machine with process-compose and Docker.
 ---
 
-NeoWorks is MIT licensed and runs anywhere Docker does. Local development uses
+NeoWorks runs anywhere Docker does. Local development uses
 **process-compose** to supervise the backing services and the app processes together.
 
 ## Prerequisites

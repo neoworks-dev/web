@@ -1,50 +1,70 @@
 <script lang="ts">
+	import { reveal } from '$lib/actions/reveal';
 	import SectionHeading from './SectionHeading.svelte';
+	import Marmot from './scrapbook/Marmot.svelte';
+	import HillEdge from './scrapbook/HillEdge.svelte';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import MinusIcon from 'phosphor-svelte/lib/MinusIcon';
 
-	const faqs = [
+	type Question = { q: string; a: string };
+
+	const landingQuestions: Question[] = [
+		{
+			q: 'Can I bring my existing photos and files?',
+			a: 'Yes. Connect the account they live in today, like Google, and your library comes across with its albums and dates. Each photo is encrypted on your device before it is uploaded to Neoworks.'
+		},
 		{
 			q: 'Is my data really encrypted?',
-			a: 'Yes. Your data is encrypted with keys derived on your own devices before it ever reaches our servers. We store ciphertext we cannot read — not your files, contacts, or notes.'
+			a: 'Yes. Your data is encrypted with keys derived on your own devices before it ever reaches our servers. We store ciphertext we cannot read, whether that is a photo, a file or a contact.'
+		},
+		{
+			q: 'Do I need a new email address?',
+			a: 'No. Neoworks Mail is an app for the address you already have. Your mail stays with your current provider.'
 		},
 		{
 			q: 'What happens if NeoWorks shuts down?',
-			a: 'You are never locked in. You can export a full, decrypted copy of your data at any time, and the entire stack is open source and self-hostable — so you can keep running it on your own server.'
+			a: 'You are never locked in. You can export a full, decrypted copy of your data at any time, and the entire stack is source available and self-hostable — so you can keep running it on your own server.'
 		},
 		{
 			q: 'How can it be this cheap?',
-			a: 'Because we don’t sell ads or data, and we don’t mark up infrastructure. You pay a small flat fee per user plus the storage and compute you actually use, at the price it costs us.'
+			a: 'Because we don’t sell ads or data. On pay as you go you pay €2.99 a month plus storage at the price it costs us, so 200 GB comes to €4.55.'
 		},
 		{
 			q: 'What is included for free?',
-			a: 'The free tier gives you your identity and 1 GB of encrypted object storage across every app in the ecosystem — no credit card required.'
-		},
-		{
-			q: 'Can other apps see my data?',
-			a: 'Only the data you grant them, through scoped permissions you control. Every grant is visible in one place and can be revoked instantly, which cuts off that app’s access to your encrypted data.'
-		},
-		{
-			q: 'Can I build my own app on it?',
-			a: 'Absolutely — that’s the point. Register an OAuth client, define your schema, and get scoped, row-isolated storage that lives in each user’s own encrypted account. See the developer docs to start.'
+			a: 'The free tier gives you your account and 1 GB of encrypted storage across every Neoworks app, with no credit card required.'
 		}
 	];
+
+	let {
+		questions = landingQuestions,
+		title = 'Questions, answered.'
+	}: { questions?: Question[]; title?: string } = $props();
 
 	let openIndex = $state<number | null>(0);
 
 	function toggle(index: number) {
-		openIndex = openIndex === index ? null : index;
+		if (openIndex === index) {
+			openIndex = null;
+			return;
+		}
+		openIndex = index;
 	}
 </script>
 
-<section class="border-t border-line-faint px-6 py-24 max-md:py-16">
+<!-- Back onto the meadow before the mountains. -->
+<section class="relative bg-meadow px-6 pb-24 pt-20 max-md:py-16">
+	<HillEdge />
 	<div class="mx-auto max-w-[760px]">
-		<SectionHeading eyebrow="FAQ" title="Questions, answered." align="center" />
+		<Marmot pose="sleeping" class="mx-auto mb-4 w-[200px]" />
+		<SectionHeading eyebrow="Still wondering?" {title} align="center" />
 
 		<div class="mt-12 flex flex-col gap-2">
-			{#each faqs as { q, a }, index}
+			{#each questions as { q, a }, index}
 				{@const isOpen = openIndex === index}
-				<div class="overflow-hidden rounded-2xl border border-line-faint bg-elevated/50">
+				<div
+					use:reveal={{ delay: index * 60 }}
+					class="overflow-hidden rounded-[3px] bg-surface shadow-[0_4px_14px_rgba(0,0,0,0.08)]"
+				>
 					<button
 						type="button"
 						aria-expanded={isOpen}

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Hero from '$lib/components/Hero.svelte';
 	import HowItWorks from '$lib/components/landing/HowItWorks.svelte';
-	import WhyDifferent from '$lib/components/landing/WhyDifferent.svelte';
 	import Ecosystem from '$lib/components/landing/Ecosystem.svelte';
 	import DataEncrypted from '$lib/components/landing/DataEncrypted.svelte';
 	import DataOwnership from '$lib/components/landing/DataOwnership.svelte';
@@ -12,10 +11,9 @@
 
 </script>
 
-<main>
+<main class="bg-meadow">
 	<Hero />
 	<HowItWorks />
-	<WhyDifferent />
 	<Ecosystem />
 	<DataEncrypted />
 	<DataOwnership />
