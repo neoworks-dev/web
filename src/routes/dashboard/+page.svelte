@@ -4,6 +4,7 @@
 	import Widget from '$lib/components/dashboard/Widget.svelte';
 	import RecentUploads from '$lib/components/dashboard/RecentUploads.svelte';
 	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+	import Marmot from '$lib/components/landing/scrapbook/Marmot.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -38,7 +39,10 @@
 
 		{:else if layout.type === 'activity'}
 			<Widget title="Activity" {...handlers}>
-				<div class="p-5 text-sm text-dim">No recent activity.</div>
+				<div class="flex flex-col items-center gap-2 p-5 text-sm text-dim">
+					<Marmot pose="sleeping" class="h-24 w-auto" />
+					<p>No recent activity.</p>
+				</div>
 			</Widget>
 
 		{:else if layout.type === 'recent-uploads'}

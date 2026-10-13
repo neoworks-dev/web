@@ -17,13 +17,15 @@
 	} = $props();
 </script>
 
-<div class="rounded-xl bg-elevated border border-line-faint overflow-hidden flex flex-col">
+<div class="relative">
+	<span aria-hidden="true" class="pointer-events-none absolute -top-2.5 left-1/2 z-10 h-5 w-16 -translate-x-1/2 -rotate-2 bg-tape shadow-sm"></span>
+	<div class="rounded-[3px] bg-surface border border-line-faint shadow-[0_8px_24px_rgba(0,0,0,0.10)] overflow-hidden flex flex-col">
 	<div class="px-4 py-2.5 flex items-start gap-2.5 border-b border-line-faint shrink-0">
 		{#if Icon}
 			<Icon size={14} class="text-dim shrink-0 mt-0.5" />
 		{/if}
 		<div class="min-w-0">
-			<p class="text-[13px] font-medium text-default truncate">{title}</p>
+			<p class="font-hand text-xl leading-none text-brand truncate">{title}</p>
 			{#if subtitle}
 				<p class="text-[11px] text-dim truncate">{subtitle}</p>
 			{/if}
@@ -31,5 +33,6 @@
 	</div>
 	<div class="flex-1 min-w-0">
 		{@render children()}
+	</div>
 	</div>
 </div>

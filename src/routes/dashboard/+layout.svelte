@@ -1,10 +1,12 @@
 <script lang="ts">
+	import '@fontsource-variable/geist';
+	import '@fontsource-variable/geist-mono';
+	import '@fontsource/caveat/500.css';
 	import type { Snippet } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import type { LayoutData } from './$types';
 	import Sidebar from '$lib/components/dashboard/Sidebar.svelte';
 	import DashboardMobileBar from '$lib/components/dashboard/DashboardMobileBar.svelte';
-	import { PegboardCanvas } from '@neoworks-dev/ui';
 	import { CommandPalette } from '$lib/components/CommandPalette';
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props();
@@ -13,9 +15,11 @@
 	let mobileNavOpen = $state(false);
 </script>
 
-<PegboardCanvas></PegboardCanvas>
 <CommandPalette />
-<div class="relative flex flex-col md:flex-row h-screen overflow-hidden p-2 gap-2 z-10">
+<div
+	data-scene-root
+	class="relative z-10 flex h-screen flex-col gap-3 overflow-hidden bg-paper p-3 text-default antialiased md:flex-row"
+>
   <DashboardMobileBar bind:open={mobileNavOpen} />
 
   {#if mobileNavOpen}

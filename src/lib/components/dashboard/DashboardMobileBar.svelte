@@ -6,7 +6,7 @@
 </script>
 
 <!-- Mobile-only top bar with an animated hamburger that toggles the sidebar drawer. -->
-<div class="md:hidden flex items-center justify-between h-12 px-3 rounded-lg bg-elevated border border-line-faint shrink-0">
+<div class="md:hidden flex items-center justify-between h-12 px-3 rounded-[3px] bg-surface border border-line-faint shadow-[0_8px_24px_rgba(0,0,0,0.10)] shrink-0">
 	<span class="flex items-center gap-2 text-default">
 		<svg width="22" height="22" viewBox="0 0 100 100" fill="none">
 			<circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="7" />

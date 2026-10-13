@@ -27,7 +27,7 @@
 </script>
 
 <aside
-  class="flex flex-col bg-elevated border border-line-faint overflow-hidden rounded-lg shrink-0
+  class="flex flex-col bg-surface border border-line-faint overflow-hidden rounded-[3px] shadow-[0_8px_24px_rgba(0,0,0,0.10)] shrink-0
          transition-[translate,width] duration-slow ease-out
          fixed inset-y-2 right-2 z-50 w-[220px]
          md:static md:inset-auto md:right-auto md:z-10 md:translate-x-0
@@ -63,7 +63,7 @@
     <button
       type="button"
       onclick={() => (collapsed = !collapsed)}
-      class="hidden md:flex items-center gap-[10px] h-9 px-2 rounded-md text-[13px] text-dim hover:bg-hover hover:text-muted transition-colors w-full"
+      class="hidden md:flex items-center gap-[10px] h-9 px-2 rounded-[2px] text-[13px] text-dim hover:bg-hover hover:text-muted transition-colors w-full"
       class:justify-center={collapsed}
     >
       <span
@@ -84,9 +84,9 @@
       class="flex items-center gap-[10px] w-full p-2 overflow-hidden"
       class:justify-center={collapsed}
     >
-      <div class="relative w-[30px] h-[30px] rounded-full bg-raised border border-line-faint flex items-center justify-center text-[11px] font-semibold text-muted shrink-0 select-none">
+      <div class="relative w-[30px] h-[30px] rounded-full bg-note border border-line-faint flex items-center justify-center text-[11px] font-semibold text-muted shrink-0 select-none">
         {initials(user)}
-        <span class="absolute right-[-1px] bottom-[-1px] w-2 h-2 rounded-full bg-green border-2 border-elevated"></span>
+        <span class="absolute right-[-1px] bottom-[-1px] w-2 h-2 rounded-full bg-green border-2 border-surface"></span>
       </div>
       {#if !collapsed}
         <div class="min-w-0 flex-1 text-left space-y-1">

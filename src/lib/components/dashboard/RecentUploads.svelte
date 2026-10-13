@@ -71,7 +71,7 @@
 </script>
 
 <div>
-	<div class="sticky top-0 z-10 bg-elevated px-6 pt-4 pb-3 flex items-center justify-between">
+	<div class="sticky top-0 z-10 bg-surface px-6 pt-4 pb-3 flex items-center justify-between">
 		<p class="text-[11px] font-semibold text-dim uppercase tracking-caps">{files.length} files</p>
 		<a
 			href="/dashboard/storage"
@@ -85,7 +85,7 @@
 	<div class="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] gap-3 px-6 pb-6">
 		{#each files as file, i (file.id)}
 			<div class="group min-w-0">
-				<div class="relative aspect-square rounded-lg overflow-hidden">
+				<div class="relative aspect-square rounded-[2px] overflow-hidden">
 					{#if file.kind === 'image'}
 						{@const grad = imageGradients[i % imageGradients.length]}
 						<div
